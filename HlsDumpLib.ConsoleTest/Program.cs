@@ -42,10 +42,10 @@ namespace HlsDumpLib.ConsoleTest
             Console.WriteLine(fileUrl);
         }
 
-        private static void OnNextFile(object sender, string fileUrl)
+        private static void OnNextFile(object sender, string fileUrl, uint fileNumber)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("Next file: ");
+            Console.Write($"Chunk №{fileNumber}: ");
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(fileUrl);
         }

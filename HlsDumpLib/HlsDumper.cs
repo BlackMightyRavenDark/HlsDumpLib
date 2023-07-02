@@ -10,6 +10,8 @@ namespace HlsDumpLib
     public class HlsDumper
     {
         public string Url { get; }
+        public uint TotalChunkCount { get; private set; } = 0;
+ 
         private readonly LinkedList<string> _fileList = new LinkedList<string>();
 
         public HlsDumper(string url)
@@ -19,7 +21,7 @@ namespace HlsDumpLib
 
         public async void Dump(
             Action<object, string> playlistChecking,
-            Action<object, string> nextFile,
+            Action<object, string, uint> nextFile,
             Action<object, string, int> warning,
             Action<object, string, int> error,
             Action<object> finished)
@@ -44,7 +46,9 @@ namespace HlsDumpLib
                                 {
                                     _fileList.RemoveFirst();
                                 }
-                                nextFile?.Invoke(this, item);
+
+                                TotalChunkCount++;
+                                nextFile?.Invoke(this, item, TotalChunkCount);
                                 errorCount = 0;
                             }
                         }
