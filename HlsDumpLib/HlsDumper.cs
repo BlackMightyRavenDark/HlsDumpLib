@@ -12,7 +12,13 @@ namespace HlsDumpLib
         public string Url { get; }
         public uint TotalChunkCount { get; private set; } = 0;
  
-        private readonly LinkedList<string> _fileList = new LinkedList<string>();
+        private readonly LinkedList<string> _chunkUrlList = new LinkedList<string>();
+
+        public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
+        public delegate void NextChunkDelegate(object sender, uint chunkNumber, string chunkUrl);
+        public delegate void DumpWarningDelegate(object sender, string message, int errorCount);
+        public delegate void DumpErrorDelegate(object sender, string message, int errorCount);
+        public delegate void DumpFinishedDelegate(object sender);
 
         public HlsDumper(string url)
         {
@@ -20,11 +26,11 @@ namespace HlsDumpLib
         }
 
         public async void Dump(
-            Action<object, string> playlistChecking,
-            Action<object, string, uint> nextFile,
-            Action<object, string, int> warning,
-            Action<object, string, int> error,
-            Action<object> finished)
+            PlaylistCheckingDelegate playlistChecking,
+            NextChunkDelegate nextChunk,
+            DumpWarningDelegate dumpWarning,
+            DumpErrorDelegate dumpError,
+            DumpFinishedDelegate dumpFinished)
         {
             FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
             await Task.Run(() =>
@@ -41,34 +47,34 @@ namespace HlsDumpLib
                         {
                             foreach (string item in list)
                             {
-                                _fileList.AddLast(item);
-                                if (_fileList.Count > 50)
+                                _chunkUrlList.AddLast(item);
+                                if (_chunkUrlList.Count > 50)
                                 {
-                                    _fileList.RemoveFirst();
+                                    _chunkUrlList.RemoveFirst();
                                 }
 
                                 TotalChunkCount++;
-                                nextFile?.Invoke(this, item, TotalChunkCount);
+                                nextChunk?.Invoke(this, TotalChunkCount, item);
                                 errorCount = 0;
                             }
                         }
                         else
                         {
                             errorCount++;
-                            warning?.Invoke(this, "No new files detected", errorCount);
+                            dumpWarning?.Invoke(this, "No new files detected", errorCount);
                         }
                     }
                     else
                     {
                         errorCount++;
-                        error?.Invoke(this, "Playlist is not found", errorCount);
+                        dumpError?.Invoke(this, "Playlist is not found", errorCount);
                     }
 
                     Thread.Sleep(2000);
                 } while (errorCount < 5);
             });
 
-            finished?.Invoke(this);
+            dumpFinished?.Invoke(this);
         }
 
         private List<string> ExtractUrlsFromPlaylist(string playlist)
@@ -81,7 +87,7 @@ namespace HlsDumpLib
 
         private List<string> FilterPlaylist(List<string> playlist)
         {
-            return playlist.Where(s => !_fileList.Contains(s))?.ToList();
+            return playlist.Where(s => !_chunkUrlList.Contains(s))?.ToList();
         }
     }
 }

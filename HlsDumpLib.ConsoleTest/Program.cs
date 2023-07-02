@@ -20,7 +20,7 @@ namespace HlsDumpLib.ConsoleTest
                 if (errorCode == 200)
                 {
                     HlsDumper dumper = new HlsDumper(url);
-                    dumper.Dump(OnPlaylistChecking, OnNextFile, OnWarning, OnError, OnFinished);
+                    dumper.Dump(OnPlaylistChecking, OnNextChunk, OnWarning, OnError, OnFinished);
                 }
                 else
                 {
@@ -34,31 +34,31 @@ namespace HlsDumpLib.ConsoleTest
             Console.ReadLine();
         }
 
-        private static void OnPlaylistChecking(object sender, string fileUrl)
+        private static void OnPlaylistChecking(object sender, string playlistFileUrl)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write("Checking playlist: ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(fileUrl);
+            Console.WriteLine(playlistFileUrl);
         }
 
-        private static void OnNextFile(object sender, string fileUrl, uint fileNumber)
+        private static void OnNextChunk(object sender, uint chunkNumber, string chunkFileUrl)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write($"Chunk №{fileNumber}: ");
+            Console.Write($"Chunk №{chunkNumber}: ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(fileUrl);
-        }
-
-        private static void OnError(object sender, string message, int errorCount)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"Error {errorCount} / 5: {message}");
+            Console.WriteLine(chunkFileUrl);
         }
 
         private static void OnWarning(object sender, string message, int errorCount)
         {
             Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine($"Error {errorCount} / 5: {message}");
+        }
+
+        private static void OnError(object sender, string message, int errorCount)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"Error {errorCount} / 5: {message}");
         }
 
