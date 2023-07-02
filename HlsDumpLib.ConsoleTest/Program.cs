@@ -19,8 +19,10 @@ namespace HlsDumpLib.ConsoleTest
                 int errorCode = MultiThreadedDownloaderLib.FileDownloader.GetUrlResponseHeaders(url, out _, out string errorText);
                 if (errorCode == 200)
                 {
+                    string fileName = $"hlsdumper_{DateTime.Now:yyyy-MM-dd HH-mm-ss}.ts";
                     HlsDumper dumper = new HlsDumper(url);
-                    dumper.Dump(OnPlaylistChecking, OnNextChunk, OnWarning, OnError, OnFinished);
+                    dumper.Dump(fileName, OnPlaylistChecking, OnNextChunk, OnDumpProgress,
+                        OnChunkDownloadFailed, OnChunkAppendFailed, OnWarning, OnError, OnFinished);
                 }
                 else
                 {
@@ -42,12 +44,53 @@ namespace HlsDumpLib.ConsoleTest
             Console.WriteLine(playlistFileUrl);
         }
 
-        private static void OnNextChunk(object sender, uint chunkNumber, string chunkFileUrl)
+        private static void OnNextChunk(object sender, uint chunkNumber, long chunkSize, string chunkFileUrl)
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write($"Chunk №{chunkNumber}: ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(chunkFileUrl);
+            string t = chunkSize >= 0L ? $"{chunkFileUrl}, {chunkSize} bytes" : chunkFileUrl;
+            Console.WriteLine(t);
+        }
+
+        private static void OnDumpProgress(object sender, long fileSize, int errorCode)
+        {
+            if (errorCode == 200)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine($"Dumped file size: {fileSize} bytes");
+                HlsDumper dumper = sender as HlsDumper;
+                if (dumper.ChunkDownloadErrorCount > 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Chunk download errors: {dumper.ChunkDownloadErrorCount}");
+                }
+                if (dumper.ChunkAppendErrorCount > 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Chunk append errors: {dumper.ChunkAppendErrorCount}");
+                }
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"HTTP error {errorCode}!");
+            }
+        }
+
+        private static void OnChunkDownloadFailed(object sender, int errorCode, uint failedCount)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            uint number = (sender as HlsDumper).TotalChunkCount;
+            Console.WriteLine($"Chunk №{number} download failed with error code {errorCode}! " +
+                $"Total similar errors: {failedCount}");
+        }
+
+        public static void OnChunkAppendFailed(object sender, uint failedCount)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            uint number = (sender as HlsDumper).TotalChunkCount;
+            Console.WriteLine($"Chunk №{number} append failed! Total similar errors: {failedCount}");
         }
 
         private static void OnWarning(object sender, string message, int errorCount)
