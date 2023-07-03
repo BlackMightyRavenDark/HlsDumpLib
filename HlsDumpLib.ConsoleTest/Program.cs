@@ -44,10 +44,11 @@ namespace HlsDumpLib.ConsoleTest
             Console.WriteLine(playlistFileUrl);
         }
 
-        private static void OnNextChunk(object sender, uint chunkNumber, long chunkSize, string chunkFileUrl)
+        private static void OnNextChunk(object sender, uint absoluteChunkNumber,
+            uint sessionChunkNumber, long chunkSize, string chunkFileUrl)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write($"Chunk №{chunkNumber}: ");
+            Console.Write($"Chunk №{sessionChunkNumber} ({absoluteChunkNumber}): ");
             Console.ForegroundColor = ConsoleColor.White;
             string t = chunkSize >= 0L ? $"{chunkFileUrl}, {chunkSize} bytes" : chunkFileUrl;
             Console.WriteLine(t);
@@ -81,7 +82,7 @@ namespace HlsDumpLib.ConsoleTest
         private static void OnChunkDownloadFailed(object sender, int errorCode, uint failedCount)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            uint number = (sender as HlsDumper).TotalChunkCount;
+            uint number = (sender as HlsDumper).ProcessedChunkCountTotal;
             Console.WriteLine($"Chunk №{number} download failed with error code {errorCode}! " +
                 $"Total similar errors: {failedCount}");
         }
@@ -89,7 +90,7 @@ namespace HlsDumpLib.ConsoleTest
         public static void OnChunkAppendFailed(object sender, uint failedCount)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            uint number = (sender as HlsDumper).TotalChunkCount;
+            uint number = (sender as HlsDumper).ProcessedChunkCountTotal;
             Console.WriteLine($"Chunk №{number} append failed! Total similar errors: {failedCount}");
         }
 
