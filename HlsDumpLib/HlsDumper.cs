@@ -29,6 +29,7 @@ namespace HlsDumpLib
         public delegate void DumpProgressDelegate(object sender, long fileSize, int errorCode);
         public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, uint failedCount);
         public delegate void ChunkAppendFailedDelegate(object sender, uint failedCount);
+        public delegate void DumpMessageDelegate(object sender, string message);
         public delegate void DumpWarningDelegate(object sender, string message, int errorCount);
         public delegate void DumpErrorDelegate(object sender, string message, int errorCount);
         public delegate void DumpFinishedDelegate(object sender);
@@ -44,6 +45,7 @@ namespace HlsDumpLib
             DumpProgressDelegate dumpProgress,
             ChunkDownloadFailedDelegate chunkDownloadFailed,
             ChunkAppendFailedDelegate chunkAppendFailed,
+            DumpMessageDelegate dumpMessage,
             DumpWarningDelegate dumpWarning,
             DumpErrorDelegate dumpError,
             DumpFinishedDelegate dumpFinished)
@@ -57,12 +59,14 @@ namespace HlsDumpLib
             FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
             await Task.Run(() =>
             {
+                const int MAX_CHECKING_INTERVAL_MILLISECONDS = 2000;
                 int errorCount = 0;
                 bool first = true;
                 try
                 {
                     using (Stream outputStream = File.OpenWrite(outputFilePath))
                     {
+                        DateTime lastTime = DateTime.Now;
                         do
                         {
                             playlistChecking?.Invoke(this, Url);
@@ -139,7 +143,16 @@ namespace HlsDumpLib
                                 dumpError?.Invoke(this, "Playlist is not found", errorCount);
                             }
 
-                            Thread.Sleep(2000);
+                            double elapsedTime = (DateTime.Now - lastTime).TotalMilliseconds;
+                            int delay = MAX_CHECKING_INTERVAL_MILLISECONDS - (int)elapsedTime;
+                            if (delay > 0)
+                            {
+                                dumpMessage?.Invoke(this,
+                                    $"Waiting for {delay} milliseconds " +
+                                    $"(max: {MAX_CHECKING_INTERVAL_MILLISECONDS})");
+                                Thread.Sleep(delay);
+                            }
+                            lastTime = DateTime.Now;
                         } while (errorCount < 5);
                     }
                 } catch (Exception ex)

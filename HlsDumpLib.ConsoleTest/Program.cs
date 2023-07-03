@@ -22,7 +22,7 @@ namespace HlsDumpLib.ConsoleTest
                     string fileName = $"hlsdumper_{DateTime.Now:yyyy-MM-dd HH-mm-ss}.ts";
                     HlsDumper dumper = new HlsDumper(url);
                     dumper.Dump(fileName, OnPlaylistChecking, OnNextChunk, OnDumpProgress,
-                        OnChunkDownloadFailed, OnChunkAppendFailed, OnWarning, OnError, OnFinished);
+                        OnChunkDownloadFailed, OnChunkAppendFailed, OnMessage, OnWarning, OnError, OnFinished);
                 }
                 else
                 {
@@ -92,6 +92,12 @@ namespace HlsDumpLib.ConsoleTest
             Console.ForegroundColor = ConsoleColor.Red;
             uint number = (sender as HlsDumper).ProcessedChunkCountTotal;
             Console.WriteLine($"Chunk №{number} append failed! Total similar errors: {failedCount}");
+        }
+
+        private static void OnMessage(object sender, string message)
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(message);
         }
 
         private static void OnWarning(object sender, string message, int errorCount)
