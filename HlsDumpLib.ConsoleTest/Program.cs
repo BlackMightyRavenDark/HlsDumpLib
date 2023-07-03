@@ -44,11 +44,11 @@ namespace HlsDumpLib.ConsoleTest
             Console.WriteLine(playlistFileUrl);
         }
 
-        private static void OnNextChunk(object sender, uint absoluteChunkNumber,
-            uint sessionChunkNumber, long chunkSize, string chunkFileUrl)
+        private static void OnNextChunk(object sender, uint absoluteChunkId,
+            uint sessionChunkId, long chunkSize, string chunkFileUrl)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write($"Chunk №{sessionChunkNumber} ({absoluteChunkNumber}): ");
+            Console.Write($"Chunk {sessionChunkId} ({absoluteChunkId}): ");
             Console.ForegroundColor = ConsoleColor.White;
             string t = chunkSize >= 0L ? $"{chunkFileUrl}, {chunkSize} bytes" : chunkFileUrl;
             Console.WriteLine(t);

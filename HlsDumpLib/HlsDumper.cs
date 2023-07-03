@@ -24,8 +24,8 @@ namespace HlsDumpLib
         private readonly LinkedList<string> _chunkUrlList = new LinkedList<string>();
 
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
-        public delegate void NextChunkDelegate(object sender, uint absoluteChunkNumber,
-            uint sessionChunkNumber, long chunkSize, string chunkUrl);
+        public delegate void NextChunkDelegate(object sender, uint absoluteChunkId,
+            uint sessionChunkId, long chunkSize, string chunkUrl);
         public delegate void DumpProgressDelegate(object sender, long fileSize, int errorCode);
         public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, uint failedCount);
         public delegate void ChunkAppendFailedDelegate(object sender, uint failedCount);
@@ -119,7 +119,7 @@ namespace HlsDumpLib
                                         }
 
                                         ProcessedChunkCountTotal++;
-                                        nextChunk?.Invoke(this, CurrentSessionFirstChunkId + ProcessedChunkCountTotal,
+                                        nextChunk?.Invoke(this, CurrentSessionFirstChunkId + ProcessedChunkCountTotal - 1,
                                             ProcessedChunkCountTotal, lastChunkLength, item);
 
                                         dumpProgress?.Invoke(this, outputStream.Length, code);
