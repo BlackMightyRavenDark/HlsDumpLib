@@ -22,7 +22,8 @@ namespace HlsDumpLib.ConsoleTest
                     string fileName = $"hlsdumper_{DateTime.Now:yyyy-MM-dd HH-mm-ss}.ts";
                     HlsDumper dumper = new HlsDumper(url);
                     dumper.Dump(fileName, OnPlaylistChecking, OnNextChunk, OnDumpProgress,
-                        OnChunkDownloadFailed, OnChunkAppendFailed, OnMessage, OnWarning, OnError, OnFinished);
+                        OnChunkDownloadFailed, OnChunkAppendFailed, OnMessage, OnWarning, OnError, OnFinished,
+                        false);
                 }
                 else
                 {

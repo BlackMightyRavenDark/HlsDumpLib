@@ -51,7 +51,8 @@ namespace HlsDumpLib
             DumpMessageDelegate dumpMessage,
             DumpWarningDelegate dumpWarning,
             DumpErrorDelegate dumpError,
-            DumpFinishedDelegate dumpFinished)
+            DumpFinishedDelegate dumpFinished,
+            bool breakIfPlaylistLost)
         {
             if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
             {
@@ -156,6 +157,11 @@ namespace HlsDumpLib
                                 CurrentPlaylistNewChunkCount = 0;
                                 errorCount++;
                                 dumpError?.Invoke(this, "Playlist is not found", errorCount);
+
+                                if (breakIfPlaylistLost)
+                                {
+                                    break;
+                                }
                             }
 
                             double elapsedTime = (DateTime.Now - lastTime).TotalMilliseconds;
