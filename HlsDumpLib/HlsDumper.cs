@@ -11,24 +11,27 @@ namespace HlsDumpLib
     public class HlsDumper
     {
         public string Url { get; }
-        public uint ProcessedChunkCountTotal { get; private set; } = 0;
-        public uint ChunkDownloadErrorCount { get; private set; } = 0;
-        public uint ChunkAppendErrorCount { get; private set; } = 0;
+        public long ProcessedChunkCountTotal { get; private set; } = 0;
+        public long ChunkDownloadErrorCount { get; private set; } = 0L;
+        public long ChunkAppendErrorCount { get; private set; } = 0L;
 
-        public uint CurrentSessionFirstChunkId { get; private set; } = 0;
-        public uint CurrentPlaylistFirstNewChunkId { get; private set; } = 0;
+        public long CurrentSessionFirstChunkId { get; private set; } = 0L;
+        public long CurrentPlaylistFirstNewChunkId { get; private set; } = 0L;
         public int CurrentPlaylistChunkCount { get; private set; } = 0;
         public int CurrentPlaylistNewChunkCount { get; private set; } = 0;
-        private uint _currentPlaylistFirstChunkId = 0;
+        public long LostChunkCount { get; private set; } = 0L;
+
+        private long _currentPlaylistFirstChunkId = -1L;
+        private long _lastProcessedChunkId = -1L;
  
         private readonly LinkedList<string> _chunkUrlList = new LinkedList<string>();
 
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
-        public delegate void NextChunkDelegate(object sender, uint absoluteChunkId,
-            uint sessionChunkId, long chunkSize, string chunkUrl);
+        public delegate void NextChunkDelegate(object sender, long absoluteChunkId,
+            long sessionChunkId, long chunkSize, string chunkUrl);
         public delegate void DumpProgressDelegate(object sender, long fileSize, int errorCode);
-        public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, uint failedCount);
-        public delegate void ChunkAppendFailedDelegate(object sender, uint failedCount);
+        public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, long failedCount);
+        public delegate void ChunkAppendFailedDelegate(object sender, long failedCount);
         public delegate void DumpMessageDelegate(object sender, string message);
         public delegate void DumpWarningDelegate(object sender, string message, int errorCount);
         public delegate void DumpErrorDelegate(object sender, string message, int errorCount);
@@ -85,15 +88,23 @@ namespace HlsDumpLib
                                 if (filteredPlaylist != null && filteredPlaylist.Count > 0)
                                 {
                                     CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
-                                    CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId +
-                                        (uint)(CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount);
+                                    CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId + CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount;
 
-                                    foreach (string item in filteredPlaylist)
+                                    long diff = _lastProcessedChunkId >= 0L ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1L;
+                                    long lost = diff - 1L;
+                                    if (lost > 0)
                                     {
+                                        LostChunkCount += lost;
+                                        dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
+                                    }
+
+                                    for (int i = 0; i < filteredPlaylist.Count; ++i)
+                                    {
+                                        string chunkUrl = filteredPlaylist[i];
                                         long lastChunkLength = -1L;
 
                                         MemoryStream mem = new MemoryStream();
-                                        FileDownloader d = new FileDownloader() { Url = item };
+                                        FileDownloader d = new FileDownloader() { Url = chunkUrl };
                                         int code = d.Download(mem);
                                         if (code == 200)
                                         {
@@ -104,6 +115,10 @@ namespace HlsDumpLib
                                                 ChunkAppendErrorCount++;
                                                 chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
                                             }
+                                            else
+                                            {
+                                                _lastProcessedChunkId = CurrentPlaylistFirstNewChunkId + (uint)i;
+                                            }
                                         }
                                         else
                                         {
@@ -112,15 +127,15 @@ namespace HlsDumpLib
                                         }
                                         mem.Close();
 
-                                        _chunkUrlList.AddLast(item);
+                                        _chunkUrlList.AddLast(chunkUrl);
                                         if (_chunkUrlList.Count > 50)
                                         {
                                             _chunkUrlList.RemoveFirst();
                                         }
 
                                         ProcessedChunkCountTotal++;
-                                        nextChunk?.Invoke(this, CurrentSessionFirstChunkId + ProcessedChunkCountTotal - 1,
-                                            ProcessedChunkCountTotal, lastChunkLength, item);
+                                        nextChunk?.Invoke(this, CurrentPlaylistFirstNewChunkId + i,
+                                            ProcessedChunkCountTotal, lastChunkLength, chunkUrl);
 
                                         dumpProgress?.Invoke(this, outputStream.Length, code);
 
