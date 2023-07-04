@@ -53,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HlsDumpLib\HlsDumpLib.csproj">
-      <Project>{3aed33f9-27cd-468b-99ed-c1888364cb89}</Project>
+      <Project>{49a14cab-77ee-4b38-942b-ed447a5879f7}</Project>
       <Name>HlsDumpLib</Name>
     </ProjectReference>
   </ItemGroup>
