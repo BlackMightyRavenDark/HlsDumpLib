@@ -43,6 +43,7 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.columnHeaderState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -93,6 +94,7 @@
             this.columnHeaderFileName,
             this.columnHeaderFileSize,
             this.columnHeaderDateStarted,
+            this.columnHeaderState,
             this.columnHeaderPlaylistUrl});
             this.listViewStreams.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.listViewStreams.FullRowSelect = true;
@@ -166,6 +168,11 @@
             this.miCancelToolStripMenuItem.Text = "Отменить";
             this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
             // 
+            // columnHeaderState
+            // 
+            this.columnHeaderState.Text = "Состояние";
+            this.columnHeaderState.Width = 100;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -203,6 +210,7 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem miCheckToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem miCancelToolStripMenuItem;
+        private System.Windows.Forms.ColumnHeader columnHeaderState;
     }
 }
 

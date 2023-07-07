@@ -10,7 +10,8 @@ namespace HlsDumpLib.GuiTest
         public const int COLUMN_ID_FILENAME = 1;
         public const int COLUMN_ID_FILESIZE = 2;
         public const int COLUMN_ID_DATEDUMPSTARTED = 3;
-        public const int COLUMN_ID_URL = 4;
+        public const int COLUMN_ID_STATE = 4;
+        public const int COLUMN_ID_URL = 5;
 
         public Form1()
         {
@@ -93,6 +94,7 @@ namespace HlsDumpLib.GuiTest
                 streamItem.FilePath,
                 string.Empty,
                 string.Empty,
+                "Остановлен",
                 streamItem.PlaylistUrl
             };
             item.SubItems.AddRange(subItems);
@@ -112,7 +114,7 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_FILENAME].Text = "Проверяется...";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Проверяется...";
                 }
             }
         }
@@ -129,8 +131,8 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_FILENAME].Text =
-                        errorCode == 200 ? streamItem.FilePath : $"Ошибка {errorCode}";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
+                        errorCode == 200 ? streamItem.IsLive ? "Дампинг..." : null : $"Ошибка {errorCode}";
                 }
                 streamItem.IsChecking = false;
             }
@@ -148,6 +150,7 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_DATEDUMPSTARTED].Text =
                         streamItem.DumpStarted.ToString("yyyy-MM-dd HH-mm-ss");
                 }
@@ -166,7 +169,7 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_FILENAME].Text =
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
                         errorCode == HlsDumper.DUMPING_ERROR_PLAYLIST_GONE ? "Завершено" : "Отменено";
                 }
             }
@@ -184,6 +187,7 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_FILESIZE].Text = FormatSize(fileSize);
                 }
             }
@@ -195,6 +199,7 @@ namespace HlsDumpLib.GuiTest
             if (!streamItem.IsChecking)
             {
                 streamItem.IsChecking = true;
+                listViewStreams.Items[itemId].SubItems[COLUMN_ID_STATE].Text = "Запуск проверки...";
                 Task.Run(() =>
                 {
                     StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
