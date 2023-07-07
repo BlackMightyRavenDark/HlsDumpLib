@@ -8,7 +8,7 @@ using MultiThreadedDownloaderLib;
 
 namespace HlsDumpLib
 {
-    public class HlsDumper
+    public class HlsDumper : IDisposable
     {
         public string Url { get; }
         public long ProcessedChunkCountTotal { get; private set; } = 0;
@@ -23,8 +23,14 @@ namespace HlsDumpLib
 
         private long _currentPlaylistFirstChunkId = -1L;
         private long _lastProcessedChunkId = -1L;
- 
+
         private readonly LinkedList<string> _chunkUrlList = new LinkedList<string>();
+
+        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationToken _cancellationToken;
+
+        public const int DUMPING_ERROR_PLAYLIST_GONE = -1;
+        public const int DUMPING_ERROR_CANCELED = -2;
 
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
         public delegate void NextChunkDelegate(object sender, long absoluteChunkId,
@@ -35,7 +41,7 @@ namespace HlsDumpLib
         public delegate void DumpMessageDelegate(object sender, string message);
         public delegate void DumpWarningDelegate(object sender, string message, int errorCount);
         public delegate void DumpErrorDelegate(object sender, string message, int errorCount);
-        public delegate void DumpFinishedDelegate(object sender);
+        public delegate void DumpFinishedDelegate(object sender, int errorCode);
 
         public HlsDumper(string url)
         {
@@ -59,6 +65,9 @@ namespace HlsDumpLib
                 dumpError?.Invoke(this, "No filename specified", 1);
                 return;
             }
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
 
             FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
             await Task.Run(() =>
@@ -174,7 +183,7 @@ namespace HlsDumpLib
                                 Thread.Sleep(delay);
                             }
                             lastTime = DateTime.Now;
-                        } while (errorCount < 5);
+                        } while (errorCount < 5 && !_cancellationToken.IsCancellationRequested);
                     }
                 } catch (Exception ex)
                 {
@@ -184,7 +193,16 @@ namespace HlsDumpLib
                 }
             });
 
-            dumpFinished?.Invoke(this);
+            int e = _cancellationToken.IsCancellationRequested ? DUMPING_ERROR_CANCELED : DUMPING_ERROR_PLAYLIST_GONE;
+            dumpFinished?.Invoke(this, e);
+        }
+
+        public void StopDumping()
+        {
+            if (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
+            {
+                _cancellationTokenSource.Cancel();
+            }
         }
 
         private List<string> ParsePlaylist(string playlist)
@@ -226,6 +244,15 @@ namespace HlsDumpLib
                 }
             }
             return 0;
+        }
+
+        public void Dispose()
+        {
+            if (_cancellationTokenSource != null)
+            {
+                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource = null;
+            }
         }
     }
 }

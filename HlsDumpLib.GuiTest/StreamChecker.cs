@@ -1,9 +1,6 @@
-﻿using MultiThreadedDownloaderLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Threading.Tasks;
+using MultiThreadedDownloaderLib;
 
 namespace HlsDumpLib.GuiTest
 {
@@ -15,7 +12,7 @@ namespace HlsDumpLib.GuiTest
         public delegate void CheckingFinishedDelegate(object sender, int errorCode);
         public delegate void DumpingStartedDelegate(object sender);
         public delegate void DumpingProgressDelegate(object sender, long fileSize, int errorCode);
-        public delegate void DumpingFinishedDelegate(object sender);
+        public delegate void DumpingFinishedDelegate(object sender, int errorCode);
 
         public void Check(string filePath,
             CheckingStartedDelegate checkingStarted,
@@ -35,9 +32,9 @@ namespace HlsDumpLib.GuiTest
                     StreamItem.Dumper = new HlsDumper(StreamItem.PlaylistUrl);
                     dumpingStarted?.Invoke(this);
                     Task.Run(() => StreamItem.Dumper.Dump(filePath, null, null, (s, fs, e) => { dumpingProgress.Invoke(this, fs, e); }, null,
-                        null, null, null, null, (s) =>
+                        null, null, null, null, (s, e) =>
                         {
-                            dumpingFinished.Invoke(this);
+                            dumpingFinished.Invoke(this, e);
                             StreamItem.Dumper = null;
                         }, true));
                 }

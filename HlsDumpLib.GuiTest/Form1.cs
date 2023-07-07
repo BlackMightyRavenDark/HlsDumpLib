@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -60,7 +59,17 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void listViewStreams_MouseDown(object sender, MouseEventArgs e)
+        private void miCancelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listViewStreams.SelectedIndices.Count > 0)
+            {
+                int id = listViewStreams.SelectedIndices[0];
+                StreamItem streamItem = listViewStreams.Items[id].Tag as StreamItem;
+                streamItem.Dumper?.StopDumping();
+            }
+        }
+
+        private void listViewStreams_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right && listViewStreams.SelectedIndices.Count > 0)
             {
@@ -145,11 +154,11 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnDumpingFinshed(object sender)
+        private void OnDumpingFinshed(object sender, int errorCode)
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnDumpingFinshed(sender); });
+                Invoke((MethodInvoker)delegate { OnDumpingFinshed(sender, errorCode); });
             }
             else
             {
@@ -157,7 +166,8 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_FILESIZE].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_FILENAME].Text =
+                        errorCode == HlsDumper.DUMPING_ERROR_PLAYLIST_GONE ? "Завершено" : "Отменено";
                 }
             }
         }

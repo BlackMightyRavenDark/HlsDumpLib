@@ -42,6 +42,7 @@
             this.btnAdd = new System.Windows.Forms.Button();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -99,13 +100,12 @@
             this.listViewStreams.Location = new System.Drawing.Point(11, 97);
             this.listViewStreams.MultiSelect = false;
             this.listViewStreams.Name = "listViewStreams";
-            this.listViewStreams.OwnerDraw = false;
             this.listViewStreams.Size = new System.Drawing.Size(777, 180);
             this.listViewStreams.TabIndex = 4;
             this.listViewStreams.UseCompatibleStateImageBehavior = false;
             this.listViewStreams.View = System.Windows.Forms.View.Details;
             this.listViewStreams.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseDoubleClick);
-            this.listViewStreams.MouseDown += new System.Windows.Forms.MouseEventHandler(this.listViewStreams_MouseDown);
+            this.listViewStreams.MouseUp += new System.Windows.Forms.MouseEventHandler(this.listViewStreams_MouseUp);
             // 
             // columnHeaderTitle
             // 
@@ -147,9 +147,10 @@
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.miCheckToolStripMenuItem});
+            this.miCheckToolStripMenuItem,
+            this.miCancelToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(148, 28);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(148, 52);
             // 
             // miCheckToolStripMenuItem
             // 
@@ -157,6 +158,13 @@
             this.miCheckToolStripMenuItem.Size = new System.Drawing.Size(147, 24);
             this.miCheckToolStripMenuItem.Text = "Проверить";
             this.miCheckToolStripMenuItem.Click += new System.EventHandler(this.miCheckToolStripMenuItem_Click);
+            // 
+            // miCancelToolStripMenuItem
+            // 
+            this.miCancelToolStripMenuItem.Name = "miCancelToolStripMenuItem";
+            this.miCancelToolStripMenuItem.Size = new System.Drawing.Size(147, 24);
+            this.miCancelToolStripMenuItem.Text = "Отменить";
+            this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -194,6 +202,7 @@
         private System.Windows.Forms.ColumnHeader columnHeaderDateStarted;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem miCheckToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem miCancelToolStripMenuItem;
     }
 }
 

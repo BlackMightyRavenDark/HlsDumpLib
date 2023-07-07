@@ -118,7 +118,7 @@ namespace HlsDumpLib.ConsoleTest
             Console.WriteLine(errorCount >=0 ? $"Error {errorCount} / 5: {message}" : message);
         }
 
-        private static void OnFinished(object sender)
+        private static void OnFinished(object sender, int errorCode)
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Dump is finished");
