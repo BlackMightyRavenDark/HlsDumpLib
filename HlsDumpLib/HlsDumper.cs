@@ -11,7 +11,7 @@ namespace HlsDumpLib
     public class HlsDumper : IDisposable
     {
         public string Url { get; }
-        public long ProcessedChunkCountTotal { get; private set; } = 0;
+        public long ProcessedChunkCountTotal { get; private set; } = 0L;
         public long ChunkDownloadErrorCount { get; private set; } = 0L;
         public long ChunkAppendErrorCount { get; private set; } = 0L;
 
@@ -127,7 +127,7 @@ namespace HlsDumpLib
                                             }
                                             else
                                             {
-                                                _lastProcessedChunkId = CurrentPlaylistFirstNewChunkId + (uint)i;
+                                                _lastProcessedChunkId = CurrentPlaylistFirstNewChunkId + i;
                                             }
                                         }
                                         else
@@ -173,7 +173,8 @@ namespace HlsDumpLib
                                 }
                             }
 
-                            double elapsedTime = (DateTime.Now - lastTime).TotalMilliseconds;
+                            DateTime currentTime = DateTime.Now;
+                            double elapsedTime = (currentTime - lastTime).TotalMilliseconds;
                             int delay = MAX_CHECKING_INTERVAL_MILLISECONDS - (int)elapsedTime;
                             if (delay > 0)
                             {
@@ -182,7 +183,7 @@ namespace HlsDumpLib
                                     $"(max: {MAX_CHECKING_INTERVAL_MILLISECONDS})");
                                 Thread.Sleep(delay);
                             }
-                            lastTime = DateTime.Now;
+                            lastTime = currentTime;
                         } while (errorCount < 5 && !_cancellationToken.IsCancellationRequested);
                     }
                 } catch (Exception ex)
@@ -232,7 +233,7 @@ namespace HlsDumpLib
             return playlist.Where(s => !_chunkUrlList.Contains(s))?.ToList();
         }
 
-        private uint FindFirstChunkId(string playlist)
+        private long FindFirstChunkId(string playlist)
         {
             string[] strings = playlist.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             foreach (string str in strings)
@@ -240,10 +241,10 @@ namespace HlsDumpLib
                 if (str.StartsWith("#EXT-X-MEDIA-SEQUENCE:"))
                 {
                     string[] splitted = str.Split(':');
-                    return uint.TryParse(splitted[1], out uint n) ? n : 0;
+                    return long.TryParse(splitted[1], out long n) ? n : 0L;
                 }
             }
-            return 0;
+            return -1L;
         }
 
         public void Dispose()
