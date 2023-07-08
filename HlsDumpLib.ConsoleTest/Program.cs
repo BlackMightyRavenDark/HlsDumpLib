@@ -125,13 +125,13 @@ namespace HlsDumpLib.ConsoleTest
         private static void OnWarning(object sender, string message, int errorCount)
         {
             Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine($"Error {errorCount} / 5: {message}");
+            Console.WriteLine($"Warning {errorCount} / 5: {message}");
         }
 
         private static void OnError(object sender, string message, int errorCount)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(errorCount >=0 ? $"Error {errorCount} / 5: {message}" : message);
+            Console.WriteLine(errorCount >= 0 ? $"Error {errorCount} / 5: {message}" : message);
         }
 
         private static void OnFinished(object sender, int errorCode)

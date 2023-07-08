@@ -135,7 +135,7 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
-                        errorCode == 200 ? streamItem.IsLive ? "Дампинг..." : null : $"Ошибка {errorCode}";
+                        errorCode == 200 ? streamItem.IsDumping ? "Дампинг..." : null : $"Ошибка {errorCode}";
                 }
                 streamItem.IsChecking = false;
             }
@@ -154,7 +154,7 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text =
-                        streamItem.IsLive ?
+                        streamItem.IsDumping ?
                         $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}"
                         : null;
                 }

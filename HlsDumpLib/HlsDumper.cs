@@ -49,6 +49,15 @@ namespace HlsDumpLib
             Url = url;
         }
 
+        public void Dispose()
+        {
+            if (_cancellationTokenSource != null)
+            {
+                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource = null;
+            }
+        }
+
         public async void Dump(string outputFilePath,
             PlaylistCheckingDelegate playlistChecking,
             PlaylistCheckedDelegate playlistChecked,
@@ -100,7 +109,8 @@ namespace HlsDumpLib
                                 if (filteredPlaylist != null && filteredPlaylist.Count > 0)
                                 {
                                     CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
-                                    CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId + CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount;
+                                    CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId +
+                                        CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount;
                                     playlistChecked?.Invoke(this, errorCode);
 
                                     long diff = _lastProcessedChunkId >= 0L ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1L;
@@ -251,15 +261,6 @@ namespace HlsDumpLib
                 }
             }
             return -1L;
-        }
-
-        public void Dispose()
-        {
-            if (_cancellationTokenSource != null)
-            {
-                _cancellationTokenSource.Dispose();
-                _cancellationTokenSource = null;
-            }
         }
     }
 }

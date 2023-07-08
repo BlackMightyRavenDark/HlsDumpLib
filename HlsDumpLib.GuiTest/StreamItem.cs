@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace HlsDumpLib.GuiTest
 {
@@ -11,6 +10,6 @@ namespace HlsDumpLib.GuiTest
         public DateTime DumpStarted { get; set; } = DateTime.MaxValue;
         public HlsDumper Dumper { get; set; }
         public bool IsChecking { get; set; }
-        public bool IsLive => Dumper != null;
+        public bool IsDumping => Dumper != null;
     }
 }
