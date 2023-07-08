@@ -38,12 +38,13 @@
             this.columnHeaderFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderFileSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDateStarted = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPlaylistUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.btnAdd = new System.Windows.Forms.Button();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.columnHeaderState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderNewChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -93,6 +94,7 @@
             this.columnHeaderTitle,
             this.columnHeaderFileName,
             this.columnHeaderFileSize,
+            this.columnHeaderNewChunks,
             this.columnHeaderDateStarted,
             this.columnHeaderState,
             this.columnHeaderPlaylistUrl});
@@ -129,6 +131,11 @@
             // 
             this.columnHeaderDateStarted.Text = "Дамп начат";
             this.columnHeaderDateStarted.Width = 140;
+            // 
+            // columnHeaderState
+            // 
+            this.columnHeaderState.Text = "Состояние";
+            this.columnHeaderState.Width = 100;
             // 
             // columnHeaderPlaylistUrl
             // 
@@ -168,10 +175,10 @@
             this.miCancelToolStripMenuItem.Text = "Отменить";
             this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
             // 
-            // columnHeaderState
+            // columnHeaderNewChunks
             // 
-            this.columnHeaderState.Text = "Состояние";
-            this.columnHeaderState.Width = 100;
+            this.columnHeaderNewChunks.Text = "Новые чанки";
+            this.columnHeaderNewChunks.Width = 100;
             // 
             // Form1
             // 
@@ -211,6 +218,7 @@
         private System.Windows.Forms.ToolStripMenuItem miCheckToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem miCancelToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader columnHeaderState;
+        private System.Windows.Forms.ColumnHeader columnHeaderNewChunks;
     }
 }
 

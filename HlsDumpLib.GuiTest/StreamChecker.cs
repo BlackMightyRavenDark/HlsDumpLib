@@ -10,6 +10,8 @@ namespace HlsDumpLib.GuiTest
 
         public delegate void CheckingStartedDelegate(object sender);
         public delegate void CheckingFinishedDelegate(object sender, int errorCode);
+        public delegate void PlaylistCheckingStartedDelegate(object sender);
+        public delegate void PlaylistCheckingFinishedDelegate(object sender, int errorCode);
         public delegate void DumpingStartedDelegate(object sender);
         public delegate void DumpingProgressDelegate(object sender, long fileSize, int errorCode);
         public delegate void DumpingFinishedDelegate(object sender, int errorCode);
@@ -17,6 +19,8 @@ namespace HlsDumpLib.GuiTest
         public void Check(string filePath,
             CheckingStartedDelegate checkingStarted,
             CheckingFinishedDelegate checkingFinished,
+            PlaylistCheckingStartedDelegate playlistCheckingStarted,
+            PlaylistCheckingFinishedDelegate playlistCheckingFinished,
             DumpingStartedDelegate dumpingStarted,
             DumpingProgressDelegate dumpingProgress,
             DumpingFinishedDelegate dumpingFinished)
@@ -31,7 +35,10 @@ namespace HlsDumpLib.GuiTest
                     StreamItem.DumpStarted = DateTime.Now;
                     StreamItem.Dumper = new HlsDumper(StreamItem.PlaylistUrl);
                     dumpingStarted?.Invoke(this);
-                    Task.Run(() => StreamItem.Dumper.Dump(filePath, null, null, (s, fs, e) => { dumpingProgress.Invoke(this, fs, e); }, null,
+                    Task.Run(() => StreamItem.Dumper.Dump(filePath,
+                        (s, url) => { playlistCheckingStarted?.Invoke(this); },
+                        (s, e) => { playlistCheckingFinished?.Invoke(this, e); },
+                        null, (s, fs, e) => { dumpingProgress.Invoke(this, fs, e); }, null,
                         null, null, null, null, (s, e) =>
                         {
                             dumpingFinished.Invoke(this, e);

@@ -9,9 +9,10 @@ namespace HlsDumpLib.GuiTest
         public const int COLUMN_ID_TITLE = 0;
         public const int COLUMN_ID_FILENAME = 1;
         public const int COLUMN_ID_FILESIZE = 2;
-        public const int COLUMN_ID_DATEDUMPSTARTED = 3;
-        public const int COLUMN_ID_STATE = 4;
-        public const int COLUMN_ID_URL = 5;
+        public const int COLUMN_ID_NEWCHUNKS = 3;
+        public const int COLUMN_ID_DATEDUMPSTARTED = 4;
+        public const int COLUMN_ID_STATE = 5;
+        public const int COLUMN_ID_URL = 6;
 
         public Form1()
         {
@@ -94,6 +95,7 @@ namespace HlsDumpLib.GuiTest
                 streamItem.FilePath,
                 string.Empty,
                 string.Empty,
+                string.Empty,
                 "Остановлен",
                 streamItem.PlaylistUrl
             };
@@ -115,6 +117,7 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Проверяется...";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text = null;
                 }
             }
         }
@@ -138,6 +141,26 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
+        private void OnPlaylistCheckingFinished(object sender, int errorCode)
+        {
+            if (InvokeRequired)
+            {
+                Invoke((MethodInvoker)delegate { OnPlaylistCheckingFinished(sender, errorCode); });
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text =
+                        streamItem.IsLive ?
+                        $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}"
+                        : null;
+                }
+            }
+        }
+
         private void OnDumpingStarted(object sender)
         {
             if (InvokeRequired)
@@ -153,6 +176,8 @@ namespace HlsDumpLib.GuiTest
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_DATEDUMPSTARTED].Text =
                         streamItem.DumpStarted.ToString("yyyy-MM-dd HH-mm-ss");
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text =
+                        $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}";
                 }
             }
         }
@@ -171,6 +196,7 @@ namespace HlsDumpLib.GuiTest
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
                         errorCode == HlsDumper.DUMPING_ERROR_PLAYLIST_GONE ? "Завершено" : "Отменено";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text = null;
                 }
             }
         }
@@ -204,6 +230,7 @@ namespace HlsDumpLib.GuiTest
                 {
                     StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
                     checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
+                        null, OnPlaylistCheckingFinished,
                         OnDumpingStarted, OnDumpingProgress, OnDumpingFinshed);
                 });
             }

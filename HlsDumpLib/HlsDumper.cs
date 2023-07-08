@@ -33,6 +33,7 @@ namespace HlsDumpLib
         public const int DUMPING_ERROR_CANCELED = -2;
 
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
+        public delegate void PlaylistCheckedDelegate(object sender, int errorCode);
         public delegate void NextChunkDelegate(object sender, long absoluteChunkId,
             long sessionChunkId, long chunkSize, string chunkUrl);
         public delegate void DumpProgressDelegate(object sender, long fileSize, int errorCode);
@@ -50,6 +51,7 @@ namespace HlsDumpLib
 
         public async void Dump(string outputFilePath,
             PlaylistCheckingDelegate playlistChecking,
+            PlaylistCheckedDelegate playlistChecked,
             NextChunkDelegate nextChunk,
             DumpProgressDelegate dumpProgress,
             ChunkDownloadFailedDelegate chunkDownloadFailed,
@@ -99,6 +101,7 @@ namespace HlsDumpLib
                                 {
                                     CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
                                     CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId + CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount;
+                                    playlistChecked?.Invoke(this, errorCode);
 
                                     long diff = _lastProcessedChunkId >= 0L ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1L;
                                     long lost = diff - 1L;
@@ -156,6 +159,8 @@ namespace HlsDumpLib
                                 {
                                     CurrentPlaylistNewChunkCount = 0;
                                     CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId;
+                                    playlistChecked?.Invoke(this, errorCode);
+
                                     errorCount++;
                                     dumpWarning?.Invoke(this, "No new files detected", errorCount);
                                 }
@@ -164,7 +169,8 @@ namespace HlsDumpLib
                             {
                                 CurrentPlaylistChunkCount = 0;
                                 CurrentPlaylistNewChunkCount = 0;
-                                errorCount++;
+
+                                playlistChecked?.Invoke(this, errorCode);
                                 dumpError?.Invoke(this, "Playlist is not found", errorCount);
 
                                 if (breakIfPlaylistLost)
