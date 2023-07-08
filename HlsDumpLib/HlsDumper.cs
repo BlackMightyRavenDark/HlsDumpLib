@@ -95,8 +95,11 @@ namespace HlsDumpLib
                         do
                         {
                             playlistChecking?.Invoke(this, Url);
-                            int errorCode = playlistDownloader.DownloadString(out string response);
-                            if (errorCode == 200)
+
+                            List<string> unfilteredPlaylist = null;
+                            List<string> filteredPlaylist = null;
+                            int playlistErrorCode = playlistDownloader.DownloadString(out string response);
+                            if (playlistErrorCode == 200)
                             {
                                 if (first)
                                 {
@@ -104,24 +107,58 @@ namespace HlsDumpLib
                                     first = false;
                                 }
 
-                                List<string> unfilteredPlaylist = ParsePlaylist(response);
+                                unfilteredPlaylist = ParsePlaylist(response);
                                 CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
-                                List<string> filteredPlaylist = FilterPlaylist(unfilteredPlaylist);
-                                if (filteredPlaylist != null && filteredPlaylist.Count > 0)
+                                filteredPlaylist = FilterPlaylist(unfilteredPlaylist);
+                                if (filteredPlaylist != null)
                                 {
                                     CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
                                     CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId +
                                         CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount;
-                                    playlistChecked?.Invoke(this, errorCode);
+                                }
+                                else
+                                {
+                                    CurrentPlaylistNewChunkCount = 0;
+                                    CurrentPlaylistFirstNewChunkId = -1L;
+                                }
 
-                                    long diff = _lastProcessedChunkId >= 0L ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1L;
-                                    long lost = diff - 1L;
-                                    if (lost > 0)
-                                    {
-                                        LostChunkCount += lost;
-                                        dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
-                                    }
+                                playlistChecked?.Invoke(this, playlistErrorCode);
 
+                                if (CurrentPlaylistNewChunkCount == 0)
+                                {
+                                    errorCount++;
+                                    dumpWarning?.Invoke(this, "No new files detected", errorCount);
+                                }
+
+                                long diff = _lastProcessedChunkId >= 0L ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1L;
+                                long lost = diff - 1L;
+                                if (lost > 0)
+                                {
+                                    LostChunkCount += lost;
+                                    dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
+                                }
+                            }
+                            else
+                            {
+                                playlistChecked?.Invoke(this, playlistErrorCode);
+
+                                errorCount++;
+
+                                if (breakIfPlaylistLost)
+                                {
+                                    dumpError?.Invoke(this, "Playlist lost! Breaking...", -1);
+                                    break;
+                                }
+                                else if (errorCount >= 5)
+                                {
+                                    break;
+                                }
+                            }
+
+                            if (playlistErrorCode == 200)
+                            {
+                                if (filteredPlaylist != null && filteredPlaylist.Count > 0)
+                                {
                                     for (int i = 0; i < filteredPlaylist.Count; ++i)
                                     {
                                         string chunkUrl = filteredPlaylist[i];
@@ -165,28 +202,6 @@ namespace HlsDumpLib
 
                                         errorCount = 0;
                                     }
-                                }
-                                else
-                                {
-                                    CurrentPlaylistNewChunkCount = 0;
-                                    CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId;
-                                    playlistChecked?.Invoke(this, errorCode);
-
-                                    errorCount++;
-                                    dumpWarning?.Invoke(this, "No new files detected", errorCount);
-                                }
-                            }
-                            else
-                            {
-                                CurrentPlaylistChunkCount = 0;
-                                CurrentPlaylistNewChunkCount = 0;
-
-                                playlistChecked?.Invoke(this, errorCode);
-                                dumpError?.Invoke(this, "Playlist is not found", errorCount);
-
-                                if (breakIfPlaylistLost)
-                                {
-                                    break;
                                 }
                             }
 

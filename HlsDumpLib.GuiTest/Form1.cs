@@ -180,8 +180,6 @@ namespace HlsDumpLib.GuiTest
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_DATEDUMPSTARTED].Text =
                         streamItem.DumpStarted.ToString("yyyy-MM-dd HH-mm-ss");
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text =
-                        $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}";
                 }
             }
         }
