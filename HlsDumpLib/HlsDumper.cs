@@ -20,6 +20,7 @@ namespace HlsDumpLib
         public int CurrentPlaylistChunkCount { get; private set; } = 0;
         public int CurrentPlaylistNewChunkCount { get; private set; } = 0;
         public long LostChunkCount { get; private set; } = 0L;
+        public int LastDelayValueMilliseconds { get; private set; } = 0;
 
         private long _currentPlaylistFirstChunkId = -1L;
         private long _lastProcessedChunkId = -1L;
@@ -191,13 +192,13 @@ namespace HlsDumpLib
 
                             DateTime currentTime = DateTime.Now;
                             double elapsedTime = (currentTime - lastTime).TotalMilliseconds;
-                            int delay = MAX_CHECKING_INTERVAL_MILLISECONDS - (int)elapsedTime;
-                            if (delay > 0)
+                            LastDelayValueMilliseconds = MAX_CHECKING_INTERVAL_MILLISECONDS - (int)elapsedTime;
+                            if (LastDelayValueMilliseconds > 0)
                             {
                                 dumpMessage?.Invoke(this,
-                                    $"Waiting for {delay} milliseconds " +
+                                    $"Waiting for {LastDelayValueMilliseconds} milliseconds " +
                                     $"(max: {MAX_CHECKING_INTERVAL_MILLISECONDS})");
-                                Thread.Sleep(delay);
+                                Thread.Sleep(LastDelayValueMilliseconds);
                             }
                             lastTime = currentTime;
                         } while (errorCount < 5 && !_cancellationToken.IsCancellationRequested);

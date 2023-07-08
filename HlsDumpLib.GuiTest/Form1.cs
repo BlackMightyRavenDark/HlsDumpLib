@@ -10,9 +10,10 @@ namespace HlsDumpLib.GuiTest
         public const int COLUMN_ID_FILENAME = 1;
         public const int COLUMN_ID_FILESIZE = 2;
         public const int COLUMN_ID_NEWCHUNKS = 3;
-        public const int COLUMN_ID_DATEDUMPSTARTED = 4;
-        public const int COLUMN_ID_STATE = 5;
-        public const int COLUMN_ID_URL = 6;
+        public const int COLUMN_ID_DELAY = 4;
+        public const int COLUMN_ID_DATEDUMPSTARTED = 5;
+        public const int COLUMN_ID_STATE = 6;
+        public const int COLUMN_ID_URL = 7;
 
         public Form1()
         {
@@ -96,6 +97,7 @@ namespace HlsDumpLib.GuiTest
                 string.Empty,
                 string.Empty,
                 string.Empty,
+                string.Empty,
                 "Остановлен",
                 streamItem.PlaylistUrl
             };
@@ -157,6 +159,8 @@ namespace HlsDumpLib.GuiTest
                         streamItem.IsDumping ?
                         $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}"
                         : null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text =
+                        streamItem.IsDumping ? $"{streamItem.Dumper.LastDelayValueMilliseconds}ms" : null;
                 }
             }
         }
@@ -197,6 +201,7 @@ namespace HlsDumpLib.GuiTest
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
                         errorCode == HlsDumper.DUMPING_ERROR_PLAYLIST_GONE ? "Завершено" : "Отменено";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text = null;
                 }
             }
         }

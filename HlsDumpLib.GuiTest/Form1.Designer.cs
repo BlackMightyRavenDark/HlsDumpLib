@@ -37,6 +37,7 @@
             this.columnHeaderTitle = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderFileSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderNewChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDateStarted = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPlaylistUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -44,7 +45,7 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.columnHeaderNewChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderDelay = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -95,6 +96,7 @@
             this.columnHeaderFileName,
             this.columnHeaderFileSize,
             this.columnHeaderNewChunks,
+            this.columnHeaderDelay,
             this.columnHeaderDateStarted,
             this.columnHeaderState,
             this.columnHeaderPlaylistUrl});
@@ -126,6 +128,11 @@
             this.columnHeaderFileSize.Text = "Размер файла";
             this.columnHeaderFileSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeaderFileSize.Width = 120;
+            // 
+            // columnHeaderNewChunks
+            // 
+            this.columnHeaderNewChunks.Text = "Новые чанки";
+            this.columnHeaderNewChunks.Width = 100;
             // 
             // columnHeaderDateStarted
             // 
@@ -175,10 +182,11 @@
             this.miCancelToolStripMenuItem.Text = "Отменить";
             this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
             // 
-            // columnHeaderNewChunks
+            // columnHeaderDelay
             // 
-            this.columnHeaderNewChunks.Text = "Новые чанки";
-            this.columnHeaderNewChunks.Width = 100;
+            this.columnHeaderDelay.Text = "Задержка";
+            this.columnHeaderDelay.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.columnHeaderDelay.Width = 80;
             // 
             // Form1
             // 
@@ -219,6 +227,7 @@
         private System.Windows.Forms.ToolStripMenuItem miCancelToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader columnHeaderState;
         private System.Windows.Forms.ColumnHeader columnHeaderNewChunks;
+        private System.Windows.Forms.ColumnHeader columnHeaderDelay;
     }
 }
 
