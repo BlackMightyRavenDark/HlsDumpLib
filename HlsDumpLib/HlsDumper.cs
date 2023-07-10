@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MultiThreadedDownloaderLib;
+using Newtonsoft.Json.Linq;
 
 namespace HlsDumpLib
 {
@@ -70,6 +71,7 @@ namespace HlsDumpLib
             DumpWarningDelegate dumpWarning,
             DumpErrorDelegate dumpError,
             DumpFinishedDelegate dumpFinished,
+            bool writeChunksInfo,
             bool breakIfPlaylistLost)
         {
             if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
@@ -81,6 +83,7 @@ namespace HlsDumpLib
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
+            JArray jChunks = new JArray();
             FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
             await Task.Run(() =>
             {
@@ -163,6 +166,7 @@ namespace HlsDumpLib
                                     {
                                         string chunkUrl = filteredPlaylist[i];
                                         long lastChunkLength = -1L;
+                                        long currentAbsoluteChunkId = CurrentPlaylistFirstNewChunkId + i;
 
                                         MemoryStream mem = new MemoryStream();
                                         FileDownloader d = new FileDownloader() { Url = chunkUrl };
@@ -171,14 +175,24 @@ namespace HlsDumpLib
                                         {
                                             lastChunkLength = mem.Length;
                                             mem.Position = 0L;
-                                            if (!MultiThreadedDownloader.AppendStream(mem, outputStream))
+                                            if (MultiThreadedDownloader.AppendStream(mem, outputStream))
                                             {
-                                                ChunkAppendErrorCount++;
-                                                chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
+                                                _lastProcessedChunkId = currentAbsoluteChunkId;
+                                                if (writeChunksInfo)
+                                                {
+                                                    JObject jChunk = new JObject();
+                                                    jChunk["position"] = outputStream.Position - mem.Length;
+                                                    jChunk["size"] = mem.Length;
+                                                    jChunk["id"] = currentAbsoluteChunkId;
+                                                    //TODO: Determine and store other chunk information from playlist
+                                                    jChunks.Add(jChunk);
+                                                }
                                             }
                                             else
                                             {
-                                                _lastProcessedChunkId = CurrentPlaylistFirstNewChunkId + i;
+                                                ChunkAppendErrorCount++;
+                                                chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
+                                                //TODO: The stream and chunks information data will be corrupted here, so it's strongly needed to do some magic thing!
                                             }
                                         }
                                         else
@@ -195,7 +209,7 @@ namespace HlsDumpLib
                                         }
 
                                         ProcessedChunkCountTotal++;
-                                        nextChunk?.Invoke(this, CurrentPlaylistFirstNewChunkId + i,
+                                        nextChunk?.Invoke(this, currentAbsoluteChunkId,
                                             ProcessedChunkCountTotal, lastChunkLength, chunkUrl);
 
                                         dumpProgress?.Invoke(this, outputStream.Length, code);
@@ -217,6 +231,15 @@ namespace HlsDumpLib
                             }
                             lastTime = currentTime;
                         } while (errorCount < 5 && !_cancellationToken.IsCancellationRequested);
+                    }
+
+                    if (writeChunksInfo)
+                    {
+                        JObject json = new JObject();
+                        json["playlistUrl"] = Url;
+                        json["outputFile"] = outputFilePath;
+                        json.Add(new JProperty("chunks", jChunks));
+                        File.WriteAllText($"{outputFilePath}_chunks.json", json.ToString());
                     }
                 } catch (Exception ex)
                 {

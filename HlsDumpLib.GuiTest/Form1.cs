@@ -229,12 +229,14 @@ namespace HlsDumpLib.GuiTest
             {
                 streamItem.IsChecking = true;
                 listViewStreams.Items[itemId].SubItems[COLUMN_ID_STATE].Text = "Запуск проверки...";
+                bool saveChunksInfo = checkBoxSaveChunksInfo.Checked;
                 Task.Run(() =>
                 {
                     StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
                     checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
                         null, OnPlaylistCheckingFinished,
-                        OnDumpingStarted, OnDumpingProgress, OnDumpingFinshed);
+                        OnDumpingStarted, OnDumpingProgress, OnDumpingFinshed,
+                        saveChunksInfo);
                 });
             }
         }

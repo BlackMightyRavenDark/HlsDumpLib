@@ -23,7 +23,8 @@ namespace HlsDumpLib.GuiTest
             PlaylistCheckingFinishedDelegate playlistCheckingFinished,
             DumpingStartedDelegate dumpingStarted,
             DumpingProgressDelegate dumpingProgress,
-            DumpingFinishedDelegate dumpingFinished)
+            DumpingFinishedDelegate dumpingFinished,
+            bool saveChunksInfo)
         {
             checkingStarted?.Invoke(this);
 
@@ -43,7 +44,7 @@ namespace HlsDumpLib.GuiTest
                         {
                             dumpingFinished.Invoke(this, e);
                             StreamItem.Dumper = null;
-                        }, true));
+                        }, saveChunksInfo, true));
                 }
             }
 

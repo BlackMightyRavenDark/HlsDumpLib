@@ -46,6 +46,8 @@
             this.miCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.columnHeaderDelay = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.checkBoxSaveChunksInfo = new System.Windows.Forms.CheckBox();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -188,11 +190,25 @@
             this.columnHeaderDelay.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeaderDelay.Width = 80;
             // 
+            // checkBoxSaveChunksInfo
+            // 
+            this.checkBoxSaveChunksInfo.AutoSize = true;
+            this.checkBoxSaveChunksInfo.Checked = true;
+            this.checkBoxSaveChunksInfo.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxSaveChunksInfo.Location = new System.Drawing.Point(12, 74);
+            this.checkBoxSaveChunksInfo.Name = "checkBoxSaveChunksInfo";
+            this.checkBoxSaveChunksInfo.Size = new System.Drawing.Size(194, 17);
+            this.checkBoxSaveChunksInfo.TabIndex = 6;
+            this.checkBoxSaveChunksInfo.Text = "Сохранять информацию о чанках";
+            this.toolTip1.SetToolTip(this.checkBoxSaveChunksInfo, "Невозможно изменить для уже добавленных элементов");
+            this.checkBoxSaveChunksInfo.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 289);
+            this.Controls.Add(this.checkBoxSaveChunksInfo);
             this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.listViewStreams);
             this.Controls.Add(this.textBoxUrl);
@@ -200,6 +216,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.DoubleBuffered = true;
+            this.MinimumSize = new System.Drawing.Size(400, 300);
             this.Name = "Form1";
             this.Text = "GUI test";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -228,6 +245,8 @@
         private System.Windows.Forms.ColumnHeader columnHeaderState;
         private System.Windows.Forms.ColumnHeader columnHeaderNewChunks;
         private System.Windows.Forms.ColumnHeader columnHeaderDelay;
+        private System.Windows.Forms.CheckBox checkBoxSaveChunksInfo;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 
