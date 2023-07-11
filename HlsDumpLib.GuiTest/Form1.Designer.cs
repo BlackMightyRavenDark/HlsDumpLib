@@ -38,6 +38,7 @@
             this.columnHeaderFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderFileSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderNewChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderDelay = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDateStarted = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPlaylistUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -45,7 +46,6 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.miCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.columnHeaderDelay = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.checkBoxSaveChunksInfo = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.contextMenuStrip1.SuspendLayout();
@@ -136,6 +136,12 @@
             this.columnHeaderNewChunks.Text = "Новые чанки";
             this.columnHeaderNewChunks.Width = 100;
             // 
+            // columnHeaderDelay
+            // 
+            this.columnHeaderDelay.Text = "Задержка";
+            this.columnHeaderDelay.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.columnHeaderDelay.Width = 80;
+            // 
             // columnHeaderDateStarted
             // 
             this.columnHeaderDateStarted.Text = "Дамп начат";
@@ -184,12 +190,6 @@
             this.miCancelToolStripMenuItem.Text = "Отменить";
             this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
             // 
-            // columnHeaderDelay
-            // 
-            this.columnHeaderDelay.Text = "Задержка";
-            this.columnHeaderDelay.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeaderDelay.Width = 80;
-            // 
             // checkBoxSaveChunksInfo
             // 
             this.checkBoxSaveChunksInfo.AutoSize = true;
@@ -219,6 +219,7 @@
             this.MinimumSize = new System.Drawing.Size(400, 300);
             this.Name = "Form1";
             this.Text = "GUI test";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);

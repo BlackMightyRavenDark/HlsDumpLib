@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -6,6 +7,8 @@ namespace HlsDumpLib.GuiTest
 {
     public partial class Form1 : Form
     {
+        private bool _isClosing = false;
+
         public const int COLUMN_ID_TITLE = 0;
         public const int COLUMN_ID_FILENAME = 1;
         public const int COLUMN_ID_FILESIZE = 2;
@@ -23,6 +26,29 @@ namespace HlsDumpLib.GuiTest
         private void Form1_Load(object sender, EventArgs e)
         {
             MultiThreadedDownloaderLib.MultiThreadedDownloader.SetMaximumConnectionsLimit(100);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason != CloseReason.ApplicationExitCall && IsActiveTaskPresent())
+            {
+                e.Cancel = true;
+                if (!_isClosing)
+                {
+                    _isClosing = true;
+                    StopAll();
+                    Task.Run(() =>
+                    {
+                        bool unfinished = true;
+                        while (unfinished)
+                        {
+                            Invoke(new MethodInvoker(() => unfinished = IsActiveTaskPresent()));
+                            Thread.Sleep(200);
+                        }
+                        BeginInvoke(new MethodInvoker(() => { Close(); }));
+                    });
+                }
+            }
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
@@ -224,21 +250,46 @@ namespace HlsDumpLib.GuiTest
 
         private void CheckItem(int itemId)
         {
-            StreamItem streamItem = listViewStreams.Items[itemId].Tag as StreamItem;
-            if (!streamItem.IsChecking)
+            if (!_isClosing)
             {
-                streamItem.IsChecking = true;
-                listViewStreams.Items[itemId].SubItems[COLUMN_ID_STATE].Text = "Запуск проверки...";
-                bool saveChunksInfo = checkBoxSaveChunksInfo.Checked;
-                Task.Run(() =>
+                StreamItem streamItem = listViewStreams.Items[itemId].Tag as StreamItem;
+                if (!streamItem.IsChecking)
                 {
-                    StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
-                    checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
-                        null, OnPlaylistCheckingFinished,
-                        OnDumpingStarted, OnDumpingProgress, OnDumpingFinshed,
-                        saveChunksInfo);
-                });
+                    streamItem.IsChecking = true;
+                    listViewStreams.Items[itemId].SubItems[COLUMN_ID_STATE].Text = "Запуск проверки...";
+                    bool saveChunksInfo = checkBoxSaveChunksInfo.Checked;
+                    Task.Run(() =>
+                    {
+                        StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
+                        checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
+                            null, OnPlaylistCheckingFinished,
+                            OnDumpingStarted, OnDumpingProgress, OnDumpingFinshed,
+                            saveChunksInfo);
+                    });
+                }
             }
+        }
+
+        private void StopAll()
+        {
+            foreach (ListViewItem listViewItem in listViewStreams.Items)
+            {
+                StreamItem streamItem = listViewItem.Tag as StreamItem;
+                streamItem.Dumper?.StopDumping();
+            }
+        }
+
+        private bool IsActiveTaskPresent()
+        {
+            foreach (ListViewItem listViewItem in listViewStreams.Items)
+            {
+                StreamItem streamItem = listViewItem.Tag as StreamItem;
+                if (streamItem.IsChecking || streamItem.IsDumping)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static int FindStreamItemInListView(StreamItem streamItem, ListView listView)
