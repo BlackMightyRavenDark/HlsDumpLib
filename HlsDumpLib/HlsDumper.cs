@@ -96,9 +96,9 @@ namespace HlsDumpLib
                 {
                     using (Stream outputStream = File.OpenWrite(outputFilePath))
                     {
-                        DateTime lastTime = DateTime.Now;
                         do
                         {
+                            int timeStart = Environment.TickCount;
                             playlistChecking?.Invoke(this, Url);
 
                             List<string> unfilteredPlaylist = null;
@@ -223,9 +223,8 @@ namespace HlsDumpLib
                                 }
                             }
 
-                            DateTime currentTime = DateTime.Now;
-                            double elapsedTime = (currentTime - lastTime).TotalMilliseconds;
-                            LastDelayValueMilliseconds = MAX_CHECKING_INTERVAL_MILLISECONDS - (int)elapsedTime;
+                            int elapsedTime = Environment.TickCount - timeStart;
+                            LastDelayValueMilliseconds = MAX_CHECKING_INTERVAL_MILLISECONDS - elapsedTime;
                             if (LastDelayValueMilliseconds > 0)
                             {
                                 dumpMessage?.Invoke(this,
@@ -233,7 +232,6 @@ namespace HlsDumpLib
                                     $"(max: {MAX_CHECKING_INTERVAL_MILLISECONDS})");
                                 Thread.Sleep(LastDelayValueMilliseconds);
                             }
-                            lastTime = currentTime;
                         } while (errorCount < 5 && !_cancellationToken.IsCancellationRequested);
                     }
 
