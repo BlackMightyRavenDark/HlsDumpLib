@@ -48,6 +48,9 @@
             this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.checkBoxSaveChunksInfo = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.columnHeaderFirstChunkSession = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderLostChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderProcessedChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -99,6 +102,9 @@
             this.columnHeaderFileSize,
             this.columnHeaderNewChunks,
             this.columnHeaderDelay,
+            this.columnHeaderFirstChunkSession,
+            this.columnHeaderProcessedChunks,
+            this.columnHeaderLostChunks,
             this.columnHeaderDateStarted,
             this.columnHeaderState,
             this.columnHeaderPlaylistUrl});
@@ -203,6 +209,21 @@
             this.toolTip1.SetToolTip(this.checkBoxSaveChunksInfo, "Невозможно изменить для уже добавленных элементов");
             this.checkBoxSaveChunksInfo.UseVisualStyleBackColor = true;
             // 
+            // columnHeaderFirstChunkSession
+            // 
+            this.columnHeaderFirstChunkSession.Text = "Первый чанк";
+            this.columnHeaderFirstChunkSession.Width = 100;
+            // 
+            // columnHeaderLostChunks
+            // 
+            this.columnHeaderLostChunks.Text = "Потеряно чанков";
+            this.columnHeaderLostChunks.Width = 100;
+            // 
+            // columnHeaderProcessedChunks
+            // 
+            this.columnHeaderProcessedChunks.Text = "Обработано чанков";
+            this.columnHeaderProcessedChunks.Width = 100;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -248,6 +269,9 @@
         private System.Windows.Forms.ColumnHeader columnHeaderDelay;
         private System.Windows.Forms.CheckBox checkBoxSaveChunksInfo;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.ColumnHeader columnHeaderFirstChunkSession;
+        private System.Windows.Forms.ColumnHeader columnHeaderProcessedChunks;
+        private System.Windows.Forms.ColumnHeader columnHeaderLostChunks;
     }
 }
 

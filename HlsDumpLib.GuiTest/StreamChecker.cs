@@ -21,6 +21,7 @@ namespace HlsDumpLib.GuiTest
             CheckingFinishedDelegate checkingFinished,
             PlaylistCheckingStartedDelegate playlistCheckingStarted,
             PlaylistCheckingFinishedDelegate playlistCheckingFinished,
+            HlsDumper.PlaylistFirstArrived playlistFirstArrived,
             DumpingStartedDelegate dumpingStarted,
             DumpingProgressDelegate dumpingProgress,
             DumpingFinishedDelegate dumpingFinished,
@@ -39,6 +40,7 @@ namespace HlsDumpLib.GuiTest
                     Task.Run(() => StreamItem.Dumper.Dump(outputFilePath,
                         (s, url) => { playlistCheckingStarted?.Invoke(this, url); },
                         (s, e) => { playlistCheckingFinished?.Invoke(this, e); },
+                        (s, count, first) => { playlistFirstArrived?.Invoke(this, count, first); },
                         null, (s, fs, e) => { dumpingProgress.Invoke(this, fs, e); }, null,
                         null, null, null, null, (s, e) =>
                         {

@@ -36,6 +36,7 @@ namespace HlsDumpLib
 
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
         public delegate void PlaylistCheckedDelegate(object sender, int errorCode);
+        public delegate void PlaylistFirstArrived(object sender, int chunkCount, long firstChunkId);
         public delegate void NextChunkDelegate(object sender, long absoluteChunkId,
             long sessionChunkId, long chunkSize, string chunkUrl);
         public delegate void DumpProgressDelegate(object sender, long fileSize, int errorCode);
@@ -63,6 +64,7 @@ namespace HlsDumpLib
         public async void Dump(string outputFilePath,
             PlaylistCheckingDelegate playlistChecking,
             PlaylistCheckedDelegate playlistChecked,
+            PlaylistFirstArrived playlistFirstArrived,
             NextChunkDelegate nextChunk,
             DumpProgressDelegate dumpProgress,
             ChunkDownloadFailedDelegate chunkDownloadFailed,
@@ -104,14 +106,16 @@ namespace HlsDumpLib
                             int playlistErrorCode = playlistDownloader.DownloadString(out string response);
                             if (playlistErrorCode == 200)
                             {
-                                if (first)
-                                {
-                                    CurrentSessionFirstChunkId = FindFirstChunkId(response);
-                                    first = false;
-                                }
-
                                 unfilteredPlaylist = ParsePlaylist(response);
                                 CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
+
+                                if (first)
+                                {
+                                    first = false;
+                                    CurrentSessionFirstChunkId = FindFirstChunkId(response);
+                                    playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
+                                }
+
                                 filteredPlaylist = FilterPlaylist(unfilteredPlaylist);
                                 if (filteredPlaylist != null)
                                 {

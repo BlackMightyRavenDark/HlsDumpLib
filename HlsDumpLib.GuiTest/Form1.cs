@@ -14,9 +14,12 @@ namespace HlsDumpLib.GuiTest
         public const int COLUMN_ID_FILESIZE = 2;
         public const int COLUMN_ID_NEWCHUNKS = 3;
         public const int COLUMN_ID_DELAY = 4;
-        public const int COLUMN_ID_DATEDUMPSTARTED = 5;
-        public const int COLUMN_ID_STATE = 6;
-        public const int COLUMN_ID_URL = 7;
+        public const int COLUMN_ID_FIRSTCHUNK = 5;
+        public const int COLUMN_ID_PROCESSEDCHUNKS = 6;
+        public const int COLUMN_ID_LOSTCHUNKS = 7;
+        public const int COLUMN_ID_DATEDUMPSTARTED = 8;
+        public const int COLUMN_ID_STATE = 9;
+        public const int COLUMN_ID_URL = 10;
 
         public Form1()
         {
@@ -124,6 +127,9 @@ namespace HlsDumpLib.GuiTest
                 string.Empty,
                 string.Empty,
                 string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
                 "Остановлен",
                 streamItem.PlaylistUrl
             };
@@ -181,12 +187,38 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text =
-                        streamItem.IsDumping ?
-                        $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}"
-                        : null;
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text =
-                        streamItem.IsDumping ? $"{streamItem.Dumper.LastDelayValueMilliseconds}ms" : null;
+                    if (streamItem.IsDumping)
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text =
+                            $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}";
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text =
+                            $"{streamItem.Dumper.LastDelayValueMilliseconds}ms";
+                    }
+                    else
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_FIRSTCHUNK].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSEDCHUNKS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_LOSTCHUNKS].Text = null;
+                    }
+                }
+            }
+        }
+
+        private void OnPlaylistFirstArrived(object sender, int chunkCount, long firstChunkId)
+        {
+            if (InvokeRequired)
+            {
+                Invoke((MethodInvoker)delegate { OnPlaylistFirstArrived(sender, chunkCount, firstChunkId); });
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_FIRSTCHUNK].Text = firstChunkId.ToString();
                 }
             }
         }
@@ -206,6 +238,8 @@ namespace HlsDumpLib.GuiTest
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_DATEDUMPSTARTED].Text =
                         streamItem.DumpStarted.ToString("yyyy-MM-dd HH-mm-ss");
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSEDCHUNKS].Text = "0";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_LOSTCHUNKS].Text = "0";
                 }
             }
         }
@@ -244,6 +278,10 @@ namespace HlsDumpLib.GuiTest
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_FILESIZE].Text = FormatSize(fileSize);
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSEDCHUNKS].Text =
+                        streamItem.Dumper.ProcessedChunkCountTotal.ToString();
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_LOSTCHUNKS].Text =
+                        streamItem.Dumper.LostChunkCount.ToString();
                 }
             }
         }
@@ -262,7 +300,7 @@ namespace HlsDumpLib.GuiTest
                     {
                         StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
                         checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
-                            null, OnPlaylistCheckingFinished,
+                            null, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
                             OnDumpingStarted, OnDumpingProgress, OnDumpingFinshed,
                             saveChunksInfo);
                     });
