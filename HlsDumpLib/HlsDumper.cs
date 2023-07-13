@@ -219,9 +219,13 @@ namespace HlsDumpLib
                                         dumpProgress?.Invoke(this, outputStream.Length, code);
 
                                         errorCount = 0;
+
+                                        if (_cancellationToken.IsCancellationRequested) { break; }
                                     }
                                 }
                             }
+
+                            if (_cancellationToken.IsCancellationRequested) { break; }
 
                             int elapsedTime = Environment.TickCount - timeStart;
                             LastDelayValueMilliseconds = MAX_CHECKING_INTERVAL_MILLISECONDS - elapsedTime;
