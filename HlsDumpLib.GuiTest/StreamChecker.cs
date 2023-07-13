@@ -13,8 +13,6 @@ namespace HlsDumpLib.GuiTest
         public delegate void PlaylistCheckingStartedDelegate(object sender, string url);
         public delegate void PlaylistCheckingFinishedDelegate(object sender, int errorCode);
         public delegate void DumpingStartedDelegate(object sender);
-        public delegate void DumpingProgressDelegate(object sender, long fileSize, int errorCode);
-        public delegate void DumpingFinishedDelegate(object sender, int errorCode);
 
         public void Check(string outputFilePath,
             CheckingStartedDelegate checkingStarted,
@@ -23,8 +21,8 @@ namespace HlsDumpLib.GuiTest
             PlaylistCheckingFinishedDelegate playlistCheckingFinished,
             HlsDumper.PlaylistFirstArrived playlistFirstArrived,
             DumpingStartedDelegate dumpingStarted,
-            DumpingProgressDelegate dumpingProgress,
-            DumpingFinishedDelegate dumpingFinished,
+            HlsDumper.DumpProgressDelegate dumpingProgress,
+            HlsDumper.DumpFinishedDelegate dumpingFinished,
             bool saveChunksInfo)
         {
             checkingStarted?.Invoke(this);
