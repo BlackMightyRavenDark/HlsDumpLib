@@ -297,7 +297,7 @@ namespace HlsDumpLib
                     return long.TryParse(splitted[1], out long n) ? n : 0L;
                 }
             }
-            return -1L;
+            return 0L;
         }
 
         private long FindPlaylistFirstChunkId(string playlist)
