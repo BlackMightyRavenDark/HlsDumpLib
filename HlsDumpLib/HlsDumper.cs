@@ -112,7 +112,7 @@ namespace HlsDumpLib
                                 if (first)
                                 {
                                     first = false;
-                                    CurrentSessionFirstChunkId = FindFirstChunkId(response);
+                                    CurrentSessionFirstChunkId = FindPlaylistFirstChunkId(response);
                                     playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
                                 }
 
@@ -271,17 +271,10 @@ namespace HlsDumpLib
         {
             List<string> result = new List<string>();
             string[] strings = playlist.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            _currentPlaylistFirstChunkId = FindPlaylistFirstChunkId(strings);
             foreach (string str in strings)
             {
-                if (str.StartsWith("#EXT-X-MEDIA-SEQUENCE:"))
-                {
-                    string[] splitted = str.Split(':');
-                    if (uint.TryParse(splitted[1], out uint n))
-                    {
-                        _currentPlaylistFirstChunkId = n;
-                    }
-                }
-                else if (str.StartsWith("http"))
+                if (str.StartsWith("http"))
                 {
                     result.Add(str);
                 }
@@ -294,10 +287,9 @@ namespace HlsDumpLib
             return playlist.Where(s => !_chunkUrlList.Contains(s))?.ToList();
         }
 
-        private long FindFirstChunkId(string playlist)
+        private long FindPlaylistFirstChunkId(string[] playlistStrings)
         {
-            string[] strings = playlist.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            foreach (string str in strings)
+            foreach (string str in playlistStrings)
             {
                 if (str.StartsWith("#EXT-X-MEDIA-SEQUENCE:"))
                 {
@@ -306,6 +298,12 @@ namespace HlsDumpLib
                 }
             }
             return -1L;
+        }
+
+        private long FindPlaylistFirstChunkId(string playlist)
+        {
+            string[] strings = playlist.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            return FindPlaylistFirstChunkId(strings);
         }
     }
 }
