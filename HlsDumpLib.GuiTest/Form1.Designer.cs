@@ -39,6 +39,9 @@
             this.columnHeaderFileSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderNewChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDelay = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderFirstChunkSession = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderProcessedChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderLostChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDateStarted = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPlaylistUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -48,9 +51,7 @@
             this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.checkBoxSaveChunksInfo = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.columnHeaderFirstChunkSession = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderLostChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderProcessedChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkProcessingTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -102,6 +103,7 @@
             this.columnHeaderFileSize,
             this.columnHeaderNewChunks,
             this.columnHeaderDelay,
+            this.columnHeaderChunkProcessingTime,
             this.columnHeaderFirstChunkSession,
             this.columnHeaderProcessedChunks,
             this.columnHeaderLostChunks,
@@ -147,6 +149,21 @@
             this.columnHeaderDelay.Text = "Задержка";
             this.columnHeaderDelay.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeaderDelay.Width = 80;
+            // 
+            // columnHeaderFirstChunkSession
+            // 
+            this.columnHeaderFirstChunkSession.Text = "Первый чанк";
+            this.columnHeaderFirstChunkSession.Width = 100;
+            // 
+            // columnHeaderProcessedChunks
+            // 
+            this.columnHeaderProcessedChunks.Text = "Обработано чанков";
+            this.columnHeaderProcessedChunks.Width = 100;
+            // 
+            // columnHeaderLostChunks
+            // 
+            this.columnHeaderLostChunks.Text = "Потеряно чанков";
+            this.columnHeaderLostChunks.Width = 100;
             // 
             // columnHeaderDateStarted
             // 
@@ -209,20 +226,11 @@
             this.toolTip1.SetToolTip(this.checkBoxSaveChunksInfo, "Невозможно изменить для уже добавленных элементов");
             this.checkBoxSaveChunksInfo.UseVisualStyleBackColor = true;
             // 
-            // columnHeaderFirstChunkSession
+            // columnHeaderChunkProcessingTime
             // 
-            this.columnHeaderFirstChunkSession.Text = "Первый чанк";
-            this.columnHeaderFirstChunkSession.Width = 100;
-            // 
-            // columnHeaderLostChunks
-            // 
-            this.columnHeaderLostChunks.Text = "Потеряно чанков";
-            this.columnHeaderLostChunks.Width = 100;
-            // 
-            // columnHeaderProcessedChunks
-            // 
-            this.columnHeaderProcessedChunks.Text = "Обработано чанков";
-            this.columnHeaderProcessedChunks.Width = 100;
+            this.columnHeaderChunkProcessingTime.Text = "Обработка чанка";
+            this.columnHeaderChunkProcessingTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.columnHeaderChunkProcessingTime.Width = 100;
             // 
             // Form1
             // 
@@ -272,6 +280,7 @@
         private System.Windows.Forms.ColumnHeader columnHeaderFirstChunkSession;
         private System.Windows.Forms.ColumnHeader columnHeaderProcessedChunks;
         private System.Windows.Forms.ColumnHeader columnHeaderLostChunks;
+        private System.Windows.Forms.ColumnHeader columnHeaderChunkProcessingTime;
     }
 }
 

@@ -37,8 +37,8 @@ namespace HlsDumpLib
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
         public delegate void PlaylistCheckedDelegate(object sender, int errorCode);
         public delegate void PlaylistFirstArrived(object sender, int chunkCount, long firstChunkId);
-        public delegate void NextChunkDelegate(object sender, long absoluteChunkId,
-            long sessionChunkId, long chunkSize, string chunkUrl);
+        public delegate void NextChunkDelegate(object sender, long absoluteChunkId, long sessionChunkId,
+            long chunkSize, int chunkProcessingTime, string chunkUrl);
         public delegate void DumpProgressDelegate(object sender, long fileSize, int errorCode);
         public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, long failedCount);
         public delegate void ChunkAppendFailedDelegate(object sender, long failedCount);
@@ -168,8 +168,10 @@ namespace HlsDumpLib
                                 {
                                     for (int i = 0; i < filteredPlaylist.Count; ++i)
                                     {
+                                        int tickBeforeChunk = Environment.TickCount;
+
                                         string chunkUrl = filteredPlaylist[i];
-                                        long lastChunkLength = -1L;
+                                        long chunkLength = -1L;
                                         long currentAbsoluteChunkId = CurrentPlaylistFirstNewChunkId + i;
 
                                         MemoryStream mem = new MemoryStream();
@@ -177,7 +179,7 @@ namespace HlsDumpLib
                                         int code = d.Download(mem);
                                         if (code == 200)
                                         {
-                                            lastChunkLength = mem.Length;
+                                            chunkLength = mem.Length;
                                             mem.Position = 0L;
                                             if (MultiThreadedDownloader.AppendStream(mem, outputStream))
                                             {
@@ -212,9 +214,11 @@ namespace HlsDumpLib
                                             _chunkUrlList.RemoveFirst();
                                         }
 
+                                        int chunkProcessingTime = Environment.TickCount - tickBeforeChunk;
+
                                         ProcessedChunkCountTotal++;
                                         nextChunk?.Invoke(this, currentAbsoluteChunkId,
-                                            ProcessedChunkCountTotal, lastChunkLength, chunkUrl);
+                                            ProcessedChunkCountTotal, chunkLength, chunkProcessingTime, chunkUrl);
 
                                         dumpProgress?.Invoke(this, outputStream.Length, code);
 

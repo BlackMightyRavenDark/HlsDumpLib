@@ -21,6 +21,7 @@ namespace HlsDumpLib.GuiTest
             PlaylistCheckingFinishedDelegate playlistCheckingFinished,
             HlsDumper.PlaylistFirstArrived playlistFirstArrived,
             DumpingStartedDelegate dumpingStarted,
+            HlsDumper.NextChunkDelegate nextChunk,
             HlsDumper.DumpProgressDelegate dumpingProgress,
             HlsDumper.DumpFinishedDelegate dumpingFinished,
             bool saveChunksInfo)
@@ -39,7 +40,9 @@ namespace HlsDumpLib.GuiTest
                         (s, url) => { playlistCheckingStarted?.Invoke(this, url); },
                         (s, e) => { playlistCheckingFinished?.Invoke(this, e); },
                         (s, count, first) => { playlistFirstArrived?.Invoke(this, count, first); },
-                        null, (s, fs, e) => { dumpingProgress.Invoke(this, fs, e); }, null,
+                        (s, absoluteChunkId, sessionChunkId,chunkSize, chunkProcessingTime, chunkUrl) =>
+                            { nextChunk?.Invoke(this, absoluteChunkId, sessionChunkId, chunkSize, chunkProcessingTime, chunkUrl); },
+                        (s, fs, e) => { dumpingProgress.Invoke(this, fs, e); }, null,
                         null, null, null, null, (s, e) =>
                         {
                             dumpingFinished.Invoke(this, e);
