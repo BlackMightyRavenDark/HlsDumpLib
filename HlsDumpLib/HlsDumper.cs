@@ -35,7 +35,9 @@ namespace HlsDumpLib
         public const int DUMPING_ERROR_CANCELED = -2;
 
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
-        public delegate void PlaylistCheckedDelegate(object sender, int errorCode);
+        public delegate void PlaylistCheckedDelegate(object sender,
+            int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
+            string playlistContent, int errorCode);
         public delegate void PlaylistFirstArrived(object sender, int chunkCount, long firstChunkId);
         public delegate void NextChunkArrivedDelegate(object sender, long absoluteChunkId, long sessionChunkId,
             long chunkSize, int chunkProcessingTime, string chunkUrl);
@@ -129,14 +131,6 @@ namespace HlsDumpLib
                                     CurrentPlaylistFirstNewChunkId = -1L;
                                 }
 
-                                playlistChecked?.Invoke(this, playlistErrorCode);
-
-                                if (CurrentPlaylistNewChunkCount == 0)
-                                {
-                                    errorCount++;
-                                    dumpWarning?.Invoke(this, "No new files detected", errorCount);
-                                }
-
                                 long diff = _lastProcessedChunkId >= 0L ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1L;
                                 long lost = diff - 1L;
                                 if (lost > 0)
@@ -144,10 +138,24 @@ namespace HlsDumpLib
                                     LostChunkCount += lost;
                                     dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
                                 }
+
+                                playlistChecked?.Invoke(this,
+                                    CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
+                                    _currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
+                                    response, playlistErrorCode);
+
+                                if (CurrentPlaylistNewChunkCount == 0)
+                                {
+                                    errorCount++;
+                                    dumpWarning?.Invoke(this, "No new files detected", errorCount);
+                                }
                             }
                             else
                             {
-                                playlistChecked?.Invoke(this, playlistErrorCode);
+                                playlistChecked?.Invoke(this,
+                                    CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
+                                    _currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
+                                    response, playlistErrorCode);
 
                                 errorCount++;
 

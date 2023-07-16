@@ -177,11 +177,18 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnPlaylistCheckingFinished(object sender, int errorCode)
+        private void OnPlaylistCheckingFinished(object sender,
+            int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
+            string playlistContent, int errorCode)
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnPlaylistCheckingFinished(sender, errorCode); });
+                Invoke((MethodInvoker)delegate
+                {
+                    OnPlaylistCheckingFinished(sender,
+                        chunkCount, newChunkCount, firstChunkId, firstNewChunkId,
+                        playlistContent, errorCode);
+                });
             }
             else
             {

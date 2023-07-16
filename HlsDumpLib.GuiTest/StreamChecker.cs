@@ -11,7 +11,9 @@ namespace HlsDumpLib.GuiTest
         public delegate void CheckingStartedDelegate(object sender);
         public delegate void CheckingFinishedDelegate(object sender, int errorCode);
         public delegate void PlaylistCheckingStartedDelegate(object sender, string url);
-        public delegate void PlaylistCheckingFinishedDelegate(object sender, int errorCode);
+        public delegate void PlaylistCheckingFinishedDelegate(object sender,
+            int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
+            string playlistContent, int errorCode);
         public delegate void DumpingStartedDelegate(object sender);
 
         public void Check(string outputFilePath,
@@ -38,7 +40,8 @@ namespace HlsDumpLib.GuiTest
                     dumpingStarted?.Invoke(this);
                     Task.Run(() => StreamItem.Dumper.Dump(outputFilePath,
                         (s, url) => { playlistCheckingStarted?.Invoke(this, url); },
-                        (s, e) => { playlistCheckingFinished?.Invoke(this, e); },
+                        (s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e) =>
+                            { playlistCheckingFinished?.Invoke(this, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e); },
                         (s, count, first) => { playlistFirstArrived?.Invoke(this, count, first); },
                         (s, absoluteChunkId, sessionChunkId,chunkSize, chunkProcessingTime, chunkUrl) =>
                             { nextChunkArrived?.Invoke(this, absoluteChunkId, sessionChunkId, chunkSize, chunkProcessingTime, chunkUrl); },

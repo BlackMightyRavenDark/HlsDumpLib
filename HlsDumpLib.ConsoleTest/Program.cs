@@ -22,7 +22,7 @@ namespace HlsDumpLib.ConsoleTest
                     string fileName = $"hlsdumper_{DateTime.Now:yyyy-MM-dd HH-mm-ss}.ts";
                     HlsDumper dumper = new HlsDumper(url);
                     dumper.Dump(fileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null,
-                        OnNextChunk, OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
+                        OnNextChunkArrived, OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
                         OnMessage, OnWarning, OnError, OnFinished,
                         true, false);
                 }
@@ -46,13 +46,15 @@ namespace HlsDumpLib.ConsoleTest
             Console.WriteLine(playlistFileUrl);
         }
 
-        private static void OnPlaylistCheckingFinished(object sender, int errorCode)
+        private static void OnPlaylistCheckingFinished(object sender,
+            int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
+            string playlistContent, int errorCode)
         {
             if (errorCode == 200)
             {
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine($"Playlist total chunks: {(sender as HlsDumper).CurrentPlaylistChunkCount}");
-                Console.WriteLine($"Playlist new chunks: {(sender as HlsDumper).CurrentPlaylistNewChunkCount}");
+                Console.WriteLine($"Playlist total chunks: {chunkCount}");
+                Console.WriteLine($"Playlist new chunks: {newChunkCount}");
             }
             else
             {
@@ -61,7 +63,7 @@ namespace HlsDumpLib.ConsoleTest
             }
         }
 
-        private static void OnNextChunk(object sender, long absoluteChunkId,
+        private static void OnNextChunkArrived(object sender, long absoluteChunkId,
             long sessionChunkId, long chunkSize, int chunkProcessingTime, string chunkFileUrl)
         {
             Console.ForegroundColor = ConsoleColor.Green;
