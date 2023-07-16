@@ -39,6 +39,7 @@
             this.columnHeaderFileSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderNewChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDelay = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkProcessingTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderFirstChunkSession = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderProcessedChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderLostChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -51,7 +52,6 @@
             this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.checkBoxSaveChunksInfo = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.columnHeaderChunkProcessingTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -60,9 +60,10 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(8, 15);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(60, 13);
+            this.label1.Size = new System.Drawing.Size(146, 13);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Название:";
+            this.label1.Text = "Название (необязательно):";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // label2
             // 
@@ -77,18 +78,18 @@
             // 
             this.textBoxTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxTitle.Location = new System.Drawing.Point(138, 12);
+            this.textBoxTitle.Location = new System.Drawing.Point(160, 12);
             this.textBoxTitle.Name = "textBoxTitle";
-            this.textBoxTitle.Size = new System.Drawing.Size(650, 20);
+            this.textBoxTitle.Size = new System.Drawing.Size(628, 20);
             this.textBoxTitle.TabIndex = 2;
             // 
             // textBoxUrl
             // 
             this.textBoxUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxUrl.Location = new System.Drawing.Point(138, 38);
+            this.textBoxUrl.Location = new System.Drawing.Point(160, 38);
             this.textBoxUrl.Name = "textBoxUrl";
-            this.textBoxUrl.Size = new System.Drawing.Size(650, 20);
+            this.textBoxUrl.Size = new System.Drawing.Size(628, 20);
             this.textBoxUrl.TabIndex = 3;
             // 
             // listViewStreams
@@ -149,6 +150,12 @@
             this.columnHeaderDelay.Text = "Задержка";
             this.columnHeaderDelay.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeaderDelay.Width = 80;
+            // 
+            // columnHeaderChunkProcessingTime
+            // 
+            this.columnHeaderChunkProcessingTime.Text = "Обработка чанка";
+            this.columnHeaderChunkProcessingTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.columnHeaderChunkProcessingTime.Width = 100;
             // 
             // columnHeaderFirstChunkSession
             // 
@@ -225,12 +232,6 @@
             this.checkBoxSaveChunksInfo.Text = "Сохранять информацию о чанках";
             this.toolTip1.SetToolTip(this.checkBoxSaveChunksInfo, "Невозможно изменить для уже добавленных элементов");
             this.checkBoxSaveChunksInfo.UseVisualStyleBackColor = true;
-            // 
-            // columnHeaderChunkProcessingTime
-            // 
-            this.columnHeaderChunkProcessingTime.Text = "Обработка чанка";
-            this.columnHeaderChunkProcessingTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeaderChunkProcessingTime.Width = 100;
             // 
             // Form1
             // 

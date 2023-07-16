@@ -57,14 +57,6 @@ namespace HlsDumpLib.GuiTest
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            string title = textBoxTitle.Text.Trim();
-            if (string.IsNullOrEmpty(title) || string.IsNullOrWhiteSpace(title))
-            {
-                MessageBox.Show("Введите название!", "Ошибка!",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
             string url = textBoxUrl.Text;
             if (string.IsNullOrEmpty(url) || string.IsNullOrWhiteSpace(url))
             {
@@ -73,7 +65,13 @@ namespace HlsDumpLib.GuiTest
                 return;
             }
 
-            string fileName = FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss}.ts");
+            string title = textBoxTitle.Text?.Trim();
+            if (string.IsNullOrEmpty(title))
+            {
+                title = "untitled";
+            }
+
+            string fileName = FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss-fff}.ts");
             StreamItem item = new StreamItem()
             {
                 Title = title,
