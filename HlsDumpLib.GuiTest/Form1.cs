@@ -267,14 +267,14 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnNextChunk(object sender, long absoluteChunkId, long sessionChunkId,
+        private void OnNextChunkArrived(object sender, long absoluteChunkId, long sessionChunkId,
             long chunkSize, int chunkProcessingTime, string chunkUrl)
         {
             if (InvokeRequired)
             {
                 Invoke((MethodInvoker)delegate
                 {
-                    OnNextChunk(sender, absoluteChunkId, sessionChunkId,
+                    OnNextChunkArrived(sender, absoluteChunkId, sessionChunkId,
                         chunkSize, chunkProcessingTime, chunkUrl);
                 });
             }
@@ -327,7 +327,7 @@ namespace HlsDumpLib.GuiTest
                         StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
                         checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
                             null, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
-                            OnDumpingStarted, OnNextChunk, OnDumpingProgress, OnDumpingFinshed,
+                            OnDumpingStarted, OnNextChunkArrived, OnDumpingProgress, OnDumpingFinshed,
                             saveChunksInfo);
                     });
                 }
