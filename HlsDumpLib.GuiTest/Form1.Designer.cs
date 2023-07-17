@@ -58,6 +58,7 @@
             this.numericUpDownPlaylistErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownOtherErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.columnHeaderOtherErroors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
@@ -113,6 +114,7 @@
             this.columnHeaderNewChunks,
             this.columnHeaderDelay,
             this.columnHeaderChunkProcessingTime,
+            this.columnHeaderChunkSize,
             this.columnHeaderFirstChunkSession,
             this.columnHeaderProcessedChunks,
             this.columnHeaderLostChunks,
@@ -307,6 +309,12 @@
             this.columnHeaderOtherErroors.Text = "Другие ошибки";
             this.columnHeaderOtherErroors.Width = 100;
             // 
+            // columnHeaderChunkSize
+            // 
+            this.columnHeaderChunkSize.Text = "Размер чанка";
+            this.columnHeaderChunkSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.columnHeaderChunkSize.Width = 110;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -368,6 +376,7 @@
         private System.Windows.Forms.NumericUpDown numericUpDownPlaylistErrorCountInRow;
         private System.Windows.Forms.NumericUpDown numericUpDownOtherErrorCountInRow;
         private System.Windows.Forms.ColumnHeader columnHeaderOtherErroors;
+        private System.Windows.Forms.ColumnHeader columnHeaderChunkSize;
     }
 }
 

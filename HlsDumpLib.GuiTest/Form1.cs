@@ -15,14 +15,15 @@ namespace HlsDumpLib.GuiTest
         public const int COLUMN_ID_NEWCHUNKS = 3;
         public const int COLUMN_ID_DELAY = 4;
         public const int COLUMN_ID_CHUNKTIME = 5;
-        public const int COLUMN_ID_FIRSTCHUNK = 6;
-        public const int COLUMN_ID_PROCESSEDCHUNKS = 7;
-        public const int COLUMN_ID_LOSTCHUNKS = 8;
-        public const int COLUMN_ID_DATEDUMPSTARTED = 9;
-        public const int COLUMN_ID_STATE = 10;
-        public const int COLUMN_ID_PLAYLISTERRORS = 11;
-        public const int COLUMN_ID_OTHERERRORS = 12;
-        public const int COLUMN_ID_PLAYLISTURL = 13;
+        public const int COLUMN_ID_CHUNKSIZE = 6;
+        public const int COLUMN_ID_FIRSTCHUNK = 7;
+        public const int COLUMN_ID_PROCESSEDCHUNKS = 8;
+        public const int COLUMN_ID_LOSTCHUNKS = 9;
+        public const int COLUMN_ID_DATEDUMPSTARTED = 10;
+        public const int COLUMN_ID_STATE = 11;
+        public const int COLUMN_ID_PLAYLISTERRORS = 12;
+        public const int COLUMN_ID_OTHERERRORS = 13;
+        public const int COLUMN_ID_PLAYLISTURL = 14;
 
         public Form1()
         {
@@ -124,6 +125,7 @@ namespace HlsDumpLib.GuiTest
             string[] subItems = new string[]
             {
                 streamItem.FilePath,
+                string.Empty,
                 string.Empty,
                 string.Empty,
                 string.Empty,
@@ -296,6 +298,7 @@ namespace HlsDumpLib.GuiTest
                     listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text = null;
                     listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text = null;
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKTIME].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKSIZE].Text = null;
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
                         errorCode == HlsDumper.DUMPING_ERROR_PLAYLIST_GONE ? "Завершён" : "Отменён";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLISTERRORS].Text =
@@ -324,6 +327,7 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKTIME].Text = $"{chunkProcessingTime}ms";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKSIZE].Text = FormatSize(chunkSize);
                 }
             }
 
