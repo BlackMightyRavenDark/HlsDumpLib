@@ -24,7 +24,7 @@ namespace HlsDumpLib.ConsoleTest
                     dumper.Dump(fileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null,
                         OnNextChunkArrived, OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
                         OnMessage, OnWarning, OnError, OnFinished,
-                        true, false);
+                        true, 5, 5);
                 }
                 else
                 {
@@ -48,7 +48,7 @@ namespace HlsDumpLib.ConsoleTest
 
         private static void OnPlaylistCheckingFinished(object sender,
             int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
-            string playlistContent, int errorCode)
+            string playlistContent, int errorCode, int playlistErrorCountInRow)
         {
             if (errorCode == 200)
             {
@@ -59,7 +59,8 @@ namespace HlsDumpLib.ConsoleTest
             else
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Playlist checking failed! Error code: {errorCode}");
+                Console.WriteLine($"Playlist checking failed! Error code: {errorCode}, " +
+                    $"Error count: {playlistErrorCountInRow} / {(sender as HlsDumper).PlaylistErrorCountInRowMax}");
             }
         }
 

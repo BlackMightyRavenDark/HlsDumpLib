@@ -22,6 +22,10 @@ namespace HlsDumpLib
         public int CurrentPlaylistNewChunkCount { get; private set; } = 0;
         public long LostChunkCount { get; private set; } = 0L;
         public int LastDelayValueMilliseconds { get; private set; } = 0;
+        public int PlaylistErrorCountInRowMax { get; private set; } = 5;
+        public int PlaylistErrorCountInRow { get; private set; } = 0;
+        public int OtherErrorCountInRowMax { get; private set; } = 5;
+        public int OtherErrorCountInRow { get; private set; } = 0;
 
         private long _currentPlaylistFirstChunkId = -1L;
         private long _lastProcessedChunkId = -1L;
@@ -37,7 +41,7 @@ namespace HlsDumpLib
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
         public delegate void PlaylistCheckedDelegate(object sender,
             int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
-            string playlistContent, int errorCode);
+            string playlistContent, int errorCode, int playlistErrorCountInRow);
         public delegate void PlaylistFirstArrived(object sender, int chunkCount, long firstChunkId);
         public delegate void NextChunkArrivedDelegate(object sender, long absoluteChunkId, long sessionChunkId,
             long chunkSize, int chunkProcessingTime, string chunkUrl);
@@ -76,7 +80,8 @@ namespace HlsDumpLib
             DumpErrorDelegate dumpError,
             DumpFinishedDelegate dumpFinished,
             bool writeChunksInfo,
-            bool breakIfPlaylistLost)
+            int maxPlaylistErrorCountInRow,
+            int maxOtherErrorsInRow)
         {
             if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
             {
@@ -87,12 +92,15 @@ namespace HlsDumpLib
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
+            PlaylistErrorCountInRowMax = maxPlaylistErrorCountInRow;
+            OtherErrorCountInRowMax = maxOtherErrorsInRow <= 0 ? 5 : maxOtherErrorsInRow;
+            PlaylistErrorCountInRow = OtherErrorCountInRow = 0;
+
             JArray jChunks = new JArray();
             FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
             await Task.Run(() =>
             {
                 const int MAX_CHECKING_INTERVAL_MILLISECONDS = 2000;
-                int errorCount = 0;
                 bool first = true;
                 try
                 {
@@ -108,6 +116,8 @@ namespace HlsDumpLib
                             int playlistErrorCode = playlistDownloader.DownloadString(out string response);
                             if (playlistErrorCode == 200)
                             {
+                                PlaylistErrorCountInRow = 0;
+
                                 unfilteredPlaylist = ParsePlaylist(response);
                                 CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
 
@@ -136,38 +146,57 @@ namespace HlsDumpLib
                                 if (lost > 0)
                                 {
                                     LostChunkCount += lost;
+                                    OtherErrorCountInRow++;
                                     dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
                                 }
 
                                 playlistChecked?.Invoke(this,
                                     CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
                                     _currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
-                                    response, playlistErrorCode);
+                                    response, playlistErrorCode, PlaylistErrorCountInRow);
 
                                 if (CurrentPlaylistNewChunkCount == 0)
                                 {
-                                    errorCount++;
-                                    dumpWarning?.Invoke(this, "No new files detected", errorCount);
+                                    OtherErrorCountInRow++;
+                                    dumpWarning?.Invoke(this, "No new files detected", -1);
+                                }
+                                else
+                                {
+                                    OtherErrorCountInRow = 0;
                                 }
                             }
                             else
                             {
+                                PlaylistErrorCountInRow++;
+
                                 playlistChecked?.Invoke(this,
                                     CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
                                     _currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
-                                    response, playlistErrorCode);
+                                    response, playlistErrorCode, PlaylistErrorCountInRow);
 
-                                errorCount++;
+                                if (PlaylistErrorCountInRowMax > 0)
+                                {
+                                    PlaylistErrorCountInRow++;
+                                    if (PlaylistErrorCountInRow >= PlaylistErrorCountInRowMax)
+                                    {
+                                        dumpError?.Invoke(this,
+                                            "Playlist lost! Max error count limit is reached! Breaking...",
+                                            PlaylistErrorCountInRow);
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        dumpError?.Invoke(this,
+                                            $"Playlist lost {PlaylistErrorCountInRow} / {PlaylistErrorCountInRowMax}! Breaking...",
+                                            PlaylistErrorCountInRow);
+                                    }
+                                }
+                            }
 
-                                if (breakIfPlaylistLost)
-                                {
-                                    dumpError?.Invoke(this, "Playlist lost! Breaking...", -1);
-                                    break;
-                                }
-                                else if (errorCount >= 5)
-                                {
-                                    break;
-                                }
+                            if (OtherErrorCountInRow >= OtherErrorCountInRowMax)
+                            {
+                                dumpError?.Invoke(this, "Max error count limit is reached! Breaking...", OtherErrorCountInRow);
+                                break;
                             }
 
                             if (playlistErrorCode == 200)
@@ -191,6 +220,7 @@ namespace HlsDumpLib
                                             mem.Position = 0L;
                                             if (MultiThreadedDownloader.AppendStream(mem, outputStream))
                                             {
+                                                OtherErrorCountInRow = 0;
                                                 _lastProcessedChunkId = currentAbsoluteChunkId;
                                                 if (writeChunksInfo)
                                                 {
@@ -205,6 +235,7 @@ namespace HlsDumpLib
                                             else
                                             {
                                                 ChunkAppendErrorCount++;
+                                                OtherErrorCountInRow++;
                                                 chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
                                                 //TODO: The stream and chunks information data will be corrupted here, so it's strongly needed to do some magic thing!
                                             }
@@ -212,6 +243,7 @@ namespace HlsDumpLib
                                         else
                                         {
                                             ChunkDownloadErrorCount++;
+                                            OtherErrorCountInRow++;
                                             chunkDownloadFailed?.Invoke(this, code, ChunkDownloadErrorCount);
                                         }
                                         mem.Close();
@@ -230,11 +262,15 @@ namespace HlsDumpLib
 
                                         dumpProgress?.Invoke(this, outputStream.Length, code);
 
-                                        errorCount = 0;
-
                                         if (_cancellationToken.IsCancellationRequested) { break; }
                                     }
                                 }
+                            }
+
+                            if (OtherErrorCountInRow >= OtherErrorCountInRowMax)
+                            {
+                                dumpError?.Invoke(this, "Max error count limit is reached! Breaking...", OtherErrorCountInRow);
+                                break;
                             }
 
                             if (_cancellationToken.IsCancellationRequested) { break; }
@@ -248,7 +284,9 @@ namespace HlsDumpLib
                                     $"(max: {MAX_CHECKING_INTERVAL_MILLISECONDS})");
                                 Thread.Sleep(LastDelayValueMilliseconds);
                             }
-                        } while (errorCount < 5 && !_cancellationToken.IsCancellationRequested);
+                        } while (OtherErrorCountInRow < OtherErrorCountInRowMax &&
+                                PlaylistErrorCountInRow < PlaylistErrorCountInRowMax &&
+                                !_cancellationToken.IsCancellationRequested);
                     }
 
                     if (writeChunksInfo)
@@ -262,8 +300,8 @@ namespace HlsDumpLib
                 } catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine(ex.Message);
-                    errorCount++;
-                    dumpError?.Invoke(this, ex.Message, errorCount);
+                    OtherErrorCountInRow++;
+                    dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
                 }
             });
 

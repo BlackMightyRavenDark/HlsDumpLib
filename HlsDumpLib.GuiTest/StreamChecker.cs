@@ -13,7 +13,7 @@ namespace HlsDumpLib.GuiTest
         public delegate void PlaylistCheckingStartedDelegate(object sender, string url);
         public delegate void PlaylistCheckingFinishedDelegate(object sender,
             int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
-            string playlistContent, int errorCode);
+            string playlistContent, int errorCode, int playlistErrorCountInRow);
         public delegate void DumpingStartedDelegate(object sender);
 
         public void Check(string outputFilePath,
@@ -26,7 +26,9 @@ namespace HlsDumpLib.GuiTest
             HlsDumper.NextChunkArrivedDelegate nextChunkArrived,
             HlsDumper.DumpProgressDelegate dumpingProgress,
             HlsDumper.DumpFinishedDelegate dumpingFinished,
-            bool saveChunksInfo)
+            bool saveChunksInfo,
+            int maxPlaylistErrorCountInRow,
+            int maxOtherErrorsInRow)
         {
             checkingStarted?.Invoke(this);
 
@@ -40,8 +42,8 @@ namespace HlsDumpLib.GuiTest
                     dumpingStarted?.Invoke(this);
                     Task.Run(() => StreamItem.Dumper.Dump(outputFilePath,
                         (s, url) => { playlistCheckingStarted?.Invoke(this, url); },
-                        (s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e) =>
-                            { playlistCheckingFinished?.Invoke(this, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e); },
+                        (s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow) =>
+                            { playlistCheckingFinished?.Invoke(this, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow); },
                         (s, count, first) => { playlistFirstArrived?.Invoke(this, count, first); },
                         (s, absoluteChunkId, sessionChunkId,chunkSize, chunkProcessingTime, chunkUrl) =>
                             { nextChunkArrived?.Invoke(this, absoluteChunkId, sessionChunkId, chunkSize, chunkProcessingTime, chunkUrl); },
@@ -50,7 +52,8 @@ namespace HlsDumpLib.GuiTest
                         {
                             dumpingFinished.Invoke(this, e);
                             StreamItem.Dumper = null;
-                        }, saveChunksInfo, true));
+                        },
+                        saveChunksInfo, maxPlaylistErrorCountInRow, maxOtherErrorsInRow));
                 }
             }
 
