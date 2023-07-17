@@ -148,7 +148,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnCheckingStarted(sender); });
+                Invoke(new MethodInvoker(() => { OnCheckingStarted(sender); }));
             }
             else
             {
@@ -166,7 +166,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnCheckingFinished(sender, errorCode); });
+                Invoke(new MethodInvoker(() => { OnCheckingFinished(sender, errorCode); }));
             }
             else
             {
@@ -185,7 +185,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnPlaylistCheckingStarted(sender, playlistUrl); });
+                Invoke(new MethodInvoker(() => { OnPlaylistCheckingStarted(sender, playlistUrl); }));
             }
             else
             {
@@ -204,12 +204,12 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate
+                Invoke(new MethodInvoker(() =>
                 {
                     OnPlaylistCheckingFinished(sender,
                         chunkCount, newChunkCount, firstChunkId, firstNewChunkId,
                         playlistContent, errorCode, playlistErrorCountInRow);
-                });
+                }));
             }
             else
             {
@@ -254,7 +254,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnPlaylistFirstArrived(sender, chunkCount, firstChunkId); });
+                Invoke(new MethodInvoker(() => { OnPlaylistFirstArrived(sender, chunkCount, firstChunkId); }));
             }
             else
             {
@@ -271,7 +271,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnDumpingStarted(sender); });
+                Invoke(new MethodInvoker(() => { OnDumpingStarted(sender); }));
             }
             else
             {
@@ -288,11 +288,11 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnDumpingFinshed(object sender, int errorCode)
+        private void OnDumpingFinished(object sender, int errorCode)
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnDumpingFinshed(sender, errorCode); });
+                Invoke(new MethodInvoker(() => { OnDumpingFinished(sender, errorCode); }));
             }
             else
             {
@@ -319,11 +319,11 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate
+                Invoke(new MethodInvoker(() =>
                 {
                     OnNextChunkArrived(sender, absoluteChunkId, sessionChunkId,
                         chunkSize, chunkProcessingTime, chunkUrl);
-                });
+                }));
             }
             else
             {
@@ -342,7 +342,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnDumpingProgress(sender, fileSize, errorCode); });
+                Invoke(new MethodInvoker(() => { OnDumpingProgress(sender, fileSize, errorCode); }));
             }
             else
             {
@@ -378,7 +378,7 @@ namespace HlsDumpLib.GuiTest
                         StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
                         checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
                             OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
-                            OnDumpingStarted, OnNextChunkArrived, OnDumpingProgress, OnDumpingFinshed,
+                            OnDumpingStarted, OnNextChunkArrived, OnDumpingProgress, OnDumpingFinished,
                             saveChunksInfo, maxPlaylistErrorsInRow, maxOtherErrorsInRow);
                     });
                 }

@@ -96,12 +96,14 @@ namespace HlsDumpLib
             OtherErrorCountInRowMax = maxOtherErrorsInRow <= 0 ? 5 : maxOtherErrorsInRow;
             PlaylistErrorCountInRow = OtherErrorCountInRow = 0;
 
-            JArray jChunks = new JArray();
-            FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
             await Task.Run(() =>
             {
                 const int MAX_CHECKING_INTERVAL_MILLISECONDS = 2000;
                 bool first = true;
+
+                JArray jChunks = new JArray();
+                FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
+
                 try
                 {
                     using (Stream outputStream = File.OpenWrite(outputFilePath))
