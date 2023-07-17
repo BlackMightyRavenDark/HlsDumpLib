@@ -241,6 +241,11 @@ namespace HlsDumpLib.GuiTest
                         listViewStreams.Items[id].SubItems[COLUMN_ID_LOSTCHUNKS].Text = null;
                         listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLISTERRORS].Text = null;
                     }
+
+                    if (newChunkCount <= 0)
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKTIME].Text = null;
+                    }
                 }
             }
         }
