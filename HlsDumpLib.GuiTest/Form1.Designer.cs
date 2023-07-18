@@ -40,12 +40,14 @@
             this.columnHeaderNewChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDelay = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderChunkProcessingTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderFirstChunkSession = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderProcessedChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderLostChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDateStarted = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPlaylistErrors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderOtherErroors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPlaylistUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.btnAdd = new System.Windows.Forms.Button();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -57,11 +59,13 @@
             this.label4 = new System.Windows.Forms.Label();
             this.numericUpDownPlaylistErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownOtherErrorCountInRow = new System.Windows.Forms.NumericUpDown();
-            this.columnHeaderOtherErroors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderChunkSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.numericUpDownPlaylistCheckingInterval = new System.Windows.Forms.NumericUpDown();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckingInterval)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -126,10 +130,10 @@
             this.listViewStreams.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.listViewStreams.FullRowSelect = true;
             this.listViewStreams.HideSelection = false;
-            this.listViewStreams.Location = new System.Drawing.Point(11, 139);
+            this.listViewStreams.Location = new System.Drawing.Point(11, 164);
             this.listViewStreams.MultiSelect = false;
             this.listViewStreams.Name = "listViewStreams";
-            this.listViewStreams.Size = new System.Drawing.Size(777, 204);
+            this.listViewStreams.Size = new System.Drawing.Size(777, 179);
             this.listViewStreams.TabIndex = 4;
             this.listViewStreams.UseCompatibleStateImageBehavior = false;
             this.listViewStreams.View = System.Windows.Forms.View.Details;
@@ -161,13 +165,19 @@
             // 
             this.columnHeaderDelay.Text = "Задержка";
             this.columnHeaderDelay.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeaderDelay.Width = 80;
+            this.columnHeaderDelay.Width = 130;
             // 
             // columnHeaderChunkProcessingTime
             // 
             this.columnHeaderChunkProcessingTime.Text = "Обработка чанка";
             this.columnHeaderChunkProcessingTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeaderChunkProcessingTime.Width = 100;
+            // 
+            // columnHeaderChunkSize
+            // 
+            this.columnHeaderChunkSize.Text = "Размер чанка";
+            this.columnHeaderChunkSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.columnHeaderChunkSize.Width = 110;
             // 
             // columnHeaderFirstChunkSession
             // 
@@ -199,6 +209,11 @@
             this.columnHeaderPlaylistErrors.Text = "Ошибки плейлиста";
             this.columnHeaderPlaylistErrors.Width = 150;
             // 
+            // columnHeaderOtherErroors
+            // 
+            this.columnHeaderOtherErroors.Text = "Другие ошибки";
+            this.columnHeaderOtherErroors.Width = 100;
+            // 
             // columnHeaderPlaylistUrl
             // 
             this.columnHeaderPlaylistUrl.Text = "Ссылка на плейлист";
@@ -207,7 +222,7 @@
             // btnAdd
             // 
             this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAdd.Location = new System.Drawing.Point(713, 108);
+            this.btnAdd.Location = new System.Drawing.Point(713, 136);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(75, 25);
             this.btnAdd.TabIndex = 5;
@@ -242,7 +257,7 @@
             this.checkBoxSaveChunksInfo.AutoSize = true;
             this.checkBoxSaveChunksInfo.Checked = true;
             this.checkBoxSaveChunksInfo.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxSaveChunksInfo.Location = new System.Drawing.Point(12, 113);
+            this.checkBoxSaveChunksInfo.Location = new System.Drawing.Point(12, 141);
             this.checkBoxSaveChunksInfo.Name = "checkBoxSaveChunksInfo";
             this.checkBoxSaveChunksInfo.Size = new System.Drawing.Size(194, 17);
             this.checkBoxSaveChunksInfo.TabIndex = 6;
@@ -253,7 +268,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 66);
+            this.label3.Location = new System.Drawing.Point(12, 94);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(200, 13);
             this.label3.TabIndex = 7;
@@ -263,7 +278,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 92);
+            this.label4.Location = new System.Drawing.Point(12, 120);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(180, 13);
             this.label4.TabIndex = 8;
@@ -272,7 +287,7 @@
             // 
             // numericUpDownPlaylistErrorCountInRow
             // 
-            this.numericUpDownPlaylistErrorCountInRow.Location = new System.Drawing.Point(218, 64);
+            this.numericUpDownPlaylistErrorCountInRow.Location = new System.Drawing.Point(218, 92);
             this.numericUpDownPlaylistErrorCountInRow.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -289,7 +304,7 @@
             // 
             // numericUpDownOtherErrorCountInRow
             // 
-            this.numericUpDownOtherErrorCountInRow.Location = new System.Drawing.Point(218, 90);
+            this.numericUpDownOtherErrorCountInRow.Location = new System.Drawing.Point(218, 118);
             this.numericUpDownOtherErrorCountInRow.Minimum = new decimal(new int[] {
             1,
             0,
@@ -304,22 +319,60 @@
             0,
             0});
             // 
-            // columnHeaderOtherErroors
+            // numericUpDownPlaylistCheckingInterval
             // 
-            this.columnHeaderOtherErroors.Text = "Другие ошибки";
-            this.columnHeaderOtherErroors.Width = 100;
+            this.numericUpDownPlaylistCheckingInterval.Increment = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.numericUpDownPlaylistCheckingInterval.Location = new System.Drawing.Point(218, 66);
+            this.numericUpDownPlaylistCheckingInterval.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.numericUpDownPlaylistCheckingInterval.Minimum = new decimal(new int[] {
+            200,
+            0,
+            0,
+            0});
+            this.numericUpDownPlaylistCheckingInterval.Name = "numericUpDownPlaylistCheckingInterval";
+            this.numericUpDownPlaylistCheckingInterval.Size = new System.Drawing.Size(53, 20);
+            this.numericUpDownPlaylistCheckingInterval.TabIndex = 11;
+            this.numericUpDownPlaylistCheckingInterval.Value = new decimal(new int[] {
+            2000,
+            0,
+            0,
+            0});
             // 
-            // columnHeaderChunkSize
+            // label5
             // 
-            this.columnHeaderChunkSize.Text = "Размер чанка";
-            this.columnHeaderChunkSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeaderChunkSize.Width = 110;
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(12, 68);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(159, 13);
+            this.label5.TabIndex = 12;
+            this.label5.Text = "Частота проверки плейлиста:";
+            this.toolTip1.SetToolTip(this.label5, "Невозможно изменить для уже добавленных элементов");
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(277, 68);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(74, 13);
+            this.label6.TabIndex = 13;
+            this.label6.Text = "миллисекунд";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 355);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.numericUpDownPlaylistCheckingInterval);
             this.Controls.Add(this.numericUpDownOtherErrorCountInRow);
             this.Controls.Add(this.numericUpDownPlaylistErrorCountInRow);
             this.Controls.Add(this.label4);
@@ -340,6 +393,7 @@
             this.contextMenuStrip1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckingInterval)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -377,6 +431,9 @@
         private System.Windows.Forms.NumericUpDown numericUpDownOtherErrorCountInRow;
         private System.Windows.Forms.ColumnHeader columnHeaderOtherErroors;
         private System.Windows.Forms.ColumnHeader columnHeaderChunkSize;
+        private System.Windows.Forms.NumericUpDown numericUpDownPlaylistCheckingInterval;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
     }
 }
 

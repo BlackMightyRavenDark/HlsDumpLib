@@ -222,7 +222,7 @@ namespace HlsDumpLib.GuiTest
                         listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text =
                             $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}";
                         listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text =
-                            $"{streamItem.Dumper.LastDelayValueMilliseconds}ms";
+                            $"{streamItem.Dumper.LastDelayValueMilliseconds}ms / {streamItem.Dumper.PlaylistCheckingIntervalMilliseconds}ms";
                        listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
                             $"Плейлист проверен (code: {errorCode})";
                         listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLISTERRORS].Text =
@@ -372,6 +372,7 @@ namespace HlsDumpLib.GuiTest
                     bool saveChunksInfo = checkBoxSaveChunksInfo.Checked;
                     int maxPlaylistErrorsInRow = (int)numericUpDownPlaylistErrorCountInRow.Value;
                     int maxOtherErrorsInRow = (int)numericUpDownOtherErrorCountInRow.Value;
+                    int playlistCheckingIntervalMilliseconds = (int)numericUpDownPlaylistCheckingInterval.Value;
 
                     Task.Run(() =>
                     {
@@ -379,6 +380,7 @@ namespace HlsDumpLib.GuiTest
                         checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
                             OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
                             OnDumpingStarted, OnNextChunkArrived, OnDumpingProgress, OnDumpingFinished,
+                            playlistCheckingIntervalMilliseconds,
                             saveChunksInfo, maxPlaylistErrorsInRow, maxOtherErrorsInRow);
                     });
                 }

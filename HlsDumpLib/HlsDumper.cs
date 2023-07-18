@@ -27,6 +27,8 @@ namespace HlsDumpLib
         public int OtherErrorCountInRowMax { get; private set; } = 5;
         public int OtherErrorCountInRow { get; private set; } = 0;
 
+        public int PlaylistCheckingIntervalMilliseconds { get; private set; } = 2000;
+
         private long _currentPlaylistFirstChunkId = -1L;
         private long _lastProcessedChunkId = -1L;
 
@@ -79,6 +81,7 @@ namespace HlsDumpLib
             DumpWarningDelegate dumpWarning,
             DumpErrorDelegate dumpError,
             DumpFinishedDelegate dumpFinished,
+            int playlistCheckingIntervalMilliseconds,
             bool writeChunksInfo,
             int maxPlaylistErrorCountInRow,
             int maxOtherErrorsInRow)
@@ -92,13 +95,14 @@ namespace HlsDumpLib
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
+            PlaylistCheckingIntervalMilliseconds =
+                playlistCheckingIntervalMilliseconds >= 200 ? playlistCheckingIntervalMilliseconds : 2000;
             PlaylistErrorCountInRowMax = maxPlaylistErrorCountInRow;
             OtherErrorCountInRowMax = maxOtherErrorsInRow <= 0 ? 5 : maxOtherErrorsInRow;
             PlaylistErrorCountInRow = OtherErrorCountInRow = 0;
 
             await Task.Run(() =>
             {
-                const int MAX_CHECKING_INTERVAL_MILLISECONDS = 2000;
                 bool first = true;
 
                 JArray jChunks = new JArray();
@@ -278,12 +282,12 @@ namespace HlsDumpLib
                             if (_cancellationToken.IsCancellationRequested) { break; }
 
                             int elapsedTime = Environment.TickCount - timeStart;
-                            LastDelayValueMilliseconds = MAX_CHECKING_INTERVAL_MILLISECONDS - elapsedTime;
+                            LastDelayValueMilliseconds = PlaylistCheckingIntervalMilliseconds - elapsedTime;
                             if (LastDelayValueMilliseconds > 0)
                             {
                                 dumpMessage?.Invoke(this,
                                     $"Waiting for {LastDelayValueMilliseconds} milliseconds " +
-                                    $"(max: {MAX_CHECKING_INTERVAL_MILLISECONDS})");
+                                    $"(max: {PlaylistCheckingIntervalMilliseconds})");
                                 Thread.Sleep(LastDelayValueMilliseconds);
                             }
                         } while (OtherErrorCountInRow < OtherErrorCountInRowMax &&

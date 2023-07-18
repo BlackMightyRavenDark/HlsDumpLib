@@ -26,6 +26,7 @@ namespace HlsDumpLib.GuiTest
             HlsDumper.NextChunkArrivedDelegate nextChunkArrived,
             HlsDumper.DumpProgressDelegate dumpingProgress,
             HlsDumper.DumpFinishedDelegate dumpingFinished,
+            int playlistCheckingIntervalMilliseconds,
             bool saveChunksInfo,
             int maxPlaylistErrorCountInRow,
             int maxOtherErrorsInRow)
@@ -53,6 +54,7 @@ namespace HlsDumpLib.GuiTest
                             dumpingFinished.Invoke(this, e);
                             StreamItem.Dumper = null;
                         },
+                        playlistCheckingIntervalMilliseconds,
                         saveChunksInfo, maxPlaylistErrorCountInRow, maxOtherErrorsInRow));
                 }
             }

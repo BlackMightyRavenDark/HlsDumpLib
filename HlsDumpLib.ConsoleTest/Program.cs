@@ -24,7 +24,7 @@ namespace HlsDumpLib.ConsoleTest
                     dumper.Dump(fileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null,
                         OnNextChunkArrived, OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
                         OnMessage, OnWarning, OnError, OnFinished,
-                        true, 5, 5);
+                        2000, true, 5, 5);
                 }
                 else
                 {
