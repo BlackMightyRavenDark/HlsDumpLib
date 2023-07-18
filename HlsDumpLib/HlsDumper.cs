@@ -164,7 +164,7 @@ namespace HlsDumpLib
                                 if (CurrentPlaylistNewChunkCount == 0)
                                 {
                                     OtherErrorCountInRow++;
-                                    dumpWarning?.Invoke(this, "No new files detected", -1);
+                                    dumpWarning?.Invoke(this, "No new files detected", OtherErrorCountInRow);
                                 }
                                 else
                                 {
