@@ -245,6 +245,7 @@ namespace HlsDumpLib.GuiTest
                     if (newChunkCount <= 0)
                     {
                         listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKTIME].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKSIZE].Text = null;
                     }
                 }
             }
