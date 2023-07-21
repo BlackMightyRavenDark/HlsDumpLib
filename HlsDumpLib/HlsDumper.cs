@@ -230,12 +230,21 @@ namespace HlsDumpLib
                                                 _lastProcessedChunkId = currentAbsoluteChunkId;
                                                 if (writeChunksInfo)
                                                 {
-                                                    JObject jChunk = new JObject();
-                                                    jChunk["position"] = outputStream.Position - mem.Length;
-                                                    jChunk["size"] = mem.Length;
-                                                    jChunk["id"] = currentAbsoluteChunkId;
-                                                    //TODO: Determine and store other chunk information from playlist
-                                                    jChunks.Add(jChunk);
+                                                    try
+                                                    {
+                                                        JObject jChunk = new JObject();
+                                                        jChunk["position"] = outputStream.Position - mem.Length;
+                                                        jChunk["size"] = mem.Length;
+                                                        jChunk["id"] = currentAbsoluteChunkId;
+                                                        //TODO: Determine and store other chunk information from playlist
+                                                        jChunks.Add(jChunk);
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                                                        OtherErrorCountInRow++;
+                                                        dumpError?.Invoke(this, "Failed to append chunk info", OtherErrorCountInRow);
+                                                    }
                                                 }
                                             }
                                             else
@@ -294,8 +303,16 @@ namespace HlsDumpLib
                                 PlaylistErrorCountInRow < PlaylistErrorCountInRowMax &&
                                 !_cancellationToken.IsCancellationRequested);
                     }
+                } catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                    OtherErrorCountInRow++;
+                    dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
+                }
 
-                    if (writeChunksInfo)
+                if (writeChunksInfo)
+                {
+                    try
                     {
                         JObject json = new JObject();
                         json["playlistUrl"] = Url;
@@ -303,11 +320,12 @@ namespace HlsDumpLib
                         json.Add(new JProperty("chunks", jChunks));
                         File.WriteAllText($"{outputFilePath}_chunks.json", json.ToString());
                     }
-                } catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(ex.Message);
-                    OtherErrorCountInRow++;
-                    dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                        OtherErrorCountInRow++;
+                        dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
+                    }
                 }
             });
 
