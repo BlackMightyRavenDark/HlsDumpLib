@@ -22,8 +22,10 @@ namespace HlsDumpLib.GuiTest
         public const int COLUMN_ID_DATEDUMPSTARTED = 10;
         public const int COLUMN_ID_STATE = 11;
         public const int COLUMN_ID_PLAYLISTERRORS = 12;
-        public const int COLUMN_ID_OTHERERRORS = 13;
-        public const int COLUMN_ID_PLAYLISTURL = 14;
+        public const int COLUMN_ID_CHUNKDOWNLOADERRORS = 13;
+        public const int COLUMN_ID_CHUNKAPPENDERRORS = 14;
+        public const int COLUMN_ID_OTHERERRORS = 15;
+        public const int COLUMN_ID_PLAYLISTURL = 16;
 
         public Form1()
         {
@@ -138,6 +140,8 @@ namespace HlsDumpLib.GuiTest
                 string.Empty,
                 string.Empty,
                 "Остановлен",
+                string.Empty,
+                string.Empty,
                 string.Empty,
                 string.Empty,
                 streamItem.PlaylistUrl
@@ -272,6 +276,10 @@ namespace HlsDumpLib.GuiTest
                         streamItem.DumpStarted.ToString("yyyy-MM-dd HH-mm-ss");
                     listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSEDCHUNKS].Text = "0";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_LOSTCHUNKS].Text = "0";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKDOWNLOADERRORS].Text = "0";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKAPPENDERRORS].Text = "0";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_OTHERERRORS].Text =
+                        $"0 / {streamItem.Dumper.OtherErrorCountInRowMax}";
                 }
             }
         }
@@ -294,10 +302,6 @@ namespace HlsDumpLib.GuiTest
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKSIZE].Text = null;
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
                         errorCode == HlsDumper.DUMPING_ERROR_PLAYLIST_GONE ? "Завершён" : "Отменён";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLISTERRORS].Text =
-                        $"{streamItem.Dumper.PlaylistErrorCountInRow} / {streamItem.Dumper.PlaylistErrorCountInRowMax}";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_OTHERERRORS].Text =
-                        $"{streamItem.Dumper.OtherErrorCountInRow} / {streamItem.Dumper.OtherErrorCountInRowMax}";
                 }
             }
         }
@@ -369,6 +373,10 @@ namespace HlsDumpLib.GuiTest
                     listViewStreams.Items[id].SubItems[COLUMN_ID_LOSTCHUNKS].Text = lostChunkCount.ToString();
                     listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLISTERRORS].Text =
                         $"{playlistErrorCountInRow} / {playlistErrorCountInRowMax}";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKDOWNLOADERRORS].Text =
+                        chunkDownloadErrorCount.ToString();
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNKAPPENDERRORS].Text =
+                        chunkAppendErrorCount.ToString();
                     listViewStreams.Items[id].SubItems[COLUMN_ID_OTHERERRORS].Text =
                         $"{otherErrorCountInRow} / {otherErrorCountInRowMax}";
                 }

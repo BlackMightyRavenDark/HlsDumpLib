@@ -47,6 +47,8 @@
             this.columnHeaderDateStarted = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPlaylistErrors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkDownloadErrors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkAppendErrors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderOtherErroors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPlaylistUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.btnAdd = new System.Windows.Forms.Button();
@@ -57,10 +59,10 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
             this.numericUpDownPlaylistErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownOtherErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownPlaylistCheckingInterval = new System.Windows.Forms.NumericUpDown();
-            this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
@@ -125,6 +127,8 @@
             this.columnHeaderDateStarted,
             this.columnHeaderState,
             this.columnHeaderPlaylistErrors,
+            this.columnHeaderChunkDownloadErrors,
+            this.columnHeaderChunkAppendErrors,
             this.columnHeaderOtherErroors,
             this.columnHeaderPlaylistUrl});
             this.listViewStreams.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
@@ -209,6 +213,16 @@
             this.columnHeaderPlaylistErrors.Text = "Ошибки плейлиста";
             this.columnHeaderPlaylistErrors.Width = 150;
             // 
+            // columnHeaderChunkDownloadErrors
+            // 
+            this.columnHeaderChunkDownloadErrors.Text = "Ошибки скачивания чанков";
+            this.columnHeaderChunkDownloadErrors.Width = 90;
+            // 
+            // columnHeaderChunkAppendErrors
+            // 
+            this.columnHeaderChunkAppendErrors.Text = "Ошибки объединения чанков";
+            this.columnHeaderChunkAppendErrors.Width = 90;
+            // 
             // columnHeaderOtherErroors
             // 
             this.columnHeaderOtherErroors.Text = "Другие ошибки";
@@ -285,6 +299,16 @@
             this.label4.Text = "Максимум других ошибок подряд:";
             this.toolTip1.SetToolTip(this.label4, "Невозможно изменить для уже добавленных элементов");
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(12, 68);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(159, 13);
+            this.label5.TabIndex = 12;
+            this.label5.Text = "Частота проверки плейлиста:";
+            this.toolTip1.SetToolTip(this.label5, "Невозможно изменить для уже добавленных элементов");
+            // 
             // numericUpDownPlaylistErrorCountInRow
             // 
             this.numericUpDownPlaylistErrorCountInRow.Location = new System.Drawing.Point(218, 92);
@@ -345,16 +369,6 @@
             0,
             0,
             0});
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 68);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(159, 13);
-            this.label5.TabIndex = 12;
-            this.label5.Text = "Частота проверки плейлиста:";
-            this.toolTip1.SetToolTip(this.label5, "Невозможно изменить для уже добавленных элементов");
             // 
             // label6
             // 
@@ -434,6 +448,8 @@
         private System.Windows.Forms.NumericUpDown numericUpDownPlaylistCheckingInterval;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.ColumnHeader columnHeaderChunkDownloadErrors;
+        private System.Windows.Forms.ColumnHeader columnHeaderChunkAppendErrors;
     }
 }
 
