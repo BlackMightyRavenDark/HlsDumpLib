@@ -217,51 +217,62 @@ namespace HlsDumpLib
                                         long chunkLength = -1L;
                                         long currentAbsoluteChunkId = CurrentPlaylistFirstNewChunkId + i;
 
-                                        MemoryStream mem = new MemoryStream();
-                                        FileDownloader d = new FileDownloader() { Url = chunkUrl };
-                                        int code = d.Download(mem);
-                                        if (code == 200)
+                                        int chunkDownloadErrorCode;
+                                        try
                                         {
-                                            chunkLength = mem.Length;
-                                            mem.Position = 0L;
-                                            if (MultiThreadedDownloader.AppendStream(mem, outputStream))
+                                            using (MemoryStream mem = new MemoryStream())
                                             {
-                                                OtherErrorCountInRow = 0;
-                                                _lastProcessedChunkId = currentAbsoluteChunkId;
-                                                if (writeChunksInfo)
+                                                FileDownloader d = new FileDownloader() { Url = chunkUrl };
+                                                chunkDownloadErrorCode = d.Download(mem);
+                                                if (chunkDownloadErrorCode == 200)
                                                 {
-                                                    try
+                                                    chunkLength = mem.Length;
+                                                    mem.Position = 0L;
+                                                    if (MultiThreadedDownloader.AppendStream(mem, outputStream))
                                                     {
-                                                        JObject jChunk = new JObject();
-                                                        jChunk["position"] = outputStream.Position - mem.Length;
-                                                        jChunk["size"] = mem.Length;
-                                                        jChunk["id"] = currentAbsoluteChunkId;
-                                                        //TODO: Determine and store other chunk information from playlist
-                                                        jChunks.Add(jChunk);
+                                                        OtherErrorCountInRow = 0;
+                                                        _lastProcessedChunkId = currentAbsoluteChunkId;
+                                                        if (writeChunksInfo)
+                                                        {
+                                                            try
+                                                            {
+                                                                JObject jChunk = new JObject();
+                                                                jChunk["position"] = outputStream.Position - mem.Length;
+                                                                jChunk["size"] = mem.Length;
+                                                                jChunk["id"] = currentAbsoluteChunkId;
+                                                                //TODO: Determine and store other chunk information from playlist
+                                                                jChunks.Add(jChunk);
+                                                            }
+                                                            catch (Exception ex)
+                                                            {
+                                                                System.Diagnostics.Debug.WriteLine(ex.Message);
+                                                                OtherErrorCountInRow++;
+                                                                dumpError?.Invoke(this, "Failed to append chunk info", OtherErrorCountInRow);
+                                                            }
+                                                        }
                                                     }
-                                                    catch (Exception ex)
+                                                    else
                                                     {
-                                                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                                                        ChunkAppendErrorCount++;
                                                         OtherErrorCountInRow++;
-                                                        dumpError?.Invoke(this, "Failed to append chunk info", OtherErrorCountInRow);
+                                                        chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
+                                                        //TODO: The stream and chunks information data will be corrupted here, so it's strongly needed to do some magic thing!
                                                     }
                                                 }
+                                                else
+                                                {
+                                                    ChunkDownloadErrorCount++;
+                                                    OtherErrorCountInRow++;
+                                                    chunkDownloadFailed?.Invoke(this, chunkDownloadErrorCode, ChunkDownloadErrorCount);
+                                                }
                                             }
-                                            else
-                                            {
-                                                ChunkAppendErrorCount++;
-                                                OtherErrorCountInRow++;
-                                                chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
-                                                //TODO: The stream and chunks information data will be corrupted here, so it's strongly needed to do some magic thing!
-                                            }
-                                        }
-                                        else
+                                        } catch (Exception ex)
                                         {
-                                            ChunkDownloadErrorCount++;
+                                            System.Diagnostics.Debug.WriteLine(ex.Message);
+                                            chunkDownloadErrorCode = ex.HResult;
                                             OtherErrorCountInRow++;
-                                            chunkDownloadFailed?.Invoke(this, code, ChunkDownloadErrorCount);
+                                            dumpError?.Invoke(this, "Failed to append chunk", OtherErrorCountInRow);
                                         }
-                                        mem.Close();
 
                                         _chunkUrlList.AddLast(chunkUrl);
                                         if (_chunkUrlList.Count > 50)
@@ -275,7 +286,7 @@ namespace HlsDumpLib
                                         nextChunkArrived?.Invoke(this, currentAbsoluteChunkId,
                                             ProcessedChunkCountTotal, chunkLength, chunkProcessingTime, chunkUrl);
 
-                                        dumpProgress?.Invoke(this, outputStream.Length, code);
+                                        dumpProgress?.Invoke(this, outputStream.Length, chunkDownloadErrorCode);
 
                                         if (_cancellationToken.IsCancellationRequested) { break; }
                                     }
