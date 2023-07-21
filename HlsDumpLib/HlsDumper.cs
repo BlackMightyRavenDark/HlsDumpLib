@@ -47,6 +47,11 @@ namespace HlsDumpLib
         public delegate void PlaylistFirstArrived(object sender, int chunkCount, long firstChunkId);
         public delegate void NextChunkArrivedDelegate(object sender, long absoluteChunkId, long sessionChunkId,
             long chunkSize, int chunkProcessingTime, string chunkUrl);
+        public delegate void UpdateErrorsDelegate(object sender,
+            int playlistErrorCountInRow, int playlistErrorCountInRowMax,
+            int otherErrorCountInRow, int otherErrorCountInRowMax,
+            long chunkDownloadErrorCount, long chunkAppendErrorCount,
+            long lostChunkCount);
         public delegate void DumpProgressDelegate(object sender, long fileSize, int errorCode);
         public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, long failedCount);
         public delegate void ChunkAppendFailedDelegate(object sender, long failedCount);
@@ -74,6 +79,7 @@ namespace HlsDumpLib
             PlaylistCheckedDelegate playlistChecked,
             PlaylistFirstArrived playlistFirstArrived,
             NextChunkArrivedDelegate nextChunkArrived,
+            UpdateErrorsDelegate updateErrors,
             DumpProgressDelegate dumpProgress,
             ChunkDownloadFailedDelegate chunkDownloadFailed,
             ChunkAppendFailedDelegate chunkAppendFailed,
@@ -188,6 +194,9 @@ namespace HlsDumpLib
                                         dumpError?.Invoke(this,
                                             "Playlist lost! Max error count limit is reached! Breaking...",
                                             PlaylistErrorCountInRow);
+                                        updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                                            OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                                            ChunkAppendErrorCount, LostChunkCount);
                                         break;
                                     }
                                     else
@@ -198,6 +207,10 @@ namespace HlsDumpLib
                                     }
                                 }
                             }
+
+                            updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                                OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                                ChunkAppendErrorCount, LostChunkCount);
 
                             if (OtherErrorCountInRow >= OtherErrorCountInRowMax)
                             {
@@ -288,6 +301,10 @@ namespace HlsDumpLib
 
                                         dumpProgress?.Invoke(this, outputStream.Length, chunkDownloadErrorCode);
 
+                                        updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                                            OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                                            ChunkAppendErrorCount, LostChunkCount);
+
                                         if (_cancellationToken.IsCancellationRequested) { break; }
                                     }
                                 }
@@ -300,6 +317,10 @@ namespace HlsDumpLib
                             }
 
                             if (_cancellationToken.IsCancellationRequested) { break; }
+
+                            updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                               OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                               ChunkAppendErrorCount, LostChunkCount);
 
                             int elapsedTime = Environment.TickCount - timeStart;
                             LastDelayValueMilliseconds = PlaylistCheckingIntervalMilliseconds - elapsedTime;
@@ -337,6 +358,10 @@ namespace HlsDumpLib
                         OtherErrorCountInRow++;
                         dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
                     }
+
+                    updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                        OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                        ChunkAppendErrorCount, LostChunkCount);
                 }
             });
 
