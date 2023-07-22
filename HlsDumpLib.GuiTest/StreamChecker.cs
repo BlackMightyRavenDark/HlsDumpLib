@@ -21,7 +21,7 @@ namespace HlsDumpLib.GuiTest
             CheckingFinishedDelegate checkingFinished,
             PlaylistCheckingStartedDelegate playlistCheckingStarted,
             PlaylistCheckingFinishedDelegate playlistCheckingFinished,
-            HlsDumper.PlaylistFirstArrived playlistFirstArrived,
+            HlsDumper.PlaylistFirstArrivedDelegate playlistFirstArrived,
             DumpingStartedDelegate dumpingStarted,
             HlsDumper.NextChunkArrivedDelegate nextChunkArrived,
             HlsDumper.UpdateErrorsDelegate updateErrors,

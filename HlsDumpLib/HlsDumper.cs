@@ -44,7 +44,7 @@ namespace HlsDumpLib
         public delegate void PlaylistCheckedDelegate(object sender,
             int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
             string playlistContent, int errorCode, int playlistErrorCountInRow);
-        public delegate void PlaylistFirstArrived(object sender, int chunkCount, long firstChunkId);
+        public delegate void PlaylistFirstArrivedDelegate(object sender, int chunkCount, long firstChunkId);
         public delegate void NextChunkArrivedDelegate(object sender, long absoluteChunkId, long sessionChunkId,
             long chunkSize, int chunkProcessingTime, string chunkUrl);
         public delegate void UpdateErrorsDelegate(object sender,
@@ -77,7 +77,7 @@ namespace HlsDumpLib
         public async void Dump(string outputFilePath,
             PlaylistCheckingDelegate playlistChecking,
             PlaylistCheckedDelegate playlistChecked,
-            PlaylistFirstArrived playlistFirstArrived,
+            PlaylistFirstArrivedDelegate playlistFirstArrived,
             NextChunkArrivedDelegate nextChunkArrived,
             UpdateErrorsDelegate updateErrors,
             DumpProgressDelegate dumpProgress,
