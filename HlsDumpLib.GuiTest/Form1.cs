@@ -226,8 +226,6 @@ namespace HlsDumpLib.GuiTest
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text =
                         $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text =
-                        $"{streamItem.Dumper.LastDelayValueMilliseconds}ms / {streamItem.Dumper.PlaylistCheckingIntervalMilliseconds}ms";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
                          $"Плейлист проверен (code: {errorCode})";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLISTERRORS].Text =
@@ -255,6 +253,26 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_FIRSTCHUNK].Text = firstChunkId.ToString();
+                }
+            }
+        }
+
+        public void OnPlaylistCheckingDelayCalculated(object sender,
+            int delay, int checkingInterval, int cycleProcessingTime)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() =>
+                    OnPlaylistCheckingDelayCalculated(sender, delay, checkingInterval, cycleProcessingTime)));
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text =
+                        $"{delay}ms / {checkingInterval}ms";
                 }
             }
         }
@@ -402,8 +420,8 @@ namespace HlsDumpLib.GuiTest
                         StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
                         checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
                             OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
-                            OnDumpingStarted, OnNextChunkArrived, OnUpdateErrors,
-                            OnDumpingProgress, OnDumpingFinished,
+                            OnPlaylistCheckingDelayCalculated, OnDumpingStarted, OnNextChunkArrived,
+                            OnUpdateErrors, OnDumpingProgress, OnDumpingFinished,
                             playlistCheckingIntervalMilliseconds,
                             saveChunksInfo, maxPlaylistErrorsInRow, maxOtherErrorsInRow);
                     });

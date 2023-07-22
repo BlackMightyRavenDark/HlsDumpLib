@@ -21,7 +21,7 @@ namespace HlsDumpLib.ConsoleTest
                 {
                     string fileName = $"hlsdumper_{DateTime.Now:yyyy-MM-dd HH-mm-ss}.ts";
                     HlsDumper dumper = new HlsDumper(url);
-                    dumper.Dump(fileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null,
+                    dumper.Dump(fileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null, null,
                         OnNextChunkArrived, null, OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
                         OnMessage, OnWarning, OnError, OnFinished,
                         2000, true, 5, 5);

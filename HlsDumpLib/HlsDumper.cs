@@ -45,6 +45,8 @@ namespace HlsDumpLib
             int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
             string playlistContent, int errorCode, int playlistErrorCountInRow);
         public delegate void PlaylistFirstArrivedDelegate(object sender, int chunkCount, long firstChunkId);
+        public delegate void PlaylistCheckingDelayCalculatedDelegate(object sender,
+            int delay, int checkingInterval, int cycleProcessingTime);
         public delegate void NextChunkArrivedDelegate(object sender, long absoluteChunkId, long sessionChunkId,
             long chunkSize, int chunkProcessingTime, string chunkUrl);
         public delegate void UpdateErrorsDelegate(object sender,
@@ -78,6 +80,7 @@ namespace HlsDumpLib
             PlaylistCheckingDelegate playlistChecking,
             PlaylistCheckedDelegate playlistChecked,
             PlaylistFirstArrivedDelegate playlistFirstArrived,
+            PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
             NextChunkArrivedDelegate nextChunkArrived,
             UpdateErrorsDelegate updateErrors,
             DumpProgressDelegate dumpProgress,
@@ -324,6 +327,8 @@ namespace HlsDumpLib
 
                             int elapsedTime = Environment.TickCount - timeStart;
                             LastDelayValueMilliseconds = PlaylistCheckingIntervalMilliseconds - elapsedTime;
+                            playlistCheckingDelayCalculated?.Invoke(this,
+                                LastDelayValueMilliseconds, PlaylistCheckingIntervalMilliseconds, elapsedTime);
                             if (LastDelayValueMilliseconds > 0)
                             {
                                 dumpMessage?.Invoke(this,
