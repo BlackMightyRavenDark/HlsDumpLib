@@ -10,6 +10,7 @@ namespace HlsDumpLib
 
         public int MediaSequence { get; private set; } = -1;
         public List<string> Segments { get; private set; }
+        public List<string> SubPlaylistUrls { get; private set; }
 
         public M3UPlaylist(string playlistContent)
         {
@@ -27,7 +28,12 @@ namespace HlsDumpLib
                     string[] splitted = strings[i].Split(new char[] { ':' }, 2);
                     if (splitted != null && splitted.Length == 2)
                     {
-                        if (splitted[0] == "#EXT-X-MEDIA-SEQUENCE")
+                        if (splitted[0] == "#EXT-X-STREAM-INF")
+                        {
+                            ParseManifest(strings, i);
+                            break;
+                        }
+                        else if (splitted[0] == "#EXT-X-MEDIA-SEQUENCE")
                         {
                             MediaSequence = int.TryParse(splitted[1], out int id) ? id : -1;
                         }
@@ -57,6 +63,29 @@ namespace HlsDumpLib
                             if (playlistStrings[i + 2].StartsWith("http", StringComparison.OrdinalIgnoreCase))
                             {
                                 Segments.Add(playlistStrings[i + 2]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ParseManifest(string[] manifestStrings, int startStringId)
+        {
+            SubPlaylistUrls = new List<string>();
+            int max = manifestStrings.Length - 2;
+            for (int i = startStringId; i <= max; i += 2)
+            {
+                string[] splitted = manifestStrings[i].Split(new char[] { ':' }, 2);
+                if (splitted != null && splitted.Length == 2)
+                {
+                    if (splitted[0] == "#EXT-X-STREAM-INF")
+                    {
+                        if (!manifestStrings[i + 1].StartsWith("#"))
+                        {
+                            if (manifestStrings[i + 1].EndsWith("m3u8", StringComparison.OrdinalIgnoreCase))
+                            {
+                                SubPlaylistUrls.Add(manifestStrings[i + 1]);
                             }
                         }
                     }

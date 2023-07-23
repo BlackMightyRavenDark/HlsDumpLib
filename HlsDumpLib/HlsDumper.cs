@@ -12,6 +12,7 @@ namespace HlsDumpLib
     public class HlsDumper : IDisposable
     {
         public string Url { get; }
+        public string ActualUrl { get; set; }
         public long ProcessedChunkCountTotal { get; private set; } = 0L;
         public long ChunkDownloadErrorCount { get; private set; } = 0L;
         public long ChunkAppendErrorCount { get; private set; } = 0L;
@@ -136,6 +137,28 @@ namespace HlsDumpLib
                                 M3UPlaylist playlist = new M3UPlaylist(response);
                                 playlist.Parse();
 
+                                if (first)
+                                {
+                                    first = false;
+                                    if (playlist.SubPlaylistUrls != null && playlist.SubPlaylistUrls.Count > 0)
+                                    {
+                                        ActualUrl = playlist.SubPlaylistUrls[0];
+                                        playlistDownloader.Url = ActualUrl;
+                                        playlistErrorCode = playlistDownloader.DownloadString(out response);
+                                        if (playlistErrorCode != 200)
+                                        {
+                                            OtherErrorCountInRow++;
+                                            dumpError?.Invoke(this, "Failed to download playlist", OtherErrorCountInRow);
+                                            break;
+                                        }
+                                        playlist = new M3UPlaylist(response);
+                                        playlist.Parse();
+                                    }
+
+                                    CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0L;
+                                    playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
+                                }
+
                                 _currentPlaylistFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0L;
 
                                 unfilteredPlaylist = new List<string>();
@@ -144,13 +167,6 @@ namespace HlsDumpLib
                                     unfilteredPlaylist.AddRange(playlist.Segments);
                                 }
                                 CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
-
-                                if (first)
-                                {
-                                    first = false;
-                                    CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0L;
-                                    playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
-                                }
 
                                 filteredPlaylist = playlist.Filter(_chunkUrlList)?.ToList();
                                 if (filteredPlaylist != null)
@@ -365,6 +381,11 @@ namespace HlsDumpLib
                     {
                         JObject json = new JObject();
                         json["playlistUrl"] = Url;
+                        if (!string.IsNullOrEmpty(ActualUrl) && !string.IsNullOrWhiteSpace(ActualUrl) &&
+                            ActualUrl != Url)
+                        {
+                            json["actualPlaylistUrl"] = ActualUrl;
+                        }
                         json["outputFile"] = outputFilePath;
                         json.Add(new JProperty("chunks", jChunks));
                         File.WriteAllText($"{outputFilePath}_chunks.json", json.ToString());
