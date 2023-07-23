@@ -1,13 +1,16 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json.Linq;
 
 namespace HlsDumpLib.GuiTest
 {
     public partial class Form1 : Form
     {
         private bool _isClosing = false;
+        private string _configFileName = "config.json";
 
         public const int COLUMN_ID_TITLE = 0;
         public const int COLUMN_ID_FILENAME = 1;
@@ -38,6 +41,8 @@ namespace HlsDumpLib.GuiTest
 
             //fix scrollbar visibility
             columnHeaderPlaylistUrl.Width += 1;
+
+            if (File.Exists(_configFileName)) { LoadConfig(); }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -59,6 +64,75 @@ namespace HlsDumpLib.GuiTest
                         }
                         BeginInvoke(new MethodInvoker(() => { Close(); }));
                     });
+                }
+
+                return;
+            }
+
+            SaveConfig();
+        }
+
+        private void SaveConfig()
+        {
+            JObject json = new JObject();
+            json["maxPlaylistErrorsInRow"] = (int)numericUpDownPlaylistErrorCountInRow.Value;
+            json["maxOtherErrorsInRow"] = (int)numericUpDownOtherErrorCountInRow.Value;
+            json["playlistCheckingInterval"] = (int)numericUpDownPlaylistCheckingInterval.Value;
+            json["saveChunksInfo"] = checkBoxSaveChunksInfo.Checked;
+
+            JArray jaColumns = new JArray();
+            foreach (ColumnHeader columnHeader in listViewStreams.Columns)
+            {
+                JObject jColumn = new JObject();
+                jColumn["displayIndex"] = columnHeader.DisplayIndex;
+                jColumn["width"] = columnHeader.Width;
+
+                jaColumns.Add(jColumn);
+            }
+
+            json.Add(new JProperty("columns", jaColumns));
+
+            if (File.Exists(_configFileName)) { File.Delete(_configFileName); }
+            File.WriteAllText(_configFileName, json.ToString());
+        }
+
+        private void LoadConfig()
+        {
+            JObject json = JObject.Parse(File.ReadAllText(_configFileName));
+            {
+                JToken jt = json.Value<JToken>("maxPlaylistErrorsInRow");
+                numericUpDownPlaylistErrorCountInRow.Value = jt == null ? 5 : jt.Value<int>();
+            }
+            {
+                JToken jt = json.Value<JToken>("maxOtherErrorsInRow");
+                numericUpDownOtherErrorCountInRow.Value = jt == null ? 5 : jt.Value<int>();
+            }
+            {
+                JToken jt = json.Value<JToken>("playlistCheckingInterval");
+                if (jt != null)
+                {
+                    int n = jt.Value<int>();
+                    int min = (int)numericUpDownPlaylistCheckingInterval.Minimum;
+                    numericUpDownPlaylistCheckingInterval.Value = n < min ? min : n;
+                }
+            }
+            {
+                JToken jt = json.Value<JToken>("saveChunksInfo");
+                if (jt != null)
+                {
+                    checkBoxSaveChunksInfo.Checked = jt.Value<bool>();
+                }
+            }
+
+            JArray jaColumns = json.Value<JArray>("columns");
+            if (jaColumns != null)
+            {
+                for (int i = 0; i < jaColumns.Count; ++i)
+                {
+                    JObject jColumn = jaColumns[i] as JObject;
+                    listViewStreams.Columns[i].DisplayIndex = jColumn.Value<int>("displayIndex");
+                    int width = jColumn.Value<int>("width");
+                    listViewStreams.Columns[i].Width = width < 60 ? 60 : width;
                 }
             }
         }
