@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MultiThreadedDownloaderLib;
 using Newtonsoft.Json.Linq;
+using MultiThreadedDownloaderLib;
 
 namespace HlsDumpLib
 {
@@ -191,7 +191,6 @@ namespace HlsDumpLib
 
                                 if (PlaylistErrorCountInRowMax > 0)
                                 {
-                                    PlaylistErrorCountInRow++;
                                     if (PlaylistErrorCountInRow >= PlaylistErrorCountInRowMax)
                                     {
                                         dumpError?.Invoke(this,
@@ -205,9 +204,13 @@ namespace HlsDumpLib
                                     else
                                     {
                                         dumpError?.Invoke(this,
-                                            $"Playlist lost {PlaylistErrorCountInRow} / {PlaylistErrorCountInRowMax}! Breaking...",
+                                            $"Playlist lost {PlaylistErrorCountInRow} / {PlaylistErrorCountInRowMax}!",
                                             PlaylistErrorCountInRow);
                                     }
+                                }
+                                else
+                                {
+                                    dumpError?.Invoke(this, "Playlist lost!", PlaylistErrorCountInRow);
                                 }
                             }
 
