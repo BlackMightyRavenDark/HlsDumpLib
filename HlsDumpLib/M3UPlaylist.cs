@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HlsDumpLib
 {
@@ -7,7 +8,7 @@ namespace HlsDumpLib
     {
         public string PlaylistContent { get; }
 
-        public int MediaSequence { get; private set; }
+        public int MediaSequence { get; private set; } = -1;
         public List<string> Segments { get; private set; }
 
         public M3UPlaylist(string playlistContent)
@@ -61,6 +62,11 @@ namespace HlsDumpLib
                     }
                 }
             }
+        }
+
+        public IEnumerable<string> Filter(IEnumerable<string> filter)
+        {
+            return Segments?.Where((s) => !filter.Contains(s));
         }
     }
 }

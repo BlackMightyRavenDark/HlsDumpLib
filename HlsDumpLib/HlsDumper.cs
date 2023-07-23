@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using MultiThreadedDownloaderLib;
+using System.Linq;
 
 namespace HlsDumpLib
 {
@@ -133,17 +133,26 @@ namespace HlsDumpLib
                             {
                                 PlaylistErrorCountInRow = 0;
 
-                                unfilteredPlaylist = ParsePlaylist(response);
+                                M3UPlaylist playlist = new M3UPlaylist(response);
+                                playlist.Parse();
+
+                                _currentPlaylistFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0L;
+
+                                unfilteredPlaylist = new List<string>();
+                                if (playlist.Segments != null)
+                                {
+                                    unfilteredPlaylist.AddRange(playlist.Segments);
+                                }
                                 CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
 
                                 if (first)
                                 {
                                     first = false;
-                                    CurrentSessionFirstChunkId = FindPlaylistFirstChunkId(response);
+                                    CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0L;
                                     playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
                                 }
 
-                                filteredPlaylist = FilterPlaylist(unfilteredPlaylist);
+                                filteredPlaylist = playlist.Filter(_chunkUrlList)?.ToList();
                                 if (filteredPlaylist != null)
                                 {
                                     CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
@@ -383,45 +392,6 @@ namespace HlsDumpLib
             {
                 _cancellationTokenSource.Cancel();
             }
-        }
-
-        private List<string> ParsePlaylist(string playlist)
-        {
-            List<string> result = new List<string>();
-            string[] strings = playlist.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            _currentPlaylistFirstChunkId = FindPlaylistFirstChunkId(strings);
-            foreach (string str in strings)
-            {
-                if (str.StartsWith("http"))
-                {
-                    result.Add(str);
-                }
-            }
-            return result;
-        }
-
-        private List<string> FilterPlaylist(List<string> playlist)
-        {
-            return playlist.Where(s => !_chunkUrlList.Contains(s))?.ToList();
-        }
-
-        private long FindPlaylistFirstChunkId(string[] playlistStrings)
-        {
-            foreach (string str in playlistStrings)
-            {
-                if (str.StartsWith("#EXT-X-MEDIA-SEQUENCE:"))
-                {
-                    string[] splitted = str.Split(':');
-                    return long.TryParse(splitted[1], out long n) ? n : 0L;
-                }
-            }
-            return 0L;
-        }
-
-        private long FindPlaylistFirstChunkId(string playlist)
-        {
-            string[] strings = playlist.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            return FindPlaylistFirstChunkId(strings);
         }
     }
 }
