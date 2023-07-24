@@ -9,6 +9,7 @@ namespace HlsDumpLib
         public string PlaylistContent { get; }
 
         public int MediaSequence { get; private set; } = -1;
+        public string StreamHeaderSegmentUrl { get; private set; }
         public List<string> Segments { get; private set; }
         public List<string> SubPlaylistUrls { get; private set; }
 
@@ -36,6 +37,10 @@ namespace HlsDumpLib
                         else if (splitted[0] == "#EXT-X-MEDIA-SEQUENCE")
                         {
                             MediaSequence = int.TryParse(splitted[1], out int id) ? id : -1;
+                        }
+                        else if (splitted[0] == "#EXT-X-MAP")
+                        {
+                            StreamHeaderSegmentUrl = ExtractUrlFromXMap(splitted[1]);
                         }
                         else if (splitted[0] == "#EXT-X-PROGRAM-DATE-TIME")
                         {
@@ -96,6 +101,14 @@ namespace HlsDumpLib
         public IEnumerable<string> Filter(IEnumerable<string> filter)
         {
             return Segments?.Where((s) => !filter.Contains(s));
+        }
+
+        private string ExtractUrlFromXMap(string xMapValue)
+        {
+            string[] splitted = xMapValue.Split('=');
+            return splitted != null && splitted.Length > 1 && !string.IsNullOrEmpty(splitted[1]) ?
+                splitted[1].Substring(1, splitted[1].Length - 2) : null;
+
         }
     }
 }

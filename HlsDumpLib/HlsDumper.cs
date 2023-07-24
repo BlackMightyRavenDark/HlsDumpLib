@@ -114,6 +114,7 @@ namespace HlsDumpLib
             await Task.Run(() =>
             {
                 bool first = true;
+                bool headerChunkExists = false;
 
                 JArray jChunks = new JArray();
                 FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
@@ -127,6 +128,7 @@ namespace HlsDumpLib
                             int timeStart = Environment.TickCount;
                             playlistChecking?.Invoke(this, Url);
 
+                            M3UPlaylist playlist = null;
                             List<string> unfilteredPlaylist = null;
                             List<string> filteredPlaylist = null;
                             int playlistErrorCode = playlistDownloader.DownloadString(out string response);
@@ -134,7 +136,7 @@ namespace HlsDumpLib
                             {
                                 PlaylistErrorCountInRow = 0;
 
-                                M3UPlaylist playlist = new M3UPlaylist(response);
+                                playlist = new M3UPlaylist(response);
                                 playlist.Parse();
 
                                 if (first)
@@ -154,6 +156,9 @@ namespace HlsDumpLib
                                         playlist = new M3UPlaylist(response);
                                         playlist.Parse();
                                     }
+
+                                    headerChunkExists = !string.IsNullOrEmpty(playlist.StreamHeaderSegmentUrl) &&
+                                        !string.IsNullOrWhiteSpace(playlist.StreamHeaderSegmentUrl);
 
                                     CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0L;
                                     playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
@@ -251,6 +256,68 @@ namespace HlsDumpLib
 
                             if (playlistErrorCode == 200)
                             {
+                                if (headerChunkExists)
+                                {
+                                    headerChunkExists = false;
+                                    try
+                                    {
+                                        using (MemoryStream streamHeader = new MemoryStream())
+                                        {
+                                            FileDownloader d = new FileDownloader() { Url = playlist?.StreamHeaderSegmentUrl };
+                                            int headerErrorCode = d.Download(streamHeader);
+                                            if (headerErrorCode == 200)
+                                            {
+                                                OtherErrorCountInRow = 0;
+                                                streamHeader.Position = 0L;
+                                                if (MultiThreadedDownloader.AppendStream(streamHeader, outputStream))
+                                                {
+                                                    ProcessedChunkCountTotal++;
+                                                    if (writeChunksInfo)
+                                                    {
+                                                        try
+                                                        {
+                                                            JObject jChunk = new JObject();
+                                                            jChunk["position"] = outputStream.Position - streamHeader.Length;
+                                                            jChunk["size"] = streamHeader.Length;
+                                                            jChunk["id"] = 0;
+                                                            jChunks.Add(jChunk);
+                                                        }
+                                                        catch (Exception ex)
+                                                        {
+                                                            System.Diagnostics.Debug.WriteLine(ex.Message);
+                                                            OtherErrorCountInRow++;
+                                                            dumpError?.Invoke(this, "Failed to append header (metadata) chunk info", OtherErrorCountInRow);
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    OtherErrorCountInRow++;
+                                                    dumpError?.Invoke(this,
+                                                        "Header (metadata) chunk append error! Video might be unplayable!",
+                                                        OtherErrorCountInRow);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                OtherErrorCountInRow++;
+                                                dumpError?.Invoke(this,
+                                                    "Header (metadata) chunk download error! Video will be unplayable!",
+                                                    OtherErrorCountInRow);
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                                        ChunkDownloadErrorCount++;
+                                        OtherErrorCountInRow++;
+                                        dumpError?.Invoke(this,
+                                            "Header (metadata) chunk processing error! Video might be unplayable!",
+                                            OtherErrorCountInRow);
+                                    }
+                                }
+
                                 if (filteredPlaylist != null && filteredPlaylist.Count > 0)
                                 {
                                     for (int i = 0; i < filteredPlaylist.Count; ++i)
