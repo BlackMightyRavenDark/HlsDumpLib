@@ -153,7 +153,7 @@ namespace HlsDumpLib.GuiTest
                 title = "untitled";
             }
 
-            string fileName = FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss-fff}.ts");
+            string fileName = FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss-fff}");
             StreamItem item = new StreamItem()
             {
                 Title = title,
@@ -475,6 +475,24 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
+        private void OnOutputStreamAssigned(object sender, Stream stream, string fileName)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() => { OnOutputStreamAssigned(sender, stream, fileName); }));
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_FILENAME].Text = fileName;
+                }
+            }
+
+        }
+
         private void CheckItem(int itemId)
         {
             if (!_isClosing)
@@ -494,6 +512,7 @@ namespace HlsDumpLib.GuiTest
                         StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
                         checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
                             OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
+                            OnOutputStreamAssigned, null,
                             OnPlaylistCheckingDelayCalculated, OnDumpingStarted, OnNextChunkArrived,
                             OnUpdateErrors, OnDumpingProgress, OnDumpingFinished,
                             playlistCheckingIntervalMilliseconds,
