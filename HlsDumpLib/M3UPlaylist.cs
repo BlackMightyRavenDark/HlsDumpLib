@@ -7,15 +7,19 @@ namespace HlsDumpLib
     public class M3UPlaylist
     {
         public string PlaylistContent { get; }
+        public string PlaylistUrl { get; }
+        private string _playlistPath;
 
         public int MediaSequence { get; private set; } = -1;
         public string StreamHeaderSegmentUrl { get; private set; }
         public List<string> Segments { get; private set; }
         public List<string> SubPlaylistUrls { get; private set; }
 
-        public M3UPlaylist(string playlistContent)
+        public M3UPlaylist(string playlistContent, string playlistUrl)
         {
             PlaylistContent = playlistContent;
+            PlaylistUrl = playlistUrl;
+            _playlistPath = ExtractUrlFilePath(playlistUrl);
         }
 
         public void Parse()
@@ -47,6 +51,11 @@ namespace HlsDumpLib
                             ParseSegments(strings, i);
                             break;
                         }
+                        else if (splitted[0] == "#EXTINF")
+                        {
+                            ParseRelativeSegments(strings, i);
+                            break;
+                        }
                     }
                 }
             }
@@ -65,11 +74,29 @@ namespace HlsDumpLib
                     {
                         if (!playlistStrings[i + 2].StartsWith("#"))
                         {
-                            if (playlistStrings[i + 2].StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                            {
-                                Segments.Add(playlistStrings[i + 2]);
-                            }
+                            string url = playlistStrings[i + 2].StartsWith("http", StringComparison.OrdinalIgnoreCase) ?
+                                playlistStrings[i + 2] : $"{_playlistPath}/{playlistStrings[i + 2]}";
+                            Segments.Add(url);
                         }
+                    }
+                }
+            }
+        }
+
+        private void ParseRelativeSegments(string[] playlistStrings, int startStringId)
+        {
+            Segments = new List<string>();
+            int max = playlistStrings.Length - 1;
+            for (int i = startStringId; i <= max; i += 2)
+            {
+                string[] splitted = playlistStrings[i].Split(new char[] { ':' }, 2);
+                if (splitted != null && splitted.Length == 2)
+                {
+                    if (splitted[0] == "#EXTINF")
+                    {
+                        string[] fileName = playlistStrings[i + 1].Split('?');
+                        string url = $"{_playlistPath}/{fileName[0]}";
+                        Segments.Add(url);
                     }
                 }
             }
@@ -90,7 +117,9 @@ namespace HlsDumpLib
                         {
                             if (manifestStrings[i + 1].EndsWith("m3u8", StringComparison.OrdinalIgnoreCase))
                             {
-                                SubPlaylistUrls.Add(manifestStrings[i + 1]);
+                                string url = manifestStrings[i + 1].StartsWith("http", StringComparison.OrdinalIgnoreCase) ?
+                                    manifestStrings[i + 1] : $"{_playlistPath}/{manifestStrings[i + 1]}";
+                                SubPlaylistUrls.Add(url);
                             }
                         }
                     }
@@ -108,7 +137,12 @@ namespace HlsDumpLib
             string[] splitted = xMapValue.Split('=');
             return splitted != null && splitted.Length > 1 && !string.IsNullOrEmpty(splitted[1]) ?
                 splitted[1].Substring(1, splitted[1].Length - 2) : null;
+        }
 
+        private string ExtractUrlFilePath(string fileUrl)
+        {
+            int n = fileUrl.LastIndexOf('/');
+            return n > 0 ? fileUrl.Substring(0, n) : null;
         }
     }
 }

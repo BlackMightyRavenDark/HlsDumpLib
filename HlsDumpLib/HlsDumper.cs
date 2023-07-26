@@ -139,7 +139,7 @@ namespace HlsDumpLib
                         {
                             PlaylistErrorCountInRow = 0;
 
-                            playlist = new M3UPlaylist(response);
+                            playlist = new M3UPlaylist(response, Url);
                             playlist.Parse();
 
                             if (first)
@@ -156,7 +156,7 @@ namespace HlsDumpLib
                                         dumpError?.Invoke(this, "Failed to download playlist", OtherErrorCountInRow);
                                         break;
                                     }
-                                    playlist = new M3UPlaylist(response);
+                                    playlist = new M3UPlaylist(response, Url);
                                     playlist.Parse();
                                 }
 
