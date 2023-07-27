@@ -46,14 +46,10 @@ namespace HlsDumpLib
                         {
                             StreamHeaderSegmentUrl = ExtractUrlFromXMap(splitted[1]);
                         }
-                        else if (splitted[0] == "#EXT-X-PROGRAM-DATE-TIME")
+                        else if (splitted[0] == "#EXT-X-PROGRAM-DATE-TIME" ||
+                            splitted[0] == "#EXTINF")
                         {
                             ParseSegments(strings, i);
-                            break;
-                        }
-                        else if (splitted[0] == "#EXTINF")
-                        {
-                            ParseRelativeSegments(strings, i);
                             break;
                         }
                     }
@@ -64,40 +60,16 @@ namespace HlsDumpLib
         private void ParseSegments(string[] playlistStrings, int startStringId)
         {
             Segments = new List<string>();
-            int max = playlistStrings.Length - 2;
-            for (int i = startStringId; i <= max; i += 3)
+            int max = playlistStrings.Length;
+            for (int i = startStringId; i < max; ++i)
             {
-                string[] splitted = playlistStrings[i].Split(new char[] { ':' }, 2);
-                if (splitted != null && splitted.Length == 2)
+                if (!string.IsNullOrEmpty(playlistStrings[i]) &&
+                    !playlistStrings[i].StartsWith("#"))
                 {
-                    if (splitted[0] == "#EXT-X-PROGRAM-DATE-TIME")
-                    {
-                        if (!playlistStrings[i + 2].StartsWith("#"))
-                        {
-                            string url = playlistStrings[i + 2].StartsWith("http", StringComparison.OrdinalIgnoreCase) ?
-                                playlistStrings[i + 2] : $"{_playlistPath}/{playlistStrings[i + 2]}";
-                            Segments.Add(url);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void ParseRelativeSegments(string[] playlistStrings, int startStringId)
-        {
-            Segments = new List<string>();
-            int max = playlistStrings.Length - 1;
-            for (int i = startStringId; i <= max; i += 2)
-            {
-                string[] splitted = playlistStrings[i].Split(new char[] { ':' }, 2);
-                if (splitted != null && splitted.Length == 2)
-                {
-                    if (splitted[0] == "#EXTINF")
-                    {
-                        string[] fileName = playlistStrings[i + 1].Split('?');
-                        string url = $"{_playlistPath}/{fileName[0]}";
-                        Segments.Add(url);
-                    }
+                    string url = playlistStrings[i].StartsWith("http") ?
+                        playlistStrings[i] : $"{_playlistPath}/{playlistStrings[i]}";
+                    string[] splittedUrl = url.Split('?');
+                    Segments.Add(splittedUrl[0]);
                 }
             }
         }
