@@ -16,7 +16,7 @@ namespace HlsDumpLib.ConsoleTest
             string url = Console.ReadLine();
             if (!string.IsNullOrEmpty(url) && !string.IsNullOrWhiteSpace(url))
             {
-                int errorCode = MultiThreadedDownloaderLib.FileDownloader.GetUrlResponseHeaders(url, out _, out string errorText);
+                int errorCode = MultiThreadedDownloaderLib.FileDownloader.GetUrlResponseHeaders(url, null, out _, out string errorText);
                 if (errorCode == 200)
                 {
                     string fileName = $"hlsdumper_{DateTime.Now:yyyy-MM-dd HH-mm-ss}.ts";

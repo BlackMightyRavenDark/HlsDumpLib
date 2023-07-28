@@ -37,7 +37,7 @@ namespace HlsDumpLib.GuiTest
         {
             checkingStarted?.Invoke(this);
 
-            int errorCode = FileDownloader.GetUrlContentLength(StreamItem.PlaylistUrl, out _, out _);
+            int errorCode = FileDownloader.GetUrlContentLength(StreamItem.PlaylistUrl, null, out _, out _);
             if (errorCode == 200)
             {
                 if (!StreamItem.IsDumping)
