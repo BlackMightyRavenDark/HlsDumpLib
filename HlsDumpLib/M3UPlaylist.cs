@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace HlsDumpLib
@@ -60,16 +61,64 @@ namespace HlsDumpLib
         private void ParseSegments(string[] playlistStrings, int startStringId)
         {
             Segments = new List<string>();
+
+            string segmentDate = null;
+            double segmentLength = 0.0;
+            string segmentUrl = null;
+
             int max = playlistStrings.Length;
             for (int i = startStringId; i < max; ++i)
             {
-                if (!string.IsNullOrEmpty(playlistStrings[i]) &&
-                    !playlistStrings[i].StartsWith("#"))
+                string[] splitted = playlistStrings[i].Split(new char[] { ':' }, 2, StringSplitOptions.None);
+                if (splitted[0] == "#EXTINF")
                 {
-                    string url = playlistStrings[i].StartsWith("http") ?
-                        playlistStrings[i] : $"{_playlistPath}/{playlistStrings[i]}";
-                    string[] splittedUrl = url.Split('?');
-                    Segments.Add(splittedUrl[0]);
+                    if (splitted.Length == 2)
+                    {
+                        string[] lengthSplitted = splitted[1].Split(',');
+                        NumberFormatInfo numberFormatInfo = new NumberFormatInfo() { NumberDecimalSeparator = "." };
+                        segmentLength = double.TryParse(lengthSplitted[0], NumberStyles.Any,
+                            numberFormatInfo, out double d) ? d : 0.0;
+                    }
+
+                    if (i > 0)
+                    {
+                        string[] s = playlistStrings[i - 1].Split(new char[] { ':' }, 2, StringSplitOptions.None);
+                        if (s[0] == "#EXT-X-PROGRAM-DATE-TIME")
+                        {
+                            segmentDate = s.Length > 1 ? s[1] : null;
+                        }
+                        else
+                        {
+                            segmentDate = null;
+                        }
+                    }
+
+                    if (i < max - 1)
+                    {
+                        if (!string.IsNullOrEmpty(playlistStrings[i + 1]) &&
+                            !playlistStrings[i + 1].StartsWith("#"))
+                        {
+                            string url = playlistStrings[i + 1].StartsWith("http") ?
+                                playlistStrings[i + 1] : $"{_playlistPath}/{playlistStrings[i + 1]}";
+                            string[] urlSplitted = url.Split('?');
+                            segmentUrl = urlSplitted[0];
+
+                            i++;
+                        }
+                        else
+                        {
+                            segmentUrl = null;
+                        }
+                    }
+
+                    //System.Diagnostics.Debug.WriteLine($"Segment date: {segmentDate}");
+                    //System.Diagnostics.Debug.WriteLine($"Segment length: {segmentLength}");
+                    //System.Diagnostics.Debug.WriteLine($"Segment URL: {segmentUrl}");
+
+                    if (!string.IsNullOrEmpty(segmentUrl) && !string.IsNullOrWhiteSpace(segmentUrl))
+                    {
+                        Segments.Add(segmentUrl);
+                    }
                 }
             }
         }
