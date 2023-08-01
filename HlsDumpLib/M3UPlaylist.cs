@@ -9,6 +9,8 @@ namespace HlsDumpLib
     {
         public string PlaylistContent { get; }
         public string PlaylistUrl { get; }
+        public DateTime PlaylistDate { get; private set; }
+
         private string _playlistPath;
 
         public int MediaSequence { get; private set; } = -1;
@@ -34,7 +36,11 @@ namespace HlsDumpLib
                     string[] splitted = strings[i].Split(new char[] { ':' }, 2);
                     if (splitted != null && splitted.Length == 2)
                     {
-                        if (splitted[0] == "#EXT-X-STREAM-INF")
+                        if (splitted[0] == "#EXT-SERVER")
+                        {
+                            PlaylistDate = ExtractDateFromExtServerString(splitted[1]);
+                        }
+                        else if (splitted[0] == "#EXT-X-STREAM-INF")
                         {
                             ParseManifest(strings, i);
                             break;
@@ -62,13 +68,17 @@ namespace HlsDumpLib
         {
             Segments = new List<string>();
 
-            string segmentDate = null;
-            double segmentLength = 0.0;
-            string segmentUrl = null;
+            bool firstSegment = true;
+            bool dateFound = PlaylistDate != DateTime.MinValue;
 
-            int max = playlistStrings.Length;
-            for (int i = startStringId; i < max; ++i)
+            DateTime segmentDate = PlaylistDate;
+
+            int stringCount = playlistStrings.Length;
+            for (int i = startStringId; i < stringCount; ++i)
             {
+                double segmentLength = 0.0;
+                string segmentUrl = null;
+
                 string[] splitted = playlistStrings[i].Split(new char[] { ':' }, 2, StringSplitOptions.None);
                 if (splitted[0] == "#EXTINF")
                 {
@@ -82,18 +92,34 @@ namespace HlsDumpLib
 
                     if (i > 0)
                     {
+                        DateTime tmpSegmentDate = DateTime.MinValue;
+
                         string[] s = playlistStrings[i - 1].Split(new char[] { ':' }, 2, StringSplitOptions.None);
                         if (s[0] == "#EXT-X-PROGRAM-DATE-TIME")
                         {
-                            segmentDate = s.Length > 1 ? s[1] : null;
+                            if (s.Length == 2)
+                            {
+                                tmpSegmentDate = ExtractDateFromExtProgramDateTime(s[1]);
+                                if (tmpSegmentDate != DateTime.MinValue) { segmentDate = tmpSegmentDate; }
+                                if (!dateFound)
+                                {
+                                    PlaylistDate = segmentDate;
+                                    dateFound = tmpSegmentDate != DateTime.MinValue;
+                                }
+                            }
                         }
-                        else
+
+                        if (tmpSegmentDate != DateTime.MinValue)
                         {
-                            segmentDate = null;
+                            segmentDate = tmpSegmentDate;
+                        }
+                        else if (!firstSegment)
+                        {
+                            segmentDate += TimeSpan.FromSeconds(segmentLength);
                         }
                     }
 
-                    if (i < max - 1)
+                    if (i < stringCount - 1)
                     {
                         if (!string.IsNullOrEmpty(playlistStrings[i + 1]) &&
                             !playlistStrings[i + 1].StartsWith("#"))
@@ -105,13 +131,9 @@ namespace HlsDumpLib
 
                             i++;
                         }
-                        else
-                        {
-                            segmentUrl = null;
-                        }
                     }
 
-                    //System.Diagnostics.Debug.WriteLine($"Segment date: {segmentDate}");
+                    //System.Diagnostics.Debug.WriteLine($"Segment date: {segmentDate}.{segmentDate.Millisecond}");
                     //System.Diagnostics.Debug.WriteLine($"Segment length: {segmentLength}");
                     //System.Diagnostics.Debug.WriteLine($"Segment URL: {segmentUrl}");
 
@@ -119,6 +141,8 @@ namespace HlsDumpLib
                     {
                         Segments.Add(segmentUrl);
                     }
+
+                    firstSegment = false;
                 }
             }
         }
@@ -158,6 +182,44 @@ namespace HlsDumpLib
             string[] splitted = xMapValue.Split('=');
             return splitted != null && splitted.Length > 1 && !string.IsNullOrEmpty(splitted[1]) ?
                 splitted[1].Substring(1, splitted[1].Length - 2) : null;
+        }
+
+        private DateTime ExtractDateFromExtServerString(string extServerString)
+        {
+            try
+            {
+                string[] splitted1 = extServerString.Split(',');
+                string[] splitted2 = splitted1[1].Split('=');
+                long seconds = long.Parse(splitted2[1]);
+                DateTime dateTime = EpochToDate(seconds);
+                return dateTime;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+                return DateTime.MinValue;
+            }
+        }
+
+        private DateTime ExtractDateFromExtProgramDateTime(string extProgramDateTime)
+        {
+            if (DateTime.TryParseExact(extProgramDateTime, "yyyy-MM-ddTHH:mm:ss.fffZ",
+                null, DateTimeStyles.AssumeLocal, out DateTime dateTime))
+            {
+                return dateTime;
+            }
+            if (DateTime.TryParse(extProgramDateTime,
+                null, DateTimeStyles.AssumeLocal, out dateTime))
+            {
+                return dateTime;
+            }
+            return DateTime.MinValue;
+        }
+
+        private DateTime EpochToDate(long epoch)
+        {
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(epoch);
+            return new DateTime(1970, 1, 1).AddTicks(timeSpan.Ticks);
         }
 
         private string ExtractUrlFilePath(string fileUrl)
