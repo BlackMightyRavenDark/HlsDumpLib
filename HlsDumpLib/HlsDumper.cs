@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using MultiThreadedDownloaderLib;
-using System.Linq;
 
 namespace HlsDumpLib
 {
@@ -33,7 +33,7 @@ namespace HlsDumpLib
         private long _currentPlaylistFirstChunkId = -1L;
         private long _lastProcessedChunkId = -1L;
 
-        private readonly LinkedList<string> _chunkUrlList = new LinkedList<string>();
+        private readonly LinkedList<StreamSegment> _chunkList = new LinkedList<StreamSegment>();
 
         private CancellationTokenSource _cancellationTokenSource;
         private CancellationToken _cancellationToken;
@@ -132,8 +132,8 @@ namespace HlsDumpLib
                         playlistChecking?.Invoke(this, Url);
 
                         M3UPlaylist playlist = null;
-                        List<string> unfilteredPlaylist = null;
-                        List<string> filteredPlaylist = null;
+                        List<StreamSegment> unfilteredPlaylist = null;
+                        List<StreamSegment> filteredPlaylist = null;
                         int playlistErrorCode = playlistDownloader.DownloadString(out string response);
                         if (playlistErrorCode == 200)
                         {
@@ -171,14 +171,14 @@ namespace HlsDumpLib
 
                             _currentPlaylistFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0L;
 
-                            unfilteredPlaylist = new List<string>();
+                            unfilteredPlaylist = new List<StreamSegment>();
                             if (playlist.Segments != null)
                             {
                                 unfilteredPlaylist.AddRange(playlist.Segments);
                             }
                             CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
 
-                            filteredPlaylist = playlist.Filter(_chunkUrlList)?.ToList();
+                            filteredPlaylist = playlist.Filter(_chunkList)?.ToList();
                             if (filteredPlaylist != null)
                             {
                                 CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
@@ -336,7 +336,7 @@ namespace HlsDumpLib
                                 {
                                     int tickBeforeChunk = Environment.TickCount;
 
-                                    string chunkUrl = filteredPlaylist[i];
+                                    StreamSegment chunk = filteredPlaylist[i];
                                     long chunkLength = -1L;
                                     long currentAbsoluteChunkId = CurrentPlaylistFirstNewChunkId + i;
 
@@ -345,7 +345,7 @@ namespace HlsDumpLib
                                     {
                                         using (MemoryStream mem = new MemoryStream())
                                         {
-                                            FileDownloader d = new FileDownloader() { Url = chunkUrl };
+                                            FileDownloader d = new FileDownloader() { Url = chunk.Url };
                                             chunkDownloadErrorCode = d.Download(mem);
                                             if (chunkDownloadErrorCode == 200)
                                             {
@@ -397,17 +397,17 @@ namespace HlsDumpLib
                                         dumpError?.Invoke(this, "Failed to append chunk", OtherErrorCountInRow);
                                     }
 
-                                    _chunkUrlList.AddLast(chunkUrl);
-                                    if (_chunkUrlList.Count > 50)
+                                    _chunkList.AddLast(chunk);
+                                    if (_chunkList.Count > 50)
                                     {
-                                        _chunkUrlList.RemoveFirst();
+                                        _chunkList.RemoveFirst();
                                     }
 
                                     int chunkProcessingTime = Environment.TickCount - tickBeforeChunk;
 
                                     ProcessedChunkCountTotal++;
                                     nextChunkArrived?.Invoke(this, currentAbsoluteChunkId,
-                                        ProcessedChunkCountTotal, chunkLength, chunkProcessingTime, chunkUrl);
+                                        ProcessedChunkCountTotal, chunkLength, chunkProcessingTime, chunk.Url);
 
                                     dumpProgress?.Invoke(this, outputStream.Length, chunkDownloadErrorCode);
 
@@ -507,8 +507,14 @@ namespace HlsDumpLib
                 return ".ts";
             }
 
-            string ext = Path.GetExtension(playlist.Segments[0]);
-            return string.IsNullOrEmpty(ext) || string.IsNullOrWhiteSpace(ext) ? ".ts" : ext;
+            string url = playlist.Segments[0].Url;
+            if (!string.IsNullOrEmpty(url) && !string.IsNullOrWhiteSpace(url))
+            {
+                string ext = Path.GetExtension(url);
+                return string.IsNullOrEmpty(ext) || string.IsNullOrWhiteSpace(ext) ? ".ts" : ext;
+            }
+
+            return ".ts";
         }
     }
 }

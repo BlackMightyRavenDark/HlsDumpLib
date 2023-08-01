@@ -15,7 +15,7 @@ namespace HlsDumpLib
 
         public int MediaSequence { get; private set; } = -1;
         public string StreamHeaderSegmentUrl { get; private set; }
-        public List<string> Segments { get; private set; }
+        public List<StreamSegment> Segments { get; private set; }
         public List<string> SubPlaylistUrls { get; private set; }
 
         public M3UPlaylist(string playlistContent, string playlistUrl)
@@ -66,7 +66,7 @@ namespace HlsDumpLib
 
         private void ParseSegments(string[] playlistStrings, int startStringId)
         {
-            Segments = new List<string>();
+            Segments = new List<StreamSegment>();
 
             bool firstSegment = true;
             bool dateFound = PlaylistDate != DateTime.MinValue;
@@ -77,6 +77,7 @@ namespace HlsDumpLib
             for (int i = startStringId; i < stringCount; ++i)
             {
                 double segmentLength = 0.0;
+                string segmentFileName = null;
                 string segmentUrl = null;
 
                 string[] splitted = playlistStrings[i].Split(new char[] { ':' }, 2, StringSplitOptions.None);
@@ -121,25 +122,32 @@ namespace HlsDumpLib
 
                     if (i < stringCount - 1)
                     {
-                        if (!string.IsNullOrEmpty(playlistStrings[i + 1]) &&
-                            !playlistStrings[i + 1].StartsWith("#"))
+                        string url = playlistStrings[i + 1];
+                        if (!string.IsNullOrEmpty(url) && !url.StartsWith("#"))
                         {
-                            string url = playlistStrings[i + 1].StartsWith("http") ?
-                                playlistStrings[i + 1] : $"{_playlistPath}/{playlistStrings[i + 1]}";
-                            string[] urlSplitted = url.Split('?');
-                            segmentUrl = urlSplitted[0];
+                            url = url.Split('?')[0];
+                            if (url.StartsWith("http"))
+                            {
+                                int n = url.LastIndexOf('/');
+                                segmentFileName = n >= 0 ? url.Substring(n + 1) : null;
+                            }
+                            else
+                            {
+                                segmentFileName = url;
+                                url = $"{_playlistPath}/{segmentFileName}";
+                            }
+
+                            segmentUrl = url;
 
                             i++;
                         }
                     }
 
-                    //System.Diagnostics.Debug.WriteLine($"Segment date: {segmentDate}.{segmentDate.Millisecond}");
-                    //System.Diagnostics.Debug.WriteLine($"Segment length: {segmentLength}");
-                    //System.Diagnostics.Debug.WriteLine($"Segment URL: {segmentUrl}");
-
                     if (!string.IsNullOrEmpty(segmentUrl) && !string.IsNullOrWhiteSpace(segmentUrl))
                     {
-                        Segments.Add(segmentUrl);
+                        StreamSegment segment = new StreamSegment(
+                            segmentDate, segmentLength, segmentFileName, segmentUrl);
+                        Segments.Add(segment);
                     }
 
                     firstSegment = false;
@@ -172,9 +180,9 @@ namespace HlsDumpLib
             }
         }
 
-        public IEnumerable<string> Filter(IEnumerable<string> filter)
+        public IEnumerable<StreamSegment> Filter(IEnumerable<StreamSegment> filter)
         {
-            return Segments?.Where((s) => !filter.Contains(s));
+            return Segments?.Where(s => !filter.Any(a => a.Url == s.Url));
         }
 
         private string ExtractUrlFromXMap(string xMapValue)
