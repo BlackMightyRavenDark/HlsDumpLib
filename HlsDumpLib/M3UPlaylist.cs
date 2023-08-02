@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using static HlsDumpLib.Utils;
 
 namespace HlsDumpLib
 {
@@ -51,7 +52,7 @@ namespace HlsDumpLib
                         }
                         else if (splitted[0] == "#EXT-X-MAP")
                         {
-                            StreamHeaderSegmentUrl = ExtractUrlFromXMap(splitted[1]);
+                            StreamHeaderSegmentUrl = ExtractUrlFromXMapString(splitted[1]);
                         }
                         else if (splitted[0] == "#EXT-X-PROGRAM-DATE-TIME" ||
                             splitted[0] == "#EXTINF")
@@ -185,57 +186,6 @@ namespace HlsDumpLib
         public IEnumerable<StreamSegment> Filter(IEnumerable<StreamSegment> filter)
         {
             return Segments?.Where(s => !filter.Any(a => a.Url == s.Url));
-        }
-
-        private string ExtractUrlFromXMap(string xMapValue)
-        {
-            string[] splitted = xMapValue.Split('=');
-            return splitted != null && splitted.Length > 1 && !string.IsNullOrEmpty(splitted[1]) ?
-                splitted[1].Substring(1, splitted[1].Length - 2) : null;
-        }
-
-        private DateTime ExtractDateFromExtServerString(string extServerString)
-        {
-            try
-            {
-                string[] splitted1 = extServerString.Split(',');
-                string[] splitted2 = splitted1[1].Split('=');
-                long seconds = long.Parse(splitted2[1]);
-                DateTime dateTime = EpochToDate(seconds);
-                return dateTime;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
-                return DateTime.MinValue;
-            }
-        }
-
-        private DateTime ExtractDateFromExtProgramDateTime(string extProgramDateTime)
-        {
-            if (DateTime.TryParseExact(extProgramDateTime, "yyyy-MM-ddTHH:mm:ss.fffZ",
-                null, DateTimeStyles.AssumeLocal, out DateTime dateTime))
-            {
-                return dateTime;
-            }
-            if (DateTime.TryParse(extProgramDateTime,
-                null, DateTimeStyles.AssumeLocal, out dateTime))
-            {
-                return dateTime;
-            }
-            return DateTime.MinValue;
-        }
-
-        private DateTime EpochToDate(long epoch)
-        {
-            TimeSpan timeSpan = TimeSpan.FromMilliseconds(epoch);
-            return new DateTime(1970, 1, 1).AddTicks(timeSpan.Ticks);
-        }
-
-        private string ExtractUrlFilePath(string fileUrl)
-        {
-            int n = fileUrl.LastIndexOf('/');
-            return n > 0 ? fileUrl.Substring(0, n) : null;
         }
     }
 }
