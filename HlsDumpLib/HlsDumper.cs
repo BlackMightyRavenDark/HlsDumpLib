@@ -13,15 +13,15 @@ namespace HlsDumpLib
     {
         public string Url { get; }
         public string ActualUrl { get; set; }
-        public long ProcessedChunkCountTotal { get; private set; } = 0L;
-        public long ChunkDownloadErrorCount { get; private set; } = 0L;
-        public long ChunkAppendErrorCount { get; private set; } = 0L;
+        public int ProcessedChunkCountTotal { get; private set; } = 0;
+        public int ChunkDownloadErrorCount { get; private set; } = 0;
+        public int ChunkAppendErrorCount { get; private set; } = 0;
 
-        public long CurrentSessionFirstChunkId { get; private set; } = 0L;
-        public long CurrentPlaylistFirstNewChunkId { get; private set; } = 0L;
+        public int CurrentSessionFirstChunkId { get; private set; } = 0;
+        public int CurrentPlaylistFirstNewChunkId { get; private set; } = 0;
         public int CurrentPlaylistChunkCount { get; private set; } = 0;
         public int CurrentPlaylistNewChunkCount { get; private set; } = 0;
-        public long LostChunkCount { get; private set; } = 0L;
+        public int LostChunkCount { get; private set; } = 0;
         public int LastDelayValueMilliseconds { get; private set; } = 0;
         public int PlaylistErrorCountInRowMax { get; private set; } = 5;
         public int PlaylistErrorCountInRow { get; private set; } = 0;
@@ -30,8 +30,8 @@ namespace HlsDumpLib
 
         public int PlaylistCheckingIntervalMilliseconds { get; private set; } = 2000;
 
-        private long _currentPlaylistFirstChunkId = -1L;
-        private long _lastProcessedChunkId = -1L;
+        private int _currentPlaylistFirstChunkId = -1;
+        private int _lastProcessedChunkId = -1;
 
         private readonly LinkedList<StreamSegment> _chunkList = new LinkedList<StreamSegment>();
 
@@ -43,23 +43,23 @@ namespace HlsDumpLib
 
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
         public delegate void PlaylistCheckedDelegate(object sender,
-            int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
+            int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
             string playlistContent, int errorCode, int playlistErrorCountInRow);
-        public delegate void PlaylistFirstArrivedDelegate(object sender, int chunkCount, long firstChunkId);
+        public delegate void PlaylistFirstArrivedDelegate(object sender, int chunkCount, int firstChunkId);
         public delegate void OutputStreamAssignedDelegate(object sender, Stream stream, string fileName);
         public delegate void OutputStreamClosedDelegate(object sender, string fileName);
         public delegate void PlaylistCheckingDelayCalculatedDelegate(object sender,
             int delay, int checkingInterval, int cycleProcessingTime);
-        public delegate void NextChunkArrivedDelegate(object sender, long absoluteChunkId, long sessionChunkId,
+        public delegate void NextChunkArrivedDelegate(object sender, int absoluteChunkId, int sessionChunkId,
             long chunkSize, int chunkProcessingTime, string chunkUrl);
         public delegate void UpdateErrorsDelegate(object sender,
             int playlistErrorCountInRow, int playlistErrorCountInRowMax,
             int otherErrorCountInRow, int otherErrorCountInRowMax,
-            long chunkDownloadErrorCount, long chunkAppendErrorCount,
-            long lostChunkCount);
+            int chunkDownloadErrorCount, int chunkAppendErrorCount,
+            int lostChunkCount);
         public delegate void DumpProgressDelegate(object sender, long fileSize, int errorCode);
-        public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, long failedCount);
-        public delegate void ChunkAppendFailedDelegate(object sender, long failedCount);
+        public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, int failedCount);
+        public delegate void ChunkAppendFailedDelegate(object sender, int failedCount);
         public delegate void DumpMessageDelegate(object sender, string message);
         public delegate void DumpWarningDelegate(object sender, string message, int errorCount);
         public delegate void DumpErrorDelegate(object sender, string message, int errorCount);
@@ -163,13 +163,13 @@ namespace HlsDumpLib
                                 headerChunkExists = !string.IsNullOrEmpty(playlist.StreamHeaderSegmentUrl) &&
                                     !string.IsNullOrWhiteSpace(playlist.StreamHeaderSegmentUrl);
 
-                                CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0L;
+                                CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
                                 outputFilePath += GetOutputFileExtension(playlist);
 
                                 playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
                             }
 
-                            _currentPlaylistFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0L;
+                            _currentPlaylistFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
 
                             unfilteredPlaylist = new List<StreamSegment>();
                             if (playlist.Segments != null)
@@ -188,11 +188,11 @@ namespace HlsDumpLib
                             else
                             {
                                 CurrentPlaylistNewChunkCount = 0;
-                                CurrentPlaylistFirstNewChunkId = -1L;
+                                CurrentPlaylistFirstNewChunkId = -1;
                             }
 
-                            long diff = _lastProcessedChunkId >= 0L ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1L;
-                            long lost = diff - 1L;
+                            int diff = _lastProcessedChunkId >= 0 ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1;
+                            int lost = diff - 1;
                             if (lost > 0)
                             {
                                 LostChunkCount += lost;
@@ -338,7 +338,7 @@ namespace HlsDumpLib
 
                                     StreamSegment chunk = filteredPlaylist[i];
                                     long chunkLength = -1L;
-                                    long currentAbsoluteChunkId = CurrentPlaylistFirstNewChunkId + i;
+                                    int currentAbsoluteChunkId = CurrentPlaylistFirstNewChunkId + i;
 
                                     int chunkDownloadErrorCode;
                                     try

@@ -47,7 +47,7 @@ namespace HlsDumpLib.ConsoleTest
         }
 
         private static void OnPlaylistCheckingFinished(object sender,
-            int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
+            int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
             string playlistContent, int errorCode, int playlistErrorCountInRow)
         {
             if (errorCode == 200)
@@ -64,8 +64,8 @@ namespace HlsDumpLib.ConsoleTest
             }
         }
 
-        private static void OnNextChunkArrived(object sender, long absoluteChunkId,
-            long sessionChunkId, long chunkSize, int chunkProcessingTime, string chunkFileUrl)
+        private static void OnNextChunkArrived(object sender, int absoluteChunkId,
+            int sessionChunkId, long chunkSize, int chunkProcessingTime, string chunkFileUrl)
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write($"Chunk {sessionChunkId} ({absoluteChunkId}): ");
@@ -82,17 +82,17 @@ namespace HlsDumpLib.ConsoleTest
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine($"Dumped file size: {fileSize} bytes");
                 HlsDumper dumper = sender as HlsDumper;
-                if (dumper.ChunkDownloadErrorCount > 0L)
+                if (dumper.ChunkDownloadErrorCount > 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"Chunk download errors: {dumper.ChunkDownloadErrorCount}");
                 }
-                if (dumper.ChunkAppendErrorCount > 0L)
+                if (dumper.ChunkAppendErrorCount > 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"Chunk append errors: {dumper.ChunkAppendErrorCount}");
                 }
-                if (dumper.LostChunkCount > 0L)
+                if (dumper.LostChunkCount > 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"Lost chunk count: {dumper.LostChunkCount}");
@@ -105,18 +105,18 @@ namespace HlsDumpLib.ConsoleTest
             }
         }
 
-        private static void OnChunkDownloadFailed(object sender, int errorCode, long failedCount)
+        private static void OnChunkDownloadFailed(object sender, int errorCode, int failedCount)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            long number = (sender as HlsDumper).ProcessedChunkCountTotal;
+            int number = (sender as HlsDumper).ProcessedChunkCountTotal;
             Console.WriteLine($"Chunk №{number} download failed with error code {errorCode}! " +
                 $"Total similar errors: {failedCount}");
         }
 
-        public static void OnChunkAppendFailed(object sender, long failedCount)
+        public static void OnChunkAppendFailed(object sender, int failedCount)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            long number = (sender as HlsDumper).ProcessedChunkCountTotal;
+            int number = (sender as HlsDumper).ProcessedChunkCountTotal;
             Console.WriteLine($"Chunk №{number} append failed! Total similar errors: {failedCount}");
         }
 

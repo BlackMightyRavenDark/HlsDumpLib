@@ -12,7 +12,7 @@ namespace HlsDumpLib.GuiTest
         public delegate void CheckingFinishedDelegate(object sender, int errorCode);
         public delegate void PlaylistCheckingStartedDelegate(object sender, string url);
         public delegate void PlaylistCheckingFinishedDelegate(object sender,
-            int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
+            int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
             string playlistContent, int errorCode, int playlistErrorCountInRow);
         public delegate void DumpingStartedDelegate(object sender);
 

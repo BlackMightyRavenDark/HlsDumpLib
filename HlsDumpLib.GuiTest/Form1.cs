@@ -280,7 +280,7 @@ namespace HlsDumpLib.GuiTest
         }
 
         private void OnPlaylistCheckingFinished(object sender,
-            int chunkCount, int newChunkCount, long firstChunkId, long firstNewChunkId,
+            int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
             string playlistContent, int errorCode, int playlistErrorCountInRow)
         {
             if (InvokeRequired)
@@ -314,7 +314,7 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnPlaylistFirstArrived(object sender, int chunkCount, long firstChunkId)
+        private void OnPlaylistFirstArrived(object sender, int chunkCount, int firstChunkId)
         {
             if (InvokeRequired)
             {
@@ -398,7 +398,7 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnNextChunkArrived(object sender, long absoluteChunkId, long sessionChunkId,
+        private void OnNextChunkArrived(object sender, int absoluteChunkId, int sessionChunkId,
             long chunkSize, int chunkProcessingTime, string chunkUrl)
         {
             if (InvokeRequired)
@@ -444,8 +444,8 @@ namespace HlsDumpLib.GuiTest
         private void OnUpdateErrors(object sender,
             int playlistErrorCountInRow, int playlistErrorCountInRowMax,
             int otherErrorCountInRow, int otherErrorCountInRowMax,
-            long chunkDownloadErrorCount, long chunkAppendErrorCount,
-            long lostChunkCount)
+            int chunkDownloadErrorCount, int chunkAppendErrorCount,
+            int lostChunkCount)
         {
             if (InvokeRequired)
             {
