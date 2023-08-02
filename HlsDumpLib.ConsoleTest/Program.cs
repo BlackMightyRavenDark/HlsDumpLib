@@ -64,13 +64,13 @@ namespace HlsDumpLib.ConsoleTest
             }
         }
 
-        private static void OnNextChunkArrived(object sender, int absoluteChunkId,
-            int sessionChunkId, long chunkSize, int chunkProcessingTime, string chunkFileUrl)
+        private static void OnNextChunkArrived(object sender, StreamSegment chunk,
+            long chunkSize, int sessionChunkId, int chunkProcessingTime)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write($"Chunk {sessionChunkId} ({absoluteChunkId}): ");
+            Console.Write($"Chunk {sessionChunkId} ({chunk.Id}): ");
             Console.ForegroundColor = ConsoleColor.White;
-            string t = chunkSize >= 0L ? $"{chunkFileUrl}, {chunkSize} bytes" : chunkFileUrl;
+            string t = chunkSize >= 0L ? $"{chunk.Url}, {chunkSize} bytes" : chunk.Url;
             Console.WriteLine(t);
             Console.WriteLine($"Chunk processing time: {chunkProcessingTime}ms");
         }

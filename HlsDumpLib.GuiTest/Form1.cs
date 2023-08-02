@@ -398,15 +398,15 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnNextChunkArrived(object sender, int absoluteChunkId, int sessionChunkId,
-            long chunkSize, int chunkProcessingTime, string chunkUrl)
+        private void OnNextChunkArrived(object sender, StreamSegment chunk,
+            long chunkSize, int sessionChunkId, int chunkProcessingTime)
         {
             if (InvokeRequired)
             {
                 Invoke(new MethodInvoker(() =>
                 {
-                    OnNextChunkArrived(sender, absoluteChunkId, sessionChunkId,
-                        chunkSize, chunkProcessingTime, chunkUrl);
+                    OnNextChunkArrived(sender, chunk, chunkSize,
+                        sessionChunkId, chunkProcessingTime);
                 }));
             }
             else

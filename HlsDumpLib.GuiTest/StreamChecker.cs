@@ -54,8 +54,8 @@ namespace HlsDumpLib.GuiTest
                         (s, fn) => { outputStreamClosed?.Invoke(this, fn); },
                         (s, delay, checkingInterval, cycleProcessingTime) =>
                             { playlistCheckingDelayCalculated?.Invoke(this, delay, checkingInterval, cycleProcessingTime); },
-                        (s, absoluteChunkId, sessionChunkId,chunkSize, chunkProcessingTime, chunkUrl) =>
-                            { nextChunkArrived?.Invoke(this, absoluteChunkId, sessionChunkId, chunkSize, chunkProcessingTime, chunkUrl); },
+                        (s, chunk, chunkSize, sessionChunkId, chunkProcessingTime) =>
+                            { nextChunkArrived?.Invoke(this, chunk, chunkSize, sessionChunkId, chunkProcessingTime); },
                         (s, playlistErrorCountInRow, playlistErrorCountInRowMax,
                         otherErrorCountInRow, otherErrorCountInRowMax,
                         chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>

@@ -50,8 +50,8 @@ namespace HlsDumpLib
         public delegate void OutputStreamClosedDelegate(object sender, string fileName);
         public delegate void PlaylistCheckingDelayCalculatedDelegate(object sender,
             int delay, int checkingInterval, int cycleProcessingTime);
-        public delegate void NextChunkArrivedDelegate(object sender, int absoluteChunkId, int sessionChunkId,
-            long chunkSize, int chunkProcessingTime, string chunkUrl);
+        public delegate void NextChunkArrivedDelegate(object sender, StreamSegment chunk,
+            long chunkSize, int sessionChunkId, int chunkProcessingTime);
         public delegate void UpdateErrorsDelegate(object sender,
             int playlistErrorCountInRow, int playlistErrorCountInRowMax,
             int otherErrorCountInRow, int otherErrorCountInRowMax,
@@ -337,8 +337,7 @@ namespace HlsDumpLib
                                     int tickBeforeChunk = Environment.TickCount;
 
                                     StreamSegment chunk = filteredPlaylist[i];
-                                    long chunkLength = -1L;
-                                    int currentAbsoluteChunkId = CurrentPlaylistFirstNewChunkId + i;
+                                    long chunkFileSize = -1L;
 
                                     int chunkDownloadErrorCode;
                                     try
@@ -349,12 +348,12 @@ namespace HlsDumpLib
                                             chunkDownloadErrorCode = d.Download(mem);
                                             if (chunkDownloadErrorCode == 200)
                                             {
-                                                chunkLength = mem.Length;
+                                                chunkFileSize = mem.Length;
                                                 mem.Position = 0L;
                                                 if (MultiThreadedDownloader.AppendStream(mem, outputStream))
                                                 {
                                                     OtherErrorCountInRow = 0;
-                                                    _lastProcessedChunkId = currentAbsoluteChunkId;
+                                                    _lastProcessedChunkId = chunk.Id;
                                                     if (writeChunksInfo)
                                                     {
                                                         try
@@ -362,7 +361,7 @@ namespace HlsDumpLib
                                                             JObject jChunk = new JObject();
                                                             jChunk["position"] = outputStream.Position - mem.Length;
                                                             jChunk["size"] = mem.Length;
-                                                            jChunk["id"] = currentAbsoluteChunkId;
+                                                            jChunk["id"] = chunk.Id;
                                                             //TODO: Determine and store other chunk information from playlist
                                                             jChunks.Add(jChunk);
                                                         }
@@ -405,9 +404,9 @@ namespace HlsDumpLib
 
                                     int chunkProcessingTime = Environment.TickCount - tickBeforeChunk;
 
+                                    nextChunkArrived?.Invoke(this, chunk, chunkFileSize,
+                                        ProcessedChunkCountTotal, chunkProcessingTime);
                                     ProcessedChunkCountTotal++;
-                                    nextChunkArrived?.Invoke(this, currentAbsoluteChunkId,
-                                        ProcessedChunkCountTotal, chunkLength, chunkProcessingTime, chunk.Url);
 
                                     dumpProgress?.Invoke(this, outputStream.Length, chunkDownloadErrorCode);
 
