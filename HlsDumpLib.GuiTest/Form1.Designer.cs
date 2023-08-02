@@ -40,7 +40,7 @@
             this.columnHeaderNewChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDelay = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderChunkProcessingTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderChunkSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkFileSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderFirstChunkSession = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderProcessedChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderLostChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -64,6 +64,10 @@
             this.numericUpDownOtherErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownPlaylistCheckingInterval = new System.Windows.Forms.NumericUpDown();
             this.label6 = new System.Windows.Forms.Label();
+            this.columnHeaderChunkId = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkLength = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
@@ -121,7 +125,11 @@
             this.columnHeaderNewChunks,
             this.columnHeaderDelay,
             this.columnHeaderChunkProcessingTime,
-            this.columnHeaderChunkSize,
+            this.columnHeaderChunkId,
+            this.columnHeaderChunkLength,
+            this.columnHeaderChunkFileSize,
+            this.columnHeaderChunkFileName,
+            this.columnHeaderChunkUrl,
             this.columnHeaderFirstChunkSession,
             this.columnHeaderProcessedChunks,
             this.columnHeaderLostChunks,
@@ -178,59 +186,70 @@
             this.columnHeaderChunkProcessingTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeaderChunkProcessingTime.Width = 100;
             // 
-            // columnHeaderChunkSize
+            // columnHeaderChunkFileSize
             // 
-            this.columnHeaderChunkSize.Text = "Размер чанка";
-            this.columnHeaderChunkSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeaderChunkSize.Width = 110;
+            this.columnHeaderChunkFileSize.DisplayIndex = 6;
+            this.columnHeaderChunkFileSize.Text = "Размер чанка";
+            this.columnHeaderChunkFileSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.columnHeaderChunkFileSize.Width = 110;
             // 
             // columnHeaderFirstChunkSession
             // 
+            this.columnHeaderFirstChunkSession.DisplayIndex = 7;
             this.columnHeaderFirstChunkSession.Text = "Первый чанк";
             this.columnHeaderFirstChunkSession.Width = 100;
             // 
             // columnHeaderProcessedChunks
             // 
+            this.columnHeaderProcessedChunks.DisplayIndex = 8;
             this.columnHeaderProcessedChunks.Text = "Обработано чанков";
             this.columnHeaderProcessedChunks.Width = 100;
             // 
             // columnHeaderLostChunks
             // 
+            this.columnHeaderLostChunks.DisplayIndex = 9;
             this.columnHeaderLostChunks.Text = "Потеряно чанков";
             this.columnHeaderLostChunks.Width = 100;
             // 
             // columnHeaderDateStarted
             // 
+            this.columnHeaderDateStarted.DisplayIndex = 10;
             this.columnHeaderDateStarted.Text = "Дамп начат";
             this.columnHeaderDateStarted.Width = 140;
             // 
             // columnHeaderState
             // 
+            this.columnHeaderState.DisplayIndex = 11;
             this.columnHeaderState.Text = "Состояние";
             this.columnHeaderState.Width = 230;
             // 
             // columnHeaderPlaylistErrors
             // 
+            this.columnHeaderPlaylistErrors.DisplayIndex = 12;
             this.columnHeaderPlaylistErrors.Text = "Ошибки плейлиста";
             this.columnHeaderPlaylistErrors.Width = 150;
             // 
             // columnHeaderChunkDownloadErrors
             // 
+            this.columnHeaderChunkDownloadErrors.DisplayIndex = 13;
             this.columnHeaderChunkDownloadErrors.Text = "Ошибки скачивания чанков";
             this.columnHeaderChunkDownloadErrors.Width = 90;
             // 
             // columnHeaderChunkAppendErrors
             // 
+            this.columnHeaderChunkAppendErrors.DisplayIndex = 14;
             this.columnHeaderChunkAppendErrors.Text = "Ошибки объединения чанков";
             this.columnHeaderChunkAppendErrors.Width = 90;
             // 
             // columnHeaderOtherErroors
             // 
+            this.columnHeaderOtherErroors.DisplayIndex = 15;
             this.columnHeaderOtherErroors.Text = "Другие ошибки";
             this.columnHeaderOtherErroors.Width = 100;
             // 
             // columnHeaderPlaylistUrl
             // 
+            this.columnHeaderPlaylistUrl.DisplayIndex = 16;
             this.columnHeaderPlaylistUrl.Text = "Ссылка на плейлист";
             this.columnHeaderPlaylistUrl.Width = 300;
             // 
@@ -380,6 +399,22 @@
             this.label6.TabIndex = 13;
             this.label6.Text = "миллисекунд";
             // 
+            // columnHeaderChunkId
+            // 
+            this.columnHeaderChunkId.Text = "ID чанка";
+            // 
+            // columnHeaderChunkLength
+            // 
+            this.columnHeaderChunkLength.Text = "Продолжительность чанка (секунды)";
+            // 
+            // columnHeaderChunkUrl
+            // 
+            this.columnHeaderChunkUrl.Text = "Ссылка на чанк";
+            // 
+            // columnHeaderChunkFileName
+            // 
+            this.columnHeaderChunkFileName.Text = "Имя файла чанка";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -445,12 +480,16 @@
         private System.Windows.Forms.NumericUpDown numericUpDownPlaylistErrorCountInRow;
         private System.Windows.Forms.NumericUpDown numericUpDownOtherErrorCountInRow;
         private System.Windows.Forms.ColumnHeader columnHeaderOtherErroors;
-        private System.Windows.Forms.ColumnHeader columnHeaderChunkSize;
+        private System.Windows.Forms.ColumnHeader columnHeaderChunkFileSize;
         private System.Windows.Forms.NumericUpDown numericUpDownPlaylistCheckingInterval;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ColumnHeader columnHeaderChunkDownloadErrors;
         private System.Windows.Forms.ColumnHeader columnHeaderChunkAppendErrors;
+        private System.Windows.Forms.ColumnHeader columnHeaderChunkId;
+        private System.Windows.Forms.ColumnHeader columnHeaderChunkLength;
+        private System.Windows.Forms.ColumnHeader columnHeaderChunkUrl;
+        private System.Windows.Forms.ColumnHeader columnHeaderChunkFileName;
     }
 }
 

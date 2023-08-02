@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace HlsDumpLib.GuiTest
 {
@@ -18,17 +19,21 @@ namespace HlsDumpLib.GuiTest
         public const int COLUMN_ID_NEW_CHUNKS = 3;
         public const int COLUMN_ID_PLAYLIST_DELAY = 4;
         public const int COLUMN_ID_CHUNK_PROCESSING_TIME = 5;
-        public const int COLUMN_ID_CHUNK_SIZE = 6;
-        public const int COLUMN_ID_FIRST_CHUNK = 7;
-        public const int COLUMN_ID_PROCESSED_CHUNKS = 8;
-        public const int COLUMN_ID_LOST_CHUNKS = 9;
-        public const int COLUMN_ID_DATE_DUMP_STARTED = 10;
-        public const int COLUMN_ID_STATE = 11;
-        public const int COLUMN_ID_PLAYLIST_ERRORS = 12;
-        public const int COLUMN_ID_CHUNK_DOWNLOAD_ERRORS = 13;
-        public const int COLUMN_ID_CHUNK_APPEND_ERRORS = 14;
-        public const int COLUMN_ID_OTHER_ERRORS = 15;
-        public const int COLUMN_ID_PLAYLIST_URL = 16;
+        public const int COLUMN_ID_CHUNK_ID = 6;
+        public const int COLUMN_ID_CHUNK_LENGTH = 7;
+        public const int COLUMN_ID_CHUNK_SIZE = 8;
+        public const int COLUMN_ID_CHUNK_FILENAME = 9;
+        public const int COLUMN_ID_CHUNK_URL = 10;
+        public const int COLUMN_ID_FIRST_CHUNK = 11;
+        public const int COLUMN_ID_PROCESSED_CHUNKS = 12;
+        public const int COLUMN_ID_LOST_CHUNKS = 13;
+        public const int COLUMN_ID_DATE_DUMP_STARTED = 14;
+        public const int COLUMN_ID_STATE = 15;
+        public const int COLUMN_ID_PLAYLIST_ERRORS = 16;
+        public const int COLUMN_ID_CHUNK_DOWNLOAD_ERRORS = 17;
+        public const int COLUMN_ID_CHUNK_APPEND_ERRORS = 18;
+        public const int COLUMN_ID_OTHER_ERRORS = 19;
+        public const int COLUMN_ID_PLAYLIST_URL = 20;
 
         public Form1()
         {
@@ -213,6 +218,10 @@ namespace HlsDumpLib.GuiTest
                 string.Empty,
                 string.Empty,
                 string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
                 "Остановлен",
                 string.Empty,
                 string.Empty,
@@ -307,7 +316,11 @@ namespace HlsDumpLib.GuiTest
                     if (newChunkCount <= 0)
                     {
                         listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = null;
                         listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = null;
                     }
                 }
             }
@@ -415,6 +428,20 @@ namespace HlsDumpLib.GuiTest
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = $"{chunkProcessingTime}ms";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = FormatSize(chunkSize);
+                    if (chunk != null)
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = chunk.Id.ToString();
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = chunk.LengthSeconds.ToString();
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = chunk.FileName;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = chunk.Url;
+                    }
+                    else
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = "null";
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = "null";
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = "null";
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = "null";
+                    }
                 }
             }
         }
