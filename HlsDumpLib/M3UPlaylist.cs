@@ -72,6 +72,7 @@ namespace HlsDumpLib
             bool dateFound = PlaylistDate != DateTime.MinValue;
 
             DateTime segmentDate = PlaylistDate;
+            int segmentId = MediaSequence < 0 ? 0 : MediaSequence;
 
             int stringCount = playlistStrings.Length;
             for (int i = startStringId; i < stringCount; ++i)
@@ -145,11 +146,12 @@ namespace HlsDumpLib
 
                     if (!string.IsNullOrEmpty(segmentUrl) && !string.IsNullOrWhiteSpace(segmentUrl))
                     {
-                        StreamSegment segment = new StreamSegment(
-                            segmentDate, segmentLength, segmentFileName, segmentUrl);
+                        StreamSegment segment = new StreamSegment(segmentDate, segmentLength,
+                            segmentId, segmentFileName, segmentUrl);
                         Segments.Add(segment);
                     }
 
+                    segmentId++;
                     firstSegment = false;
                 }
             }
