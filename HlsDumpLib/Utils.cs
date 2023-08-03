@@ -12,6 +12,12 @@ namespace HlsDumpLib
             return new DateTime(1970, 1, 1).AddTicks(timeSpan.Ticks);
         }
 
+        public static string ExtractUrlFileName(string fileUrl)
+        {
+            int n = fileUrl.LastIndexOf('/');
+            return n >= 0 ? fileUrl.Substring(n + 1) : null;
+        }
+
         public static string ExtractUrlFilePath(string fileUrl)
         {
             int n = fileUrl.LastIndexOf('/');

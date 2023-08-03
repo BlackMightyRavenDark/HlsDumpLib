@@ -120,6 +120,7 @@ namespace HlsDumpLib
                 bool first = true;
                 bool headerChunkExists = false;
 
+                JObject jHeaderChunk = null;
                 JArray jChunks = new JArray();
                 FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
                 Stream outputStream = null;
@@ -279,6 +280,9 @@ namespace HlsDumpLib
                                         int headerErrorCode = d.Download(streamHeader);
                                         if (headerErrorCode == 200)
                                         {
+                                            string chunkHeaderFileName = Utils.ExtractUrlFileName(playlist.StreamHeaderSegmentUrl);
+                                            StreamSegment headerChunk = new StreamSegment(DateTime.MinValue,
+                                                0.0, -1, chunkHeaderFileName, playlist.StreamHeaderSegmentUrl);
                                             OtherErrorCountInRow = 0;
                                             streamHeader.Position = 0L;
                                             if (MultiThreadedDownloader.AppendStream(streamHeader, outputStream))
@@ -288,15 +292,14 @@ namespace HlsDumpLib
                                                 {
                                                     try
                                                     {
-                                                        JObject jChunk = new JObject();
-                                                        jChunk["position"] = outputStream.Position - streamHeader.Length;
-                                                        jChunk["size"] = streamHeader.Length;
-                                                        jChunk["id"] = 0;
-                                                        jChunks.Add(jChunk);
+                                                        long size = streamHeader.Length;
+                                                        long position = outputStream.Position - size;
+                                                        jHeaderChunk = headerChunk.ToJson(position, size);
                                                     }
                                                     catch (Exception ex)
                                                     {
                                                         System.Diagnostics.Debug.WriteLine(ex.Message);
+                                                        jHeaderChunk = null;
                                                         OtherErrorCountInRow++;
                                                         dumpError?.Invoke(this, "Failed to append header (metadata) chunk info", OtherErrorCountInRow);
                                                     }
@@ -322,6 +325,7 @@ namespace HlsDumpLib
                                 catch (Exception ex)
                                 {
                                     System.Diagnostics.Debug.WriteLine(ex.Message);
+                                    jHeaderChunk = null;
                                     ChunkDownloadErrorCount++;
                                     OtherErrorCountInRow++;
                                     dumpError?.Invoke(this,
@@ -469,6 +473,10 @@ namespace HlsDumpLib
                             json["actualPlaylistUrl"] = ActualUrl;
                         }
                         json["outputFile"] = outputFilePath;
+                        if (jHeaderChunk != null)
+                        {
+                            json.Add(new JProperty("headerChunk", jHeaderChunk));
+                        }
                         json.Add(new JProperty("chunks", jChunks));
                         File.WriteAllText($"{outputFilePath}_chunks.json", json.ToString());
                     }
