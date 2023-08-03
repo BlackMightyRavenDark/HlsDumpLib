@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json.Linq;
 
 namespace HlsDumpLib
 {
@@ -18,6 +19,20 @@ namespace HlsDumpLib
             Id = id;
             FileName = fileName;
             Url = url;
+        }
+
+        public JObject ToJson(long position, long size)
+        {
+            JObject json = new JObject();
+            json["position"] = position;
+            json["size"] = size;
+            json["id"] = Id;
+            json["length"] = LengthSeconds;
+            json["creationDate"] = CreationDate;
+            json["fileName"] = FileName;
+            json["url"] = Url;
+
+            return json;
         }
     }
 }

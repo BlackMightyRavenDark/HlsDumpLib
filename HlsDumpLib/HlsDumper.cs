@@ -358,14 +358,9 @@ namespace HlsDumpLib
                                                     {
                                                         try
                                                         {
-                                                            JObject jChunk = new JObject();
-                                                            jChunk["position"] = outputStream.Position - mem.Length;
-                                                            jChunk["size"] = mem.Length;
-                                                            jChunk["id"] = chunk.Id;
-                                                            jChunk["length"] = chunk.LengthSeconds;
-                                                            jChunk["creationDate"] = chunk.CreationDate;
-                                                            jChunk["fileName"] = chunk.FileName;
-                                                            jChunk["url"] = chunk.Url;
+                                                            long size = mem.Length;
+                                                            long position = outputStream.Position - size;
+                                                            JObject jChunk = chunk.ToJson(position, size);
                                                             jChunks.Add(jChunk);
                                                         }
                                                         catch (Exception ex)
