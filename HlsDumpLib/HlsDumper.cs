@@ -362,7 +362,10 @@ namespace HlsDumpLib
                                                             jChunk["position"] = outputStream.Position - mem.Length;
                                                             jChunk["size"] = mem.Length;
                                                             jChunk["id"] = chunk.Id;
-                                                            //TODO: Determine and store other chunk information from playlist
+                                                            jChunk["length"] = chunk.LengthSeconds;
+                                                            jChunk["creationDate"] = chunk.CreationDate;
+                                                            jChunk["fileName"] = chunk.FileName;
+                                                            jChunk["url"] = chunk.Url;
                                                             jChunks.Add(jChunk);
                                                         }
                                                         catch (Exception ex)
