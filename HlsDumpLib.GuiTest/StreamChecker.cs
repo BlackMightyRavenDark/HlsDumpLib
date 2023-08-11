@@ -11,7 +11,9 @@ namespace HlsDumpLib.GuiTest
         public delegate void CheckingStartedDelegate(object sender);
         public delegate void CheckingFinishedDelegate(object sender, int errorCode);
         public delegate void PlaylistCheckingStartedDelegate(object sender, string url);
-        public delegate void PlaylistCheckingFinishedDelegate(object sender, int errorCode);
+        public delegate void PlaylistCheckingFinishedDelegate(object sender,
+            int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
+            string playlistContent, int errorCode, int playlistErrorCountInRow);
         public delegate void DumpingStartedDelegate(object sender);
 
         public void Check(string outputFilePath,
@@ -19,15 +21,23 @@ namespace HlsDumpLib.GuiTest
             CheckingFinishedDelegate checkingFinished,
             PlaylistCheckingStartedDelegate playlistCheckingStarted,
             PlaylistCheckingFinishedDelegate playlistCheckingFinished,
-            HlsDumper.PlaylistFirstArrived playlistFirstArrived,
+            HlsDumper.PlaylistFirstArrivedDelegate playlistFirstArrived,
+            HlsDumper.OutputStreamAssignedDelegate outputStreamAssigned,
+            HlsDumper.OutputStreamClosedDelegate outputStreamClosed,
+            HlsDumper.PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
             DumpingStartedDelegate dumpingStarted,
+            HlsDumper.NextChunkArrivedDelegate nextChunkArrived,
+            HlsDumper.UpdateErrorsDelegate updateErrors,
             HlsDumper.DumpProgressDelegate dumpingProgress,
             HlsDumper.DumpFinishedDelegate dumpingFinished,
-            bool saveChunksInfo)
+            int playlistCheckingIntervalMilliseconds,
+            bool saveChunksInfo,
+            int maxPlaylistErrorCountInRow,
+            int maxOtherErrorsInRow)
         {
             checkingStarted?.Invoke(this);
 
-            int errorCode = FileDownloader.GetUrlContentLength(StreamItem.PlaylistUrl, out _, out _);
+            int errorCode = FileDownloader.GetUrlContentLength(StreamItem.PlaylistUrl, null, out _, out _);
             if (errorCode == 200)
             {
                 if (!StreamItem.IsDumping)
@@ -37,14 +47,31 @@ namespace HlsDumpLib.GuiTest
                     dumpingStarted?.Invoke(this);
                     Task.Run(() => StreamItem.Dumper.Dump(outputFilePath,
                         (s, url) => { playlistCheckingStarted?.Invoke(this, url); },
-                        (s, e) => { playlistCheckingFinished?.Invoke(this, e); },
+                        (s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow) =>
+                            { playlistCheckingFinished?.Invoke(this, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow); },
                         (s, count, first) => { playlistFirstArrived?.Invoke(this, count, first); },
-                        null, (s, fs, e) => { dumpingProgress.Invoke(this, fs, e); }, null,
+                        (s, stream, fn) => { outputStreamAssigned?.Invoke(this, stream, fn); },
+                        (s, fn) => { outputStreamClosed?.Invoke(this, fn); },
+                        (s, delay, checkingInterval, cycleProcessingTime) =>
+                            { playlistCheckingDelayCalculated?.Invoke(this, delay, checkingInterval, cycleProcessingTime); },
+                        (s, chunk, chunkSize, sessionChunkId, chunkProcessingTime) =>
+                            { nextChunkArrived?.Invoke(this, chunk, chunkSize, sessionChunkId, chunkProcessingTime); },
+                        (s, playlistErrorCountInRow, playlistErrorCountInRowMax,
+                        otherErrorCountInRow, otherErrorCountInRowMax,
+                        chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>
+                            {
+                                updateErrors?.Invoke(this, playlistErrorCountInRow, playlistErrorCountInRowMax,
+                                otherErrorCountInRow, otherErrorCountInRowMax,
+                                chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount);
+                            },
+                        (s, fs, e) => { dumpingProgress.Invoke(this, fs, e); }, null,
                         null, null, null, null, (s, e) =>
                         {
                             dumpingFinished.Invoke(this, e);
                             StreamItem.Dumper = null;
-                        }, saveChunksInfo, true));
+                        },
+                        playlistCheckingIntervalMilliseconds,
+                        saveChunksInfo, maxPlaylistErrorCountInRow, maxOtherErrorsInRow));
                 }
             }
 

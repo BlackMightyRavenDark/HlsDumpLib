@@ -1,25 +1,38 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json.Linq;
 
 namespace HlsDumpLib.GuiTest
 {
     public partial class Form1 : Form
     {
         private bool _isClosing = false;
+        private string _configFileName = "config.json";
 
         public const int COLUMN_ID_TITLE = 0;
         public const int COLUMN_ID_FILENAME = 1;
-        public const int COLUMN_ID_FILESIZE = 2;
-        public const int COLUMN_ID_NEWCHUNKS = 3;
-        public const int COLUMN_ID_DELAY = 4;
-        public const int COLUMN_ID_FIRSTCHUNK = 5;
-        public const int COLUMN_ID_PROCESSEDCHUNKS = 6;
-        public const int COLUMN_ID_LOSTCHUNKS = 7;
-        public const int COLUMN_ID_DATEDUMPSTARTED = 8;
-        public const int COLUMN_ID_STATE = 9;
-        public const int COLUMN_ID_URL = 10;
+        public const int COLUMN_ID_FILE_SIZE = 2;
+        public const int COLUMN_ID_NEW_CHUNKS = 3;
+        public const int COLUMN_ID_PLAYLIST_DELAY = 4;
+        public const int COLUMN_ID_CHUNK_PROCESSING_TIME = 5;
+        public const int COLUMN_ID_CHUNK_ID = 6;
+        public const int COLUMN_ID_CHUNK_LENGTH = 7;
+        public const int COLUMN_ID_CHUNK_SIZE = 8;
+        public const int COLUMN_ID_CHUNK_FILENAME = 9;
+        public const int COLUMN_ID_CHUNK_URL = 10;
+        public const int COLUMN_ID_FIRST_CHUNK = 11;
+        public const int COLUMN_ID_PROCESSED_CHUNKS = 12;
+        public const int COLUMN_ID_LOST_CHUNKS = 13;
+        public const int COLUMN_ID_DATE_DUMP_STARTED = 14;
+        public const int COLUMN_ID_STATE = 15;
+        public const int COLUMN_ID_PLAYLIST_ERRORS = 16;
+        public const int COLUMN_ID_CHUNK_DOWNLOAD_ERRORS = 17;
+        public const int COLUMN_ID_CHUNK_APPEND_ERRORS = 18;
+        public const int COLUMN_ID_OTHER_ERRORS = 19;
+        public const int COLUMN_ID_PLAYLIST_URL = 20;
 
         public Form1()
         {
@@ -29,6 +42,11 @@ namespace HlsDumpLib.GuiTest
         private void Form1_Load(object sender, EventArgs e)
         {
             MultiThreadedDownloaderLib.MultiThreadedDownloader.SetMaximumConnectionsLimit(100);
+
+            //fix scrollbar visibility
+            columnHeaderPlaylistUrl.Width += 1;
+
+            if (File.Exists(_configFileName)) { LoadConfig(); }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -51,19 +69,80 @@ namespace HlsDumpLib.GuiTest
                         BeginInvoke(new MethodInvoker(() => { Close(); }));
                     });
                 }
+
+                return;
+            }
+
+            SaveConfig();
+        }
+
+        private void SaveConfig()
+        {
+            JObject json = new JObject();
+            json["maxPlaylistErrorsInRow"] = (int)numericUpDownPlaylistErrorCountInRow.Value;
+            json["maxOtherErrorsInRow"] = (int)numericUpDownOtherErrorCountInRow.Value;
+            json["playlistCheckingInterval"] = (int)numericUpDownPlaylistCheckingInterval.Value;
+            json["saveChunksInfo"] = checkBoxSaveChunksInfo.Checked;
+
+            JArray jaColumns = new JArray();
+            foreach (ColumnHeader columnHeader in listViewStreams.Columns)
+            {
+                JObject jColumn = new JObject();
+                jColumn["displayIndex"] = columnHeader.DisplayIndex;
+                jColumn["width"] = columnHeader.Width;
+
+                jaColumns.Add(jColumn);
+            }
+
+            json.Add(new JProperty("columns", jaColumns));
+
+            if (File.Exists(_configFileName)) { File.Delete(_configFileName); }
+            File.WriteAllText(_configFileName, json.ToString());
+        }
+
+        private void LoadConfig()
+        {
+            JObject json = JObject.Parse(File.ReadAllText(_configFileName));
+            {
+                JToken jt = json.Value<JToken>("maxPlaylistErrorsInRow");
+                numericUpDownPlaylistErrorCountInRow.Value = jt == null ? 5 : jt.Value<int>();
+            }
+            {
+                JToken jt = json.Value<JToken>("maxOtherErrorsInRow");
+                numericUpDownOtherErrorCountInRow.Value = jt == null ? 5 : jt.Value<int>();
+            }
+            {
+                JToken jt = json.Value<JToken>("playlistCheckingInterval");
+                if (jt != null)
+                {
+                    int n = jt.Value<int>();
+                    int min = (int)numericUpDownPlaylistCheckingInterval.Minimum;
+                    numericUpDownPlaylistCheckingInterval.Value = n < min ? min : n;
+                }
+            }
+            {
+                JToken jt = json.Value<JToken>("saveChunksInfo");
+                if (jt != null)
+                {
+                    checkBoxSaveChunksInfo.Checked = jt.Value<bool>();
+                }
+            }
+
+            JArray jaColumns = json.Value<JArray>("columns");
+            if (jaColumns != null)
+            {
+                for (int i = 0; i < jaColumns.Count; ++i)
+                {
+                    JObject jColumn = jaColumns[i] as JObject;
+                    listViewStreams.Columns[i].DisplayIndex = jColumn.Value<int>("displayIndex");
+                    int width = jColumn.Value<int>("width");
+                    listViewStreams.Columns[i].Width = width < 60 ? 60 : width;
+                }
             }
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            string title = textBoxTitle.Text.Trim();
-            if (string.IsNullOrEmpty(title) || string.IsNullOrWhiteSpace(title))
-            {
-                MessageBox.Show("Введите название!", "Ошибка!",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
             string url = textBoxUrl.Text;
             if (string.IsNullOrEmpty(url) || string.IsNullOrWhiteSpace(url))
             {
@@ -72,7 +151,13 @@ namespace HlsDumpLib.GuiTest
                 return;
             }
 
-            string fileName = FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss}.ts");
+            string title = textBoxTitle.Text?.Trim();
+            if (string.IsNullOrEmpty(title))
+            {
+                title = "untitled";
+            }
+
+            string fileName = FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss-fff}");
             StreamItem item = new StreamItem()
             {
                 Title = title,
@@ -130,7 +215,17 @@ namespace HlsDumpLib.GuiTest
                 string.Empty,
                 string.Empty,
                 string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
                 "Остановлен",
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
                 streamItem.PlaylistUrl
             };
             item.SubItems.AddRange(subItems);
@@ -142,7 +237,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnCheckingStarted(sender); });
+                Invoke(new MethodInvoker(() => OnCheckingStarted(sender)));
             }
             else
             {
@@ -151,7 +246,7 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Проверяется...";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEW_CHUNKS].Text = null;
                 }
             }
         }
@@ -160,7 +255,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnCheckingFinished(sender, errorCode); });
+                Invoke(new MethodInvoker(() => OnCheckingFinished(sender, errorCode)));
             }
             else
             {
@@ -175,11 +270,11 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnPlaylistCheckingFinished(object sender, int errorCode)
+        private void OnPlaylistCheckingStarted(object sender, string playlistUrl)
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnPlaylistCheckingFinished(sender, errorCode); });
+                Invoke(new MethodInvoker(() => OnPlaylistCheckingStarted(sender, playlistUrl)));
             }
             else
             {
@@ -187,30 +282,54 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
-                    if (streamItem.IsDumping)
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Проверка плейлиста...";
+                }
+            }
+        }
+
+        private void OnPlaylistCheckingFinished(object sender,
+            int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
+            string playlistContent, int errorCode, int playlistErrorCountInRow)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() =>
+                    OnPlaylistCheckingFinished(sender,
+                        chunkCount, newChunkCount, firstChunkId, firstNewChunkId,
+                        playlistContent, errorCode, playlistErrorCountInRow)
+                ));
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEW_CHUNKS].Text =
+                        $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
+                         $"Плейлист проверен (code: {errorCode})";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_ERRORS].Text =
+                        $"{playlistErrorCountInRow} / {streamItem.Dumper.PlaylistErrorCountInRowMax}";
+
+                    if (newChunkCount <= 0)
                     {
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text =
-                            $"{streamItem.Dumper.CurrentPlaylistNewChunkCount} / {streamItem.Dumper.CurrentPlaylistChunkCount}";
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text =
-                            $"{streamItem.Dumper.LastDelayValueMilliseconds}ms";
-                    }
-                    else
-                    {
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text = null;
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text = null;
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_FIRSTCHUNK].Text = null;
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSEDCHUNKS].Text = null;
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_LOSTCHUNKS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = null;
                     }
                 }
             }
         }
 
-        private void OnPlaylistFirstArrived(object sender, int chunkCount, long firstChunkId)
+        private void OnPlaylistFirstArrived(object sender, int chunkCount, int firstChunkId)
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnPlaylistFirstArrived(sender, chunkCount, firstChunkId); });
+                Invoke(new MethodInvoker(() => OnPlaylistFirstArrived(sender, chunkCount, firstChunkId)));
             }
             else
             {
@@ -218,7 +337,27 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_FIRSTCHUNK].Text = firstChunkId.ToString();
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_FIRST_CHUNK].Text = firstChunkId.ToString();
+                }
+            }
+        }
+
+        public void OnPlaylistCheckingDelayCalculated(object sender,
+            int delay, int checkingInterval, int cycleProcessingTime)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() =>
+                    OnPlaylistCheckingDelayCalculated(sender, delay, checkingInterval, cycleProcessingTime)));
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_DELAY].Text =
+                        $"{delay}ms / {checkingInterval}ms";
                 }
             }
         }
@@ -227,7 +366,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnDumpingStarted(sender); });
+                Invoke(new MethodInvoker(() => OnDumpingStarted(sender)));
             }
             else
             {
@@ -236,19 +375,23 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_DATEDUMPSTARTED].Text =
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_DATE_DUMP_STARTED].Text =
                         streamItem.DumpStarted.ToString("yyyy-MM-dd HH-mm-ss");
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSEDCHUNKS].Text = "0";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_LOSTCHUNKS].Text = "0";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSED_CHUNKS].Text = "0";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_LOST_CHUNKS].Text = "0";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_DOWNLOAD_ERRORS].Text = "0";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_APPEND_ERRORS].Text = "0";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_OTHER_ERRORS].Text =
+                        $"0 / {streamItem.Dumper.OtherErrorCountInRowMax}";
                 }
             }
         }
 
-        private void OnDumpingFinshed(object sender, int errorCode)
+        private void OnDumpingFinished(object sender, int errorCode)
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnDumpingFinshed(sender, errorCode); });
+                Invoke(new MethodInvoker(() => OnDumpingFinished(sender, errorCode)));
             }
             else
             {
@@ -256,10 +399,48 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEW_CHUNKS].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_DELAY].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = null;
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
-                        errorCode == HlsDumper.DUMPING_ERROR_PLAYLIST_GONE ? "Завершено" : "Отменено";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEWCHUNKS].Text = null;
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_DELAY].Text = null;
+                        errorCode == HlsDumper.DUMPING_ERROR_PLAYLIST_GONE ? "Завершён" : "Отменён";
+                }
+            }
+        }
+
+        private void OnNextChunkArrived(object sender, StreamSegment chunk,
+            long chunkSize, int sessionChunkId, int chunkProcessingTime)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() =>
+                    OnNextChunkArrived(sender, chunk, chunkSize,
+                        sessionChunkId, chunkProcessingTime)
+                ));
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = $"{chunkProcessingTime}ms";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = FormatSize(chunkSize);
+                    if (chunk != null)
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = chunk.Id.ToString();
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = chunk.LengthSeconds.ToString();
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = chunk.FileName;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = chunk.Url;
+                    }
+                    else
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = "null";
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = "null";
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = "null";
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = "null";
+                    }
                 }
             }
         }
@@ -268,7 +449,7 @@ namespace HlsDumpLib.GuiTest
         {
             if (InvokeRequired)
             {
-                Invoke((MethodInvoker)delegate { OnDumpingProgress(sender, fileSize, errorCode); });
+                Invoke(new MethodInvoker(() => OnDumpingProgress(sender, fileSize, errorCode)));
             }
             else
             {
@@ -277,11 +458,59 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_FILESIZE].Text = FormatSize(fileSize);
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSEDCHUNKS].Text =
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_FILE_SIZE].Text = FormatSize(fileSize);
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSED_CHUNKS].Text =
                         streamItem.Dumper.ProcessedChunkCountTotal.ToString();
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_LOSTCHUNKS].Text =
-                        streamItem.Dumper.LostChunkCount.ToString();
+                }
+            }
+        }
+
+        private void OnUpdateErrors(object sender,
+            int playlistErrorCountInRow, int playlistErrorCountInRowMax,
+            int otherErrorCountInRow, int otherErrorCountInRowMax,
+            int chunkDownloadErrorCount, int chunkAppendErrorCount,
+            int lostChunkCount)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() =>
+                    OnUpdateErrors(sender, playlistErrorCountInRow, playlistErrorCountInRowMax,
+                        otherErrorCountInRow, otherErrorCountInRowMax,
+                        chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount)
+                ));
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_LOST_CHUNKS].Text = lostChunkCount.ToString();
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_ERRORS].Text =
+                        $"{playlistErrorCountInRow} / {playlistErrorCountInRowMax}";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_DOWNLOAD_ERRORS].Text =
+                        chunkDownloadErrorCount.ToString();
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_APPEND_ERRORS].Text =
+                        chunkAppendErrorCount.ToString();
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_OTHER_ERRORS].Text =
+                        $"{otherErrorCountInRow} / {otherErrorCountInRowMax}";
+                }
+            }
+        }
+
+        private void OnOutputStreamAssigned(object sender, Stream stream, string fileName)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() => OnOutputStreamAssigned(sender, stream, fileName)));
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_FILENAME].Text = fileName;
                 }
             }
         }
@@ -296,13 +525,20 @@ namespace HlsDumpLib.GuiTest
                     streamItem.IsChecking = true;
                     listViewStreams.Items[itemId].SubItems[COLUMN_ID_STATE].Text = "Запуск проверки...";
                     bool saveChunksInfo = checkBoxSaveChunksInfo.Checked;
+                    int maxPlaylistErrorsInRow = (int)numericUpDownPlaylistErrorCountInRow.Value;
+                    int maxOtherErrorsInRow = (int)numericUpDownOtherErrorCountInRow.Value;
+                    int playlistCheckingIntervalMilliseconds = (int)numericUpDownPlaylistCheckingInterval.Value;
+
                     Task.Run(() =>
                     {
                         StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
                         checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
-                            null, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
-                            OnDumpingStarted, OnDumpingProgress, OnDumpingFinshed,
-                            saveChunksInfo);
+                            OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
+                            OnOutputStreamAssigned, null,
+                            OnPlaylistCheckingDelayCalculated, OnDumpingStarted, OnNextChunkArrived,
+                            OnUpdateErrors, OnDumpingProgress, OnDumpingFinished,
+                            playlistCheckingIntervalMilliseconds,
+                            saveChunksInfo, maxPlaylistErrorsInRow, maxOtherErrorsInRow);
                     });
                 }
             }
@@ -310,10 +546,14 @@ namespace HlsDumpLib.GuiTest
 
         private void StopAll()
         {
-            foreach (ListViewItem listViewItem in listViewStreams.Items)
+            for (int i = 0; i < listViewStreams.Items.Count; ++i)
             {
-                StreamItem streamItem = listViewItem.Tag as StreamItem;
-                streamItem.Dumper?.StopDumping();
+                StreamItem streamItem = listViewStreams.Items[i].Tag as StreamItem;
+                if (streamItem.IsDumping)
+                {
+                    listViewStreams.Items[i].SubItems[COLUMN_ID_STATE].Text = "Останавливается...";
+                    streamItem.Dumper.StopDumping();
+                }
             }
         }
 

@@ -4,29 +4,36 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MultiThreadedDownloaderLib;
 using Newtonsoft.Json.Linq;
+using MultiThreadedDownloaderLib;
 
 namespace HlsDumpLib
 {
     public class HlsDumper : IDisposable
     {
         public string Url { get; }
-        public long ProcessedChunkCountTotal { get; private set; } = 0L;
-        public long ChunkDownloadErrorCount { get; private set; } = 0L;
-        public long ChunkAppendErrorCount { get; private set; } = 0L;
+        public string ActualUrl { get; set; }
+        public int ProcessedChunkCountTotal { get; private set; } = 0;
+        public int ChunkDownloadErrorCount { get; private set; } = 0;
+        public int ChunkAppendErrorCount { get; private set; } = 0;
 
-        public long CurrentSessionFirstChunkId { get; private set; } = 0L;
-        public long CurrentPlaylistFirstNewChunkId { get; private set; } = 0L;
+        public int CurrentSessionFirstChunkId { get; private set; } = 0;
+        public int CurrentPlaylistFirstNewChunkId { get; private set; } = 0;
         public int CurrentPlaylistChunkCount { get; private set; } = 0;
         public int CurrentPlaylistNewChunkCount { get; private set; } = 0;
-        public long LostChunkCount { get; private set; } = 0L;
+        public int LostChunkCount { get; private set; } = 0;
         public int LastDelayValueMilliseconds { get; private set; } = 0;
+        public int PlaylistErrorCountInRowMax { get; private set; } = 5;
+        public int PlaylistErrorCountInRow { get; private set; } = 0;
+        public int OtherErrorCountInRowMax { get; private set; } = 5;
+        public int OtherErrorCountInRow { get; private set; } = 0;
 
-        private long _currentPlaylistFirstChunkId = -1L;
-        private long _lastProcessedChunkId = -1L;
+        public int PlaylistCheckingIntervalMilliseconds { get; private set; } = 2000;
 
-        private readonly LinkedList<string> _chunkUrlList = new LinkedList<string>();
+        private int _currentPlaylistFirstChunkId = -1;
+        private int _lastProcessedChunkId = -1;
+
+        private readonly LinkedList<StreamSegment> _chunkList = new LinkedList<StreamSegment>();
 
         private CancellationTokenSource _cancellationTokenSource;
         private CancellationToken _cancellationToken;
@@ -35,13 +42,24 @@ namespace HlsDumpLib
         public const int DUMPING_ERROR_CANCELED = -2;
 
         public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
-        public delegate void PlaylistCheckedDelegate(object sender, int errorCode);
-        public delegate void PlaylistFirstArrived(object sender, int chunkCount, long firstChunkId);
-        public delegate void NextChunkDelegate(object sender, long absoluteChunkId,
-            long sessionChunkId, long chunkSize, string chunkUrl);
+        public delegate void PlaylistCheckedDelegate(object sender,
+            int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
+            string playlistContent, int errorCode, int playlistErrorCountInRow);
+        public delegate void PlaylistFirstArrivedDelegate(object sender, int chunkCount, int firstChunkId);
+        public delegate void OutputStreamAssignedDelegate(object sender, Stream stream, string fileName);
+        public delegate void OutputStreamClosedDelegate(object sender, string fileName);
+        public delegate void PlaylistCheckingDelayCalculatedDelegate(object sender,
+            int delay, int checkingInterval, int cycleProcessingTime);
+        public delegate void NextChunkArrivedDelegate(object sender, StreamSegment chunk,
+            long chunkSize, int sessionChunkId, int chunkProcessingTime);
+        public delegate void UpdateErrorsDelegate(object sender,
+            int playlistErrorCountInRow, int playlistErrorCountInRowMax,
+            int otherErrorCountInRow, int otherErrorCountInRowMax,
+            int chunkDownloadErrorCount, int chunkAppendErrorCount,
+            int lostChunkCount);
         public delegate void DumpProgressDelegate(object sender, long fileSize, int errorCode);
-        public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, long failedCount);
-        public delegate void ChunkAppendFailedDelegate(object sender, long failedCount);
+        public delegate void ChunkDownloadFailedDelegate(object sender, int errorCode, int failedCount);
+        public delegate void ChunkAppendFailedDelegate(object sender, int failedCount);
         public delegate void DumpMessageDelegate(object sender, string message);
         public delegate void DumpWarningDelegate(object sender, string message, int errorCount);
         public delegate void DumpErrorDelegate(object sender, string message, int errorCount);
@@ -64,8 +82,12 @@ namespace HlsDumpLib
         public async void Dump(string outputFilePath,
             PlaylistCheckingDelegate playlistChecking,
             PlaylistCheckedDelegate playlistChecked,
-            PlaylistFirstArrived playlistFirstArrived,
-            NextChunkDelegate nextChunk,
+            PlaylistFirstArrivedDelegate playlistFirstArrived,
+            OutputStreamAssignedDelegate outputStreamAssigned,
+            OutputStreamClosedDelegate outputStreamClosed,
+            PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
+            NextChunkArrivedDelegate nextChunkArrived,
+            UpdateErrorsDelegate updateErrors,
             DumpProgressDelegate dumpProgress,
             ChunkDownloadFailedDelegate chunkDownloadFailed,
             ChunkAppendFailedDelegate chunkAppendFailed,
@@ -73,8 +95,10 @@ namespace HlsDumpLib
             DumpWarningDelegate dumpWarning,
             DumpErrorDelegate dumpError,
             DumpFinishedDelegate dumpFinished,
+            int playlistCheckingIntervalMilliseconds,
             bool writeChunksInfo,
-            bool breakIfPlaylistLost)
+            int maxPlaylistErrorCountInRow,
+            int maxOtherErrorsInRow)
         {
             if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
             {
@@ -85,173 +109,387 @@ namespace HlsDumpLib
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
-            JArray jChunks = new JArray();
-            FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
+            PlaylistCheckingIntervalMilliseconds =
+                playlistCheckingIntervalMilliseconds >= 200 ? playlistCheckingIntervalMilliseconds : 2000;
+            PlaylistErrorCountInRowMax = maxPlaylistErrorCountInRow;
+            OtherErrorCountInRowMax = maxOtherErrorsInRow <= 0 ? 5 : maxOtherErrorsInRow;
+            PlaylistErrorCountInRow = OtherErrorCountInRow = 0;
+
             await Task.Run(() =>
             {
-                const int MAX_CHECKING_INTERVAL_MILLISECONDS = 2000;
-                int errorCount = 0;
                 bool first = true;
+                bool headerChunkExists = false;
+
+                JObject jHeaderChunk = null;
+                JArray jChunks = new JArray();
+                FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
+                Stream outputStream = null;
+
                 try
                 {
-                    using (Stream outputStream = File.OpenWrite(outputFilePath))
+                    do
                     {
-                        do
+                        int timeStart = Environment.TickCount;
+                        playlistChecking?.Invoke(this, Url);
+
+                        M3UPlaylist playlist = null;
+                        List<StreamSegment> unfilteredPlaylist = null;
+                        List<StreamSegment> filteredPlaylist = null;
+                        int playlistErrorCode = playlistDownloader.DownloadString(out string response);
+                        if (playlistErrorCode == 200)
                         {
-                            int timeStart = Environment.TickCount;
-                            playlistChecking?.Invoke(this, Url);
+                            PlaylistErrorCountInRow = 0;
 
-                            List<string> unfilteredPlaylist = null;
-                            List<string> filteredPlaylist = null;
-                            int playlistErrorCode = playlistDownloader.DownloadString(out string response);
-                            if (playlistErrorCode == 200)
+                            playlist = new M3UPlaylist(response, Url);
+                            playlist.Parse();
+
+                            if (first)
                             {
-                                unfilteredPlaylist = ParsePlaylist(response);
-                                CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
-
-                                if (first)
+                                first = false;
+                                if (playlist.SubPlaylistUrls != null && playlist.SubPlaylistUrls.Count > 0)
                                 {
-                                    first = false;
-                                    CurrentSessionFirstChunkId = FindFirstChunkId(response);
-                                    playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
+                                    ActualUrl = playlist.SubPlaylistUrls[0];
+                                    playlistDownloader.Url = ActualUrl;
+                                    playlistErrorCode = playlistDownloader.DownloadString(out response);
+                                    if (playlistErrorCode != 200)
+                                    {
+                                        OtherErrorCountInRow++;
+                                        dumpError?.Invoke(this, "Failed to download playlist", OtherErrorCountInRow);
+                                        break;
+                                    }
+                                    playlist = new M3UPlaylist(response, Url);
+                                    playlist.Parse();
                                 }
 
-                                filteredPlaylist = FilterPlaylist(unfilteredPlaylist);
-                                if (filteredPlaylist != null)
+                                headerChunkExists = !string.IsNullOrEmpty(playlist.StreamHeaderSegmentUrl) &&
+                                    !string.IsNullOrWhiteSpace(playlist.StreamHeaderSegmentUrl);
+
+                                CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
+                                outputFilePath += GetOutputFileExtension(playlist);
+
+                                playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
+                            }
+
+                            _currentPlaylistFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
+
+                            unfilteredPlaylist = new List<StreamSegment>();
+                            if (playlist.Segments != null)
+                            {
+                                unfilteredPlaylist.AddRange(playlist.Segments);
+                            }
+                            CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
+
+                            filteredPlaylist = playlist.Filter(_chunkList)?.ToList();
+                            if (filteredPlaylist != null)
+                            {
+                                CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
+                                CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId +
+                                    CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount;
+                            }
+                            else
+                            {
+                                CurrentPlaylistNewChunkCount = 0;
+                                CurrentPlaylistFirstNewChunkId = -1;
+                            }
+
+                            int diff = _lastProcessedChunkId >= 0 ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1;
+                            int lost = diff - 1;
+                            if (lost > 0)
+                            {
+                                LostChunkCount += lost;
+                                OtherErrorCountInRow++;
+                                dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
+                            }
+
+                            playlistChecked?.Invoke(this,
+                                CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
+                                _currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
+                                response, playlistErrorCode, PlaylistErrorCountInRow);
+
+                            if (CurrentPlaylistNewChunkCount == 0)
+                            {
+                                OtherErrorCountInRow++;
+                                dumpWarning?.Invoke(this, "No new files detected", OtherErrorCountInRow);
+                            }
+                            else
+                            {
+                                OtherErrorCountInRow = 0;
+                            }
+                        }
+                        else
+                        {
+                            PlaylistErrorCountInRow++;
+
+                            playlistChecked?.Invoke(this,
+                                CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
+                                _currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
+                                response, playlistErrorCode, PlaylistErrorCountInRow);
+
+                            if (PlaylistErrorCountInRowMax > 0)
+                            {
+                                if (PlaylistErrorCountInRow >= PlaylistErrorCountInRowMax)
                                 {
-                                    CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
-                                    CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId +
-                                        CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount;
+                                    dumpError?.Invoke(this,
+                                        "Playlist lost! Max error count limit is reached! Breaking...",
+                                        PlaylistErrorCountInRow);
+                                    updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                                        OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                                        ChunkAppendErrorCount, LostChunkCount);
+                                    break;
                                 }
                                 else
                                 {
-                                    CurrentPlaylistNewChunkCount = 0;
-                                    CurrentPlaylistFirstNewChunkId = -1L;
-                                }
-
-                                playlistChecked?.Invoke(this, playlistErrorCode);
-
-                                if (CurrentPlaylistNewChunkCount == 0)
-                                {
-                                    errorCount++;
-                                    dumpWarning?.Invoke(this, "No new files detected", errorCount);
-                                }
-
-                                long diff = _lastProcessedChunkId >= 0L ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1L;
-                                long lost = diff - 1L;
-                                if (lost > 0)
-                                {
-                                    LostChunkCount += lost;
-                                    dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
+                                    dumpError?.Invoke(this,
+                                        $"Playlist lost {PlaylistErrorCountInRow} / {PlaylistErrorCountInRowMax}!",
+                                        PlaylistErrorCountInRow);
                                 }
                             }
                             else
                             {
-                                playlistChecked?.Invoke(this, playlistErrorCode);
-
-                                errorCount++;
-
-                                if (breakIfPlaylistLost)
-                                {
-                                    dumpError?.Invoke(this, "Playlist lost! Breaking...", -1);
-                                    break;
-                                }
-                                else if (errorCount >= 5)
-                                {
-                                    break;
-                                }
+                                dumpError?.Invoke(this, "Playlist lost!", PlaylistErrorCountInRow);
                             }
+                        }
 
-                            if (playlistErrorCode == 200)
+                        updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                            OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                            ChunkAppendErrorCount, LostChunkCount);
+
+                        if (OtherErrorCountInRow >= OtherErrorCountInRowMax)
+                        {
+                            dumpError?.Invoke(this, "Max error count limit is reached! Breaking...", OtherErrorCountInRow);
+                            break;
+                        }
+
+                        if (outputStream == null)
+                        {
+                            outputFilePath = MultiThreadedDownloader.GetNumberedFileName(outputFilePath);
+                            outputStream = File.OpenWrite(outputFilePath);
+                            outputStreamAssigned?.Invoke(this, outputStream, outputFilePath);
+                        }
+
+                        if (playlistErrorCode == 200)
+                        {
+                            if (headerChunkExists)
                             {
-                                if (filteredPlaylist != null && filteredPlaylist.Count > 0)
+                                headerChunkExists = false;
+                                try
                                 {
-                                    for (int i = 0; i < filteredPlaylist.Count; ++i)
+                                    using (MemoryStream streamHeader = new MemoryStream())
                                     {
-                                        string chunkUrl = filteredPlaylist[i];
-                                        long lastChunkLength = -1L;
-                                        long currentAbsoluteChunkId = CurrentPlaylistFirstNewChunkId + i;
-
-                                        MemoryStream mem = new MemoryStream();
-                                        FileDownloader d = new FileDownloader() { Url = chunkUrl };
-                                        int code = d.Download(mem);
-                                        if (code == 200)
+                                        FileDownloader d = new FileDownloader() { Url = playlist?.StreamHeaderSegmentUrl };
+                                        int headerErrorCode = d.Download(streamHeader);
+                                        if (headerErrorCode == 200)
                                         {
-                                            lastChunkLength = mem.Length;
-                                            mem.Position = 0L;
-                                            if (MultiThreadedDownloader.AppendStream(mem, outputStream))
+                                            string chunkHeaderFileName = Utils.ExtractUrlFileName(playlist.StreamHeaderSegmentUrl);
+                                            StreamSegment headerChunk = new StreamSegment(DateTime.MinValue,
+                                                0.0, -1, chunkHeaderFileName, playlist.StreamHeaderSegmentUrl);
+                                            OtherErrorCountInRow = 0;
+                                            streamHeader.Position = 0L;
+                                            if (MultiThreadedDownloader.AppendStream(streamHeader, outputStream))
                                             {
-                                                _lastProcessedChunkId = currentAbsoluteChunkId;
+                                                ProcessedChunkCountTotal++;
                                                 if (writeChunksInfo)
                                                 {
-                                                    JObject jChunk = new JObject();
-                                                    jChunk["position"] = outputStream.Position - mem.Length;
-                                                    jChunk["size"] = mem.Length;
-                                                    jChunk["id"] = currentAbsoluteChunkId;
-                                                    //TODO: Determine and store other chunk information from playlist
-                                                    jChunks.Add(jChunk);
+                                                    try
+                                                    {
+                                                        long size = streamHeader.Length;
+                                                        long position = outputStream.Position - size;
+                                                        jHeaderChunk = headerChunk.ToJson(position, size);
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                                                        jHeaderChunk = null;
+                                                        OtherErrorCountInRow++;
+                                                        dumpError?.Invoke(this, "Failed to append header (metadata) chunk info", OtherErrorCountInRow);
+                                                    }
                                                 }
                                             }
                                             else
                                             {
-                                                ChunkAppendErrorCount++;
-                                                chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
-                                                //TODO: The stream and chunks information data will be corrupted here, so it's strongly needed to do some magic thing!
+                                                OtherErrorCountInRow++;
+                                                dumpError?.Invoke(this,
+                                                    "Header (metadata) chunk append error! Video might be unplayable!",
+                                                    OtherErrorCountInRow);
                                             }
                                         }
                                         else
                                         {
-                                            ChunkDownloadErrorCount++;
-                                            chunkDownloadFailed?.Invoke(this, code, ChunkDownloadErrorCount);
+                                            OtherErrorCountInRow++;
+                                            dumpError?.Invoke(this,
+                                                "Header (metadata) chunk download error! Video will be unplayable!",
+                                                OtherErrorCountInRow);
                                         }
-                                        mem.Close();
-
-                                        _chunkUrlList.AddLast(chunkUrl);
-                                        if (_chunkUrlList.Count > 50)
-                                        {
-                                            _chunkUrlList.RemoveFirst();
-                                        }
-
-                                        ProcessedChunkCountTotal++;
-                                        nextChunk?.Invoke(this, currentAbsoluteChunkId,
-                                            ProcessedChunkCountTotal, lastChunkLength, chunkUrl);
-
-                                        dumpProgress?.Invoke(this, outputStream.Length, code);
-
-                                        errorCount = 0;
-
-                                        if (_cancellationToken.IsCancellationRequested) { break; }
                                     }
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine(ex.Message);
+                                    jHeaderChunk = null;
+                                    ChunkDownloadErrorCount++;
+                                    OtherErrorCountInRow++;
+                                    dumpError?.Invoke(this,
+                                        "Header (metadata) chunk processing error! Video might be unplayable!",
+                                        OtherErrorCountInRow);
                                 }
                             }
 
-                            if (_cancellationToken.IsCancellationRequested) { break; }
-
-                            int elapsedTime = Environment.TickCount - timeStart;
-                            LastDelayValueMilliseconds = MAX_CHECKING_INTERVAL_MILLISECONDS - elapsedTime;
-                            if (LastDelayValueMilliseconds > 0)
+                            if (filteredPlaylist != null && filteredPlaylist.Count > 0)
                             {
-                                dumpMessage?.Invoke(this,
-                                    $"Waiting for {LastDelayValueMilliseconds} milliseconds " +
-                                    $"(max: {MAX_CHECKING_INTERVAL_MILLISECONDS})");
-                                Thread.Sleep(LastDelayValueMilliseconds);
-                            }
-                        } while (errorCount < 5 && !_cancellationToken.IsCancellationRequested);
-                    }
+                                for (int i = 0; i < filteredPlaylist.Count; ++i)
+                                {
+                                    int tickBeforeChunk = Environment.TickCount;
 
-                    if (writeChunksInfo)
-                    {
-                        JObject json = new JObject();
-                        json["playlistUrl"] = Url;
-                        json["outputFile"] = outputFilePath;
-                        json.Add(new JProperty("chunks", jChunks));
-                        File.WriteAllText($"{outputFilePath}_chunks.json", json.ToString());
-                    }
+                                    StreamSegment chunk = filteredPlaylist[i];
+                                    long chunkFileSize = -1L;
+
+                                    int chunkDownloadErrorCode;
+                                    try
+                                    {
+                                        using (MemoryStream mem = new MemoryStream())
+                                        {
+                                            FileDownloader d = new FileDownloader() { Url = chunk.Url };
+                                            chunkDownloadErrorCode = d.Download(mem);
+                                            if (chunkDownloadErrorCode == 200)
+                                            {
+                                                chunkFileSize = mem.Length;
+                                                mem.Position = 0L;
+                                                if (MultiThreadedDownloader.AppendStream(mem, outputStream))
+                                                {
+                                                    OtherErrorCountInRow = 0;
+                                                    _lastProcessedChunkId = chunk.Id;
+                                                    if (writeChunksInfo)
+                                                    {
+                                                        try
+                                                        {
+                                                            long size = mem.Length;
+                                                            long position = outputStream.Position - size;
+                                                            JObject jChunk = chunk.ToJson(position, size);
+                                                            jChunks.Add(jChunk);
+                                                        }
+                                                        catch (Exception ex)
+                                                        {
+                                                            System.Diagnostics.Debug.WriteLine(ex.Message);
+                                                            OtherErrorCountInRow++;
+                                                            dumpError?.Invoke(this, "Failed to append chunk info", OtherErrorCountInRow);
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    ChunkAppendErrorCount++;
+                                                    OtherErrorCountInRow++;
+                                                    chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
+                                                    //TODO: The stream and chunks information data will be corrupted here, so it's strongly needed to do some magic thing!
+                                                }
+                                            }
+                                            else
+                                            {
+                                                ChunkDownloadErrorCount++;
+                                                OtherErrorCountInRow++;
+                                                chunkDownloadFailed?.Invoke(this, chunkDownloadErrorCode, ChunkDownloadErrorCount);
+                                            }
+                                        }
+                                    } catch (Exception ex)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                                        chunkDownloadErrorCode = ex.HResult;
+                                        OtherErrorCountInRow++;
+                                        dumpError?.Invoke(this, "Failed to append chunk", OtherErrorCountInRow);
+                                    }
+
+                                    _chunkList.AddLast(chunk);
+                                    if (_chunkList.Count > 50)
+                                    {
+                                        _chunkList.RemoveFirst();
+                                    }
+
+                                    int chunkProcessingTime = Environment.TickCount - tickBeforeChunk;
+
+                                    nextChunkArrived?.Invoke(this, chunk, chunkFileSize,
+                                        ProcessedChunkCountTotal, chunkProcessingTime);
+                                    ProcessedChunkCountTotal++;
+
+                                    dumpProgress?.Invoke(this, outputStream.Length, chunkDownloadErrorCode);
+
+                                    updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                                        OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                                        ChunkAppendErrorCount, LostChunkCount);
+
+                                    if (_cancellationToken.IsCancellationRequested) { break; }
+                                }
+                            }
+                        }
+
+                        if (OtherErrorCountInRow >= OtherErrorCountInRowMax)
+                        {
+                            dumpError?.Invoke(this, "Max error count limit is reached! Breaking...", OtherErrorCountInRow);
+                            break;
+                        }
+
+                        if (_cancellationToken.IsCancellationRequested) { break; }
+
+                        updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                            OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                            ChunkAppendErrorCount, LostChunkCount);
+
+                        int elapsedTime = Environment.TickCount - timeStart;
+                        LastDelayValueMilliseconds = PlaylistCheckingIntervalMilliseconds - elapsedTime;
+                        playlistCheckingDelayCalculated?.Invoke(this,
+                            LastDelayValueMilliseconds, PlaylistCheckingIntervalMilliseconds, elapsedTime);
+                        if (LastDelayValueMilliseconds > 0)
+                        {
+                            dumpMessage?.Invoke(this,
+                                $"Waiting for {LastDelayValueMilliseconds} milliseconds " +
+                                $"(max: {PlaylistCheckingIntervalMilliseconds})");
+                            Thread.Sleep(LastDelayValueMilliseconds);
+                        }
+                    } while (OtherErrorCountInRow < OtherErrorCountInRowMax &&
+                            PlaylistErrorCountInRow < PlaylistErrorCountInRowMax &&
+                            !_cancellationToken.IsCancellationRequested);
                 } catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine(ex.Message);
-                    errorCount++;
-                    dumpError?.Invoke(this, ex.Message, errorCount);
+                    OtherErrorCountInRow++;
+                    dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
+                }
+
+                if (outputStream != null)
+                {
+                    outputStream.Close();
+                    outputStream = null;
+                    outputStreamClosed?.Invoke(this, outputFilePath);
+                }
+
+                if (writeChunksInfo)
+                {
+                    try
+                    {
+                        JObject json = new JObject();
+                        json["playlistUrl"] = Url;
+                        if (!string.IsNullOrEmpty(ActualUrl) && !string.IsNullOrWhiteSpace(ActualUrl) &&
+                            ActualUrl != Url)
+                        {
+                            json["actualPlaylistUrl"] = ActualUrl;
+                        }
+                        json["outputFile"] = outputFilePath;
+                        if (jHeaderChunk != null)
+                        {
+                            json.Add(new JProperty("headerChunk", jHeaderChunk));
+                        }
+                        json.Add(new JProperty("chunks", jChunks));
+                        File.WriteAllText($"{outputFilePath}_chunks.json", json.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                        OtherErrorCountInRow++;
+                        dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
+                    }
+
+                    updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                        OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                        ChunkAppendErrorCount, LostChunkCount);
                 }
             });
 
@@ -267,45 +505,21 @@ namespace HlsDumpLib
             }
         }
 
-        private List<string> ParsePlaylist(string playlist)
+        private string GetOutputFileExtension(M3UPlaylist playlist)
         {
-            List<string> result = new List<string>();
-            string[] strings = playlist.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            foreach (string str in strings)
+            if (playlist.Segments == null || playlist.Segments.Count == 0)
             {
-                if (str.StartsWith("#EXT-X-MEDIA-SEQUENCE:"))
-                {
-                    string[] splitted = str.Split(':');
-                    if (uint.TryParse(splitted[1], out uint n))
-                    {
-                        _currentPlaylistFirstChunkId = n;
-                    }
-                }
-                else if (str.StartsWith("http"))
-                {
-                    result.Add(str);
-                }
+                return ".ts";
             }
-            return result;
-        }
 
-        private List<string> FilterPlaylist(List<string> playlist)
-        {
-            return playlist.Where(s => !_chunkUrlList.Contains(s))?.ToList();
-        }
-
-        private long FindFirstChunkId(string playlist)
-        {
-            string[] strings = playlist.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            foreach (string str in strings)
+            string url = playlist.Segments[0].Url;
+            if (!string.IsNullOrEmpty(url) && !string.IsNullOrWhiteSpace(url))
             {
-                if (str.StartsWith("#EXT-X-MEDIA-SEQUENCE:"))
-                {
-                    string[] splitted = str.Split(':');
-                    return long.TryParse(splitted[1], out long n) ? n : 0L;
-                }
+                string ext = Path.GetExtension(url);
+                return string.IsNullOrEmpty(ext) || string.IsNullOrWhiteSpace(ext) ? ".ts" : ext;
             }
-            return -1L;
+
+            return ".ts";
         }
     }
 }
