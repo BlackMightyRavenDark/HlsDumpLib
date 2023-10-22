@@ -121,7 +121,8 @@ namespace HlsDumpLib
                 bool headerChunkExists = false;
 
                 JObject jHeaderChunk = null;
-                JArray jChunks = new JArray();
+                JArray jaValidChunks = new JArray();
+                JArray jaLostChunks = new JArray();
                 FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
                 Stream outputStream = null;
 
@@ -198,6 +199,10 @@ namespace HlsDumpLib
                             {
                                 LostChunkCount += lost;
                                 OtherErrorCountInRow++;
+                                for (int i = _lastProcessedChunkId + 1; i < CurrentPlaylistFirstNewChunkId; ++i)
+                                {
+                                    jaLostChunks.Add(i);
+                                }
                                 dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
                             }
 
@@ -365,7 +370,7 @@ namespace HlsDumpLib
                                                             long size = mem.Length;
                                                             long position = outputStream.Position - size;
                                                             JObject jChunk = chunk.ToJson(position, size);
-                                                            jChunks.Add(jChunk);
+                                                            jaValidChunks.Add(jChunk);
                                                         }
                                                         catch (Exception ex)
                                                         {
@@ -387,6 +392,7 @@ namespace HlsDumpLib
                                             {
                                                 ChunkDownloadErrorCount++;
                                                 OtherErrorCountInRow++;
+                                                jaLostChunks.Add(chunk.Id);
                                                 chunkDownloadFailed?.Invoke(this, chunkDownloadErrorCode, ChunkDownloadErrorCount);
                                             }
                                         }
@@ -395,6 +401,7 @@ namespace HlsDumpLib
                                         System.Diagnostics.Debug.WriteLine(ex.Message);
                                         chunkDownloadErrorCode = ex.HResult;
                                         OtherErrorCountInRow++;
+                                        jaLostChunks.Add(chunk.Id);
                                         dumpError?.Invoke(this, "Failed to append chunk", OtherErrorCountInRow);
                                     }
 
@@ -477,7 +484,13 @@ namespace HlsDumpLib
                         {
                             json.Add(new JProperty("headerChunk", jHeaderChunk));
                         }
-                        json.Add(new JProperty("chunks", jChunks));
+                        if (jaLostChunks.Count > 0)
+                        {
+                            json["lostChunkCount"] = jaLostChunks.Count;
+                            json.Add(new JProperty("lostChunks", jaLostChunks));
+                        }
+                        json["chunkCount"] = jaValidChunks.Count;
+                        json.Add(new JProperty("chunks", jaValidChunks));
                         File.WriteAllText($"{outputFilePath}_chunks.json", json.ToString());
                     }
                     catch (Exception ex)
