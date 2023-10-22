@@ -285,7 +285,7 @@ namespace HlsDumpLib
                                                 0.0, -1, chunkHeaderFileName, playlist.StreamHeaderSegmentUrl);
                                             OtherErrorCountInRow = 0;
                                             streamHeader.Position = 0L;
-                                            if (MultiThreadedDownloader.AppendStream(streamHeader, outputStream))
+                                            if (StreamAppender.Append(streamHeader, outputStream))
                                             {
                                                 ProcessedChunkCountTotal++;
                                                 if (writeChunksInfo)
@@ -354,7 +354,7 @@ namespace HlsDumpLib
                                             {
                                                 chunkFileSize = mem.Length;
                                                 mem.Position = 0L;
-                                                if (MultiThreadedDownloader.AppendStream(mem, outputStream))
+                                                if (StreamAppender.Append(mem, outputStream))
                                                 {
                                                     OtherErrorCountInRow = 0;
                                                     _lastProcessedChunkId = chunk.Id;
