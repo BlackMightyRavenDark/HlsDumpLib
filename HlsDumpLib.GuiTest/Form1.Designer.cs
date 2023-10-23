@@ -40,7 +40,11 @@
             this.columnHeaderNewChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderDelay = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderChunkProcessingTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkId = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkLength = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderChunkFileSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderChunkUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderFirstChunkSession = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderProcessedChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderLostChunks = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -64,10 +68,8 @@
             this.numericUpDownOtherErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownPlaylistCheckingInterval = new System.Windows.Forms.NumericUpDown();
             this.label6 = new System.Windows.Forms.Label();
-            this.columnHeaderChunkId = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderChunkLength = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderChunkUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderChunkFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.checkBoxSaveChunkFileName = new System.Windows.Forms.CheckBox();
+            this.checkBoxSaveChunkUrl = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
@@ -186,70 +188,75 @@
             this.columnHeaderChunkProcessingTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeaderChunkProcessingTime.Width = 100;
             // 
+            // columnHeaderChunkId
+            // 
+            this.columnHeaderChunkId.Text = "ID чанка";
+            // 
+            // columnHeaderChunkLength
+            // 
+            this.columnHeaderChunkLength.Text = "Продолжительность чанка (секунды)";
+            // 
             // columnHeaderChunkFileSize
             // 
-            this.columnHeaderChunkFileSize.DisplayIndex = 6;
             this.columnHeaderChunkFileSize.Text = "Размер чанка";
             this.columnHeaderChunkFileSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeaderChunkFileSize.Width = 110;
             // 
+            // columnHeaderChunkFileName
+            // 
+            this.columnHeaderChunkFileName.Text = "Имя файла чанка";
+            // 
+            // columnHeaderChunkUrl
+            // 
+            this.columnHeaderChunkUrl.Text = "Ссылка на чанк";
+            // 
             // columnHeaderFirstChunkSession
             // 
-            this.columnHeaderFirstChunkSession.DisplayIndex = 7;
             this.columnHeaderFirstChunkSession.Text = "Первый чанк";
             this.columnHeaderFirstChunkSession.Width = 100;
             // 
             // columnHeaderProcessedChunks
             // 
-            this.columnHeaderProcessedChunks.DisplayIndex = 8;
             this.columnHeaderProcessedChunks.Text = "Обработано чанков";
             this.columnHeaderProcessedChunks.Width = 100;
             // 
             // columnHeaderLostChunks
             // 
-            this.columnHeaderLostChunks.DisplayIndex = 9;
             this.columnHeaderLostChunks.Text = "Потеряно чанков";
             this.columnHeaderLostChunks.Width = 100;
             // 
             // columnHeaderDateStarted
             // 
-            this.columnHeaderDateStarted.DisplayIndex = 10;
             this.columnHeaderDateStarted.Text = "Дамп начат";
             this.columnHeaderDateStarted.Width = 140;
             // 
             // columnHeaderState
             // 
-            this.columnHeaderState.DisplayIndex = 11;
             this.columnHeaderState.Text = "Состояние";
             this.columnHeaderState.Width = 230;
             // 
             // columnHeaderPlaylistErrors
             // 
-            this.columnHeaderPlaylistErrors.DisplayIndex = 12;
             this.columnHeaderPlaylistErrors.Text = "Ошибки плейлиста";
             this.columnHeaderPlaylistErrors.Width = 150;
             // 
             // columnHeaderChunkDownloadErrors
             // 
-            this.columnHeaderChunkDownloadErrors.DisplayIndex = 13;
             this.columnHeaderChunkDownloadErrors.Text = "Ошибки скачивания чанков";
             this.columnHeaderChunkDownloadErrors.Width = 90;
             // 
             // columnHeaderChunkAppendErrors
             // 
-            this.columnHeaderChunkAppendErrors.DisplayIndex = 14;
             this.columnHeaderChunkAppendErrors.Text = "Ошибки объединения чанков";
             this.columnHeaderChunkAppendErrors.Width = 90;
             // 
             // columnHeaderOtherErroors
             // 
-            this.columnHeaderOtherErroors.DisplayIndex = 15;
             this.columnHeaderOtherErroors.Text = "Другие ошибки";
             this.columnHeaderOtherErroors.Width = 100;
             // 
             // columnHeaderPlaylistUrl
             // 
-            this.columnHeaderPlaylistUrl.DisplayIndex = 16;
             this.columnHeaderPlaylistUrl.Text = "Ссылка на плейлист";
             this.columnHeaderPlaylistUrl.Width = 300;
             // 
@@ -270,19 +277,19 @@
             this.miCheckToolStripMenuItem,
             this.miCancelToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(148, 52);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(135, 48);
             // 
             // miCheckToolStripMenuItem
             // 
             this.miCheckToolStripMenuItem.Name = "miCheckToolStripMenuItem";
-            this.miCheckToolStripMenuItem.Size = new System.Drawing.Size(147, 24);
+            this.miCheckToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.miCheckToolStripMenuItem.Text = "Проверить";
             this.miCheckToolStripMenuItem.Click += new System.EventHandler(this.miCheckToolStripMenuItem_Click);
             // 
             // miCancelToolStripMenuItem
             // 
             this.miCancelToolStripMenuItem.Name = "miCancelToolStripMenuItem";
-            this.miCancelToolStripMenuItem.Size = new System.Drawing.Size(147, 24);
+            this.miCancelToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.miCancelToolStripMenuItem.Text = "Отменить";
             this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
             // 
@@ -399,27 +406,39 @@
             this.label6.TabIndex = 13;
             this.label6.Text = "миллисекунд";
             // 
-            // columnHeaderChunkId
+            // checkBoxSaveChunkFileName
             // 
-            this.columnHeaderChunkId.Text = "ID чанка";
+            this.checkBoxSaveChunkFileName.AutoSize = true;
+            this.checkBoxSaveChunkFileName.Checked = true;
+            this.checkBoxSaveChunkFileName.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxSaveChunkFileName.Location = new System.Drawing.Point(212, 141);
+            this.checkBoxSaveChunkFileName.Name = "checkBoxSaveChunkFileName";
+            this.checkBoxSaveChunkFileName.Size = new System.Drawing.Size(169, 17);
+            this.checkBoxSaveChunkFileName.TabIndex = 14;
+            this.checkBoxSaveChunkFileName.Text = "Сохранять имя файла чанка";
+            this.toolTip1.SetToolTip(this.checkBoxSaveChunkFileName, "Невозможно изменить для уже добавленных элементов");
+            this.checkBoxSaveChunkFileName.UseVisualStyleBackColor = true;
             // 
-            // columnHeaderChunkLength
+            // checkBoxSaveChunkUrl
             // 
-            this.columnHeaderChunkLength.Text = "Продолжительность чанка (секунды)";
-            // 
-            // columnHeaderChunkUrl
-            // 
-            this.columnHeaderChunkUrl.Text = "Ссылка на чанк";
-            // 
-            // columnHeaderChunkFileName
-            // 
-            this.columnHeaderChunkFileName.Text = "Имя файла чанка";
+            this.checkBoxSaveChunkUrl.AutoSize = true;
+            this.checkBoxSaveChunkUrl.Checked = true;
+            this.checkBoxSaveChunkUrl.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxSaveChunkUrl.Location = new System.Drawing.Point(387, 141);
+            this.checkBoxSaveChunkUrl.Name = "checkBoxSaveChunkUrl";
+            this.checkBoxSaveChunkUrl.Size = new System.Drawing.Size(160, 17);
+            this.checkBoxSaveChunkUrl.TabIndex = 15;
+            this.checkBoxSaveChunkUrl.Text = "Сохранять ссылку на чанк";
+            this.toolTip1.SetToolTip(this.checkBoxSaveChunkUrl, "Невозможно изменить для уже добавленных элементов");
+            this.checkBoxSaveChunkUrl.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 355);
+            this.Controls.Add(this.checkBoxSaveChunkUrl);
+            this.Controls.Add(this.checkBoxSaveChunkFileName);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.numericUpDownPlaylistCheckingInterval);
@@ -435,7 +454,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.DoubleBuffered = true;
-            this.MinimumSize = new System.Drawing.Size(400, 300);
+            this.MinimumSize = new System.Drawing.Size(650, 300);
             this.Name = "Form1";
             this.Text = "GUI test";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
@@ -490,6 +509,8 @@
         private System.Windows.Forms.ColumnHeader columnHeaderChunkLength;
         private System.Windows.Forms.ColumnHeader columnHeaderChunkUrl;
         private System.Windows.Forms.ColumnHeader columnHeaderChunkFileName;
+        private System.Windows.Forms.CheckBox checkBoxSaveChunkFileName;
+        private System.Windows.Forms.CheckBox checkBoxSaveChunkUrl;
     }
 }
 

@@ -21,7 +21,7 @@ namespace HlsDumpLib
             Url = url;
         }
 
-        public JObject ToJson(long position, long size)
+        public JObject ToJson(long position, long size, bool storeFileName, bool storeUrl)
         {
             JObject json = new JObject();
             json["position"] = position;
@@ -29,8 +29,14 @@ namespace HlsDumpLib
             json["id"] = Id;
             json["length"] = LengthSeconds;
             json["creationDate"] = CreationDate;
-            json["fileName"] = FileName;
-            json["url"] = Url;
+            if (storeFileName)
+            {
+                json["fileName"] = FileName;
+            }
+            if (storeUrl)
+            {
+                json["url"] = Url;
+            }
 
             return json;
         }

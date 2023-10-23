@@ -96,9 +96,11 @@ namespace HlsDumpLib
             DumpErrorDelegate dumpError,
             DumpFinishedDelegate dumpFinished,
             int playlistCheckingIntervalMilliseconds,
-            bool writeChunksInfo,
             int maxPlaylistErrorCountInRow,
-            int maxOtherErrorsInRow)
+            int maxOtherErrorsInRow,
+            bool writeChunksInfo,
+            bool storeChunkFileName,
+            bool storeChunkUrl)
         {
             if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
             {
@@ -299,7 +301,7 @@ namespace HlsDumpLib
                                                     {
                                                         long size = streamHeader.Length;
                                                         long position = outputStream.Position - size;
-                                                        jHeaderChunk = headerChunk.ToJson(position, size);
+                                                        jHeaderChunk = headerChunk.ToJson(position, size, true, true);
                                                     }
                                                     catch (Exception ex)
                                                     {
@@ -369,7 +371,7 @@ namespace HlsDumpLib
                                                         {
                                                             long size = mem.Length;
                                                             long position = outputStream.Position - size;
-                                                            JObject jChunk = chunk.ToJson(position, size);
+                                                            JObject jChunk = chunk.ToJson(position, size, storeChunkFileName, storeChunkUrl);
                                                             jaValidChunks.Add(jChunk);
                                                         }
                                                         catch (Exception ex)

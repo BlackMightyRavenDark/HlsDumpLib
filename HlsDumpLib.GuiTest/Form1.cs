@@ -83,6 +83,8 @@ namespace HlsDumpLib.GuiTest
             json["maxOtherErrorsInRow"] = (int)numericUpDownOtherErrorCountInRow.Value;
             json["playlistCheckingInterval"] = (int)numericUpDownPlaylistCheckingInterval.Value;
             json["saveChunksInfo"] = checkBoxSaveChunksInfo.Checked;
+            json["storeChunkFileName"] = checkBoxSaveChunkFileName.Checked;
+            json["storeChunkUrl"] = checkBoxSaveChunkUrl.Checked;
 
             JArray jaColumns = new JArray();
             foreach (ColumnHeader columnHeader in listViewStreams.Columns)
@@ -125,6 +127,20 @@ namespace HlsDumpLib.GuiTest
                 if (jt != null)
                 {
                     checkBoxSaveChunksInfo.Checked = jt.Value<bool>();
+                }
+            }
+            {
+                JToken jt = json.Value<JToken>("storeChunkFileName");
+                if (jt != null)
+                {
+                    checkBoxSaveChunkFileName.Checked = jt.Value<bool>();
+                }
+            }
+            {
+                JToken jt = json.Value<JToken>("storeChunkUrl");
+                if (jt != null)
+                {
+                    checkBoxSaveChunkUrl.Checked = jt.Value<bool>();
                 }
             }
 
@@ -525,6 +541,8 @@ namespace HlsDumpLib.GuiTest
                     streamItem.IsChecking = true;
                     listViewStreams.Items[itemId].SubItems[COLUMN_ID_STATE].Text = "Запуск проверки...";
                     bool saveChunksInfo = checkBoxSaveChunksInfo.Checked;
+                    bool storeChunkFileName = checkBoxSaveChunkFileName.Checked;
+                    bool storeChunkUrl = checkBoxSaveChunkUrl.Checked;
                     int maxPlaylistErrorsInRow = (int)numericUpDownPlaylistErrorCountInRow.Value;
                     int maxOtherErrorsInRow = (int)numericUpDownOtherErrorCountInRow.Value;
                     int playlistCheckingIntervalMilliseconds = (int)numericUpDownPlaylistCheckingInterval.Value;
@@ -538,7 +556,8 @@ namespace HlsDumpLib.GuiTest
                             OnPlaylistCheckingDelayCalculated, OnDumpingStarted, OnNextChunkArrived,
                             OnUpdateErrors, OnDumpingProgress, OnDumpingFinished,
                             playlistCheckingIntervalMilliseconds,
-                            saveChunksInfo, maxPlaylistErrorsInRow, maxOtherErrorsInRow);
+                            maxPlaylistErrorsInRow, maxOtherErrorsInRow,
+                            saveChunksInfo, storeChunkFileName, storeChunkUrl);
                     });
                 }
             }

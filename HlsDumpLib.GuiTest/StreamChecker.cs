@@ -31,9 +31,11 @@ namespace HlsDumpLib.GuiTest
             HlsDumper.DumpProgressDelegate dumpingProgress,
             HlsDumper.DumpFinishedDelegate dumpingFinished,
             int playlistCheckingIntervalMilliseconds,
-            bool saveChunksInfo,
             int maxPlaylistErrorCountInRow,
-            int maxOtherErrorsInRow)
+            int maxOtherErrorsInRow,
+            bool saveChunksInfo,
+            bool storeChunkFileName,
+            bool storeChunkUrl)
         {
             checkingStarted?.Invoke(this);
 
@@ -71,7 +73,8 @@ namespace HlsDumpLib.GuiTest
                             StreamItem.Dumper = null;
                         },
                         playlistCheckingIntervalMilliseconds,
-                        saveChunksInfo, maxPlaylistErrorCountInRow, maxOtherErrorsInRow));
+                        maxPlaylistErrorCountInRow, maxOtherErrorsInRow,
+                        saveChunksInfo, storeChunkFileName, storeChunkUrl));
                 }
             }
 
