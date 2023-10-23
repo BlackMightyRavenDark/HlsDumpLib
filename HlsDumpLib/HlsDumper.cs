@@ -468,6 +468,10 @@ namespace HlsDumpLib
                     outputStreamClosed?.Invoke(this, outputFilePath);
                 }
 
+                updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                    OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+                    ChunkAppendErrorCount, LostChunkCount);
+
                 if (writeChunksInfo)
                 {
                     try
@@ -499,10 +503,6 @@ namespace HlsDumpLib
                         OtherErrorCountInRow++;
                         dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
                     }
-
-                    updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
-                        OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
-                        ChunkAppendErrorCount, LostChunkCount);
                 }
             });
 
