@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace HlsDumpLib
 {
-    internal static class Utils
+    public static class Utils
     {
         public static DateTime EpochToDate(long epoch)
         {
@@ -44,14 +44,14 @@ namespace HlsDumpLib
             return dict;
         }
 
-        public static string ExtractUrlFromXMapString(string xMapValue)
+        internal static string ExtractUrlFromXMapString(string xMapValue)
         {
             string[] splitted = xMapValue?.Split('=');
             return splitted != null && splitted.Length > 1 && !string.IsNullOrEmpty(splitted[1]) ?
                 splitted[1].Substring(1, splitted[1].Length - 2) : null;
         }
 
-        public static DateTime ExtractDateFromExtServerString(string extServerValue)
+        internal static DateTime ExtractDateFromExtServerString(string extServerValue, bool useGmt)
         {
             try
             {
@@ -60,7 +60,8 @@ namespace HlsDumpLib
                 {
                     if (long.TryParse(timeValue, out long seconds))
                     {
-                        return EpochToDate(seconds);
+                        DateTime dateTime = EpochToDate(seconds);
+                        return useGmt ? dateTime : dateTime.ToLocalTime();
                     }
                 }
             }
@@ -72,17 +73,17 @@ namespace HlsDumpLib
             return DateTime.MinValue;
         }
 
-        public static DateTime ExtractDateFromExtProgramDateTime(string extProgramDateTime)
+        internal static DateTime ExtractDateFromExtProgramDateTime(string extProgramDateTime, bool useGmt)
         {
             if (DateTime.TryParseExact(extProgramDateTime, "yyyy-MM-ddTHH:mm:ss.fffZ",
-                null, DateTimeStyles.AssumeLocal, out DateTime dateTime))
+                null, DateTimeStyles.None, out DateTime dateTime))
             {
-                return dateTime;
+                return useGmt ? dateTime.ToUniversalTime() : dateTime;
             }
             if (DateTime.TryParse(extProgramDateTime, null,
-                DateTimeStyles.AssumeLocal, out dateTime))
+                DateTimeStyles.None, out dateTime))
             {
-                return dateTime;
+                return useGmt ? dateTime.ToUniversalTime() : dateTime;
             }
             return DateTime.MinValue;
         }

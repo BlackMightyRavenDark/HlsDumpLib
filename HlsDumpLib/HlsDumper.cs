@@ -100,7 +100,8 @@ namespace HlsDumpLib
             int maxOtherErrorsInRow,
             bool writeChunksInfo,
             bool storeChunkFileName,
-            bool storeChunkUrl)
+            bool storeChunkUrl,
+            bool useGmtTime)
         {
             if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
             {
@@ -143,7 +144,7 @@ namespace HlsDumpLib
                         {
                             PlaylistErrorCountInRow = 0;
 
-                            playlist = new M3UPlaylist(response, Url);
+                            playlist = new M3UPlaylist(response, Url, useGmtTime);
                             playlist.Parse();
 
                             if (first)
@@ -160,7 +161,7 @@ namespace HlsDumpLib
                                         dumpError?.Invoke(this, "Failed to download playlist", OtherErrorCountInRow);
                                         break;
                                     }
-                                    playlist = new M3UPlaylist(response, Url);
+                                    playlist = new M3UPlaylist(response, Url, useGmtTime);
                                     playlist.Parse();
                                 }
 

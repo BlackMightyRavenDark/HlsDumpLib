@@ -19,12 +19,16 @@ namespace HlsDumpLib.ConsoleTest
                 int errorCode = MultiThreadedDownloaderLib.FileDownloader.GetUrlResponseHeaders(url, null, out _, out string errorText);
                 if (errorCode == 200)
                 {
-                    string fileName = $"hlsdumper_{DateTime.Now:yyyy-MM-dd HH-mm-ss}.ts";
+                    const bool useGmtTime = true;
+                    DateTime dateTime = useGmtTime ? DateTime.UtcNow : DateTime.Now;
+                    string outputFileName = $"hlsdump_{dateTime:yyyy-MM-dd HH-mm-ss}";
+                    if (useGmtTime) { outputFileName += " GMT"; }
+
                     HlsDumper dumper = new HlsDumper(url);
-                    dumper.Dump(fileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null, null, null, null,
+                    dumper.Dump(outputFileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null, null, null, null,
                         OnNextChunkArrived, null, OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
                         OnMessage, OnWarning, OnError, OnFinished,
-                        2000, 5, 5, true, true, true);
+                        2000, 5, 5, true, true, true, useGmtTime);
                 }
                 else
                 {

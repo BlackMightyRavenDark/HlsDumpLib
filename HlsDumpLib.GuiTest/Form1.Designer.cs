@@ -64,12 +64,13 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
+            this.checkBoxSaveChunkFileName = new System.Windows.Forms.CheckBox();
+            this.checkBoxSaveChunkUrl = new System.Windows.Forms.CheckBox();
             this.numericUpDownPlaylistErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownOtherErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownPlaylistCheckingInterval = new System.Windows.Forms.NumericUpDown();
             this.label6 = new System.Windows.Forms.Label();
-            this.checkBoxSaveChunkFileName = new System.Windows.Forms.CheckBox();
-            this.checkBoxSaveChunkUrl = new System.Windows.Forms.CheckBox();
+            this.checkBoxUseGmtTime = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
@@ -191,6 +192,7 @@
             // columnHeaderChunkId
             // 
             this.columnHeaderChunkId.Text = "ID чанка";
+            this.columnHeaderChunkId.Width = 70;
             // 
             // columnHeaderChunkLength
             // 
@@ -336,6 +338,32 @@
             this.label5.Text = "Частота проверки плейлиста:";
             this.toolTip1.SetToolTip(this.label5, "Невозможно изменить для уже добавленных элементов");
             // 
+            // checkBoxSaveChunkFileName
+            // 
+            this.checkBoxSaveChunkFileName.AutoSize = true;
+            this.checkBoxSaveChunkFileName.Checked = true;
+            this.checkBoxSaveChunkFileName.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxSaveChunkFileName.Location = new System.Drawing.Point(212, 141);
+            this.checkBoxSaveChunkFileName.Name = "checkBoxSaveChunkFileName";
+            this.checkBoxSaveChunkFileName.Size = new System.Drawing.Size(169, 17);
+            this.checkBoxSaveChunkFileName.TabIndex = 14;
+            this.checkBoxSaveChunkFileName.Text = "Сохранять имя файла чанка";
+            this.toolTip1.SetToolTip(this.checkBoxSaveChunkFileName, "Невозможно изменить для уже добавленных элементов");
+            this.checkBoxSaveChunkFileName.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxSaveChunkUrl
+            // 
+            this.checkBoxSaveChunkUrl.AutoSize = true;
+            this.checkBoxSaveChunkUrl.Checked = true;
+            this.checkBoxSaveChunkUrl.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxSaveChunkUrl.Location = new System.Drawing.Point(387, 141);
+            this.checkBoxSaveChunkUrl.Name = "checkBoxSaveChunkUrl";
+            this.checkBoxSaveChunkUrl.Size = new System.Drawing.Size(160, 17);
+            this.checkBoxSaveChunkUrl.TabIndex = 15;
+            this.checkBoxSaveChunkUrl.Text = "Сохранять ссылку на чанк";
+            this.toolTip1.SetToolTip(this.checkBoxSaveChunkUrl, "Невозможно изменить для уже добавленных элементов");
+            this.checkBoxSaveChunkUrl.UseVisualStyleBackColor = true;
+            // 
             // numericUpDownPlaylistErrorCountInRow
             // 
             this.numericUpDownPlaylistErrorCountInRow.Location = new System.Drawing.Point(218, 92);
@@ -406,37 +434,25 @@
             this.label6.TabIndex = 13;
             this.label6.Text = "миллисекунд";
             // 
-            // checkBoxSaveChunkFileName
+            // checkBoxUseGmtTime
             // 
-            this.checkBoxSaveChunkFileName.AutoSize = true;
-            this.checkBoxSaveChunkFileName.Checked = true;
-            this.checkBoxSaveChunkFileName.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxSaveChunkFileName.Location = new System.Drawing.Point(212, 141);
-            this.checkBoxSaveChunkFileName.Name = "checkBoxSaveChunkFileName";
-            this.checkBoxSaveChunkFileName.Size = new System.Drawing.Size(169, 17);
-            this.checkBoxSaveChunkFileName.TabIndex = 14;
-            this.checkBoxSaveChunkFileName.Text = "Сохранять имя файла чанка";
-            this.toolTip1.SetToolTip(this.checkBoxSaveChunkFileName, "Невозможно изменить для уже добавленных элементов");
-            this.checkBoxSaveChunkFileName.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxSaveChunkUrl
-            // 
-            this.checkBoxSaveChunkUrl.AutoSize = true;
-            this.checkBoxSaveChunkUrl.Checked = true;
-            this.checkBoxSaveChunkUrl.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxSaveChunkUrl.Location = new System.Drawing.Point(387, 141);
-            this.checkBoxSaveChunkUrl.Name = "checkBoxSaveChunkUrl";
-            this.checkBoxSaveChunkUrl.Size = new System.Drawing.Size(160, 17);
-            this.checkBoxSaveChunkUrl.TabIndex = 15;
-            this.checkBoxSaveChunkUrl.Text = "Сохранять ссылку на чанк";
-            this.toolTip1.SetToolTip(this.checkBoxSaveChunkUrl, "Невозможно изменить для уже добавленных элементов");
-            this.checkBoxSaveChunkUrl.UseVisualStyleBackColor = true;
+            this.checkBoxUseGmtTime.AutoSize = true;
+            this.checkBoxUseGmtTime.Checked = true;
+            this.checkBoxUseGmtTime.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxUseGmtTime.Location = new System.Drawing.Point(553, 141);
+            this.checkBoxUseGmtTime.Name = "checkBoxUseGmtTime";
+            this.checkBoxUseGmtTime.Size = new System.Drawing.Size(101, 17);
+            this.checkBoxUseGmtTime.TabIndex = 16;
+            this.checkBoxUseGmtTime.Text = "Время по GMT";
+            this.toolTip1.SetToolTip(this.checkBoxUseGmtTime, "Невозможно изменить для уже добавленных элементов");
+            this.checkBoxUseGmtTime.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 355);
+            this.Controls.Add(this.checkBoxUseGmtTime);
             this.Controls.Add(this.checkBoxSaveChunkUrl);
             this.Controls.Add(this.checkBoxSaveChunkFileName);
             this.Controls.Add(this.label6);
@@ -454,7 +470,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.DoubleBuffered = true;
-            this.MinimumSize = new System.Drawing.Size(650, 300);
+            this.MinimumSize = new System.Drawing.Size(770, 300);
             this.Name = "Form1";
             this.Text = "GUI test";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
@@ -511,6 +527,7 @@
         private System.Windows.Forms.ColumnHeader columnHeaderChunkFileName;
         private System.Windows.Forms.CheckBox checkBoxSaveChunkFileName;
         private System.Windows.Forms.CheckBox checkBoxSaveChunkUrl;
+        private System.Windows.Forms.CheckBox checkBoxUseGmtTime;
     }
 }
 

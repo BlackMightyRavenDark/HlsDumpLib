@@ -35,7 +35,8 @@ namespace HlsDumpLib.GuiTest
             int maxOtherErrorsInRow,
             bool saveChunksInfo,
             bool storeChunkFileName,
-            bool storeChunkUrl)
+            bool storeChunkUrl,
+            bool useGmtTime)
         {
             checkingStarted?.Invoke(this);
 
@@ -74,7 +75,7 @@ namespace HlsDumpLib.GuiTest
                         },
                         playlistCheckingIntervalMilliseconds,
                         maxPlaylistErrorCountInRow, maxOtherErrorsInRow,
-                        saveChunksInfo, storeChunkFileName, storeChunkUrl));
+                        saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime));
                 }
             }
 

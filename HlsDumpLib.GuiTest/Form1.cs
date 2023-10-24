@@ -85,6 +85,7 @@ namespace HlsDumpLib.GuiTest
             json["saveChunksInfo"] = checkBoxSaveChunksInfo.Checked;
             json["storeChunkFileName"] = checkBoxSaveChunkFileName.Checked;
             json["storeChunkUrl"] = checkBoxSaveChunkUrl.Checked;
+            json["useGmtTime"] = checkBoxUseGmtTime.Checked;
 
             JArray jaColumns = new JArray();
             foreach (ColumnHeader columnHeader in listViewStreams.Columns)
@@ -143,6 +144,13 @@ namespace HlsDumpLib.GuiTest
                     checkBoxSaveChunkUrl.Checked = jt.Value<bool>();
                 }
             }
+            {
+                JToken jt = json.Value<JToken>("useGmtTime");
+                if (jt != null)
+                {
+                    checkBoxUseGmtTime.Checked = jt.Value<bool>();
+                }
+            }
 
             JArray jaColumns = json.Value<JArray>("columns");
             if (jaColumns != null)
@@ -173,7 +181,10 @@ namespace HlsDumpLib.GuiTest
                 title = "untitled";
             }
 
-            string fileName = FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss-fff}");
+            string fileName = checkBoxUseGmtTime.Checked ?
+                FixFileName($"{title}_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss-fff} GMT") :
+                FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss-fff}");
+
             StreamItem item = new StreamItem()
             {
                 Title = title,
@@ -543,6 +554,7 @@ namespace HlsDumpLib.GuiTest
                     bool saveChunksInfo = checkBoxSaveChunksInfo.Checked;
                     bool storeChunkFileName = checkBoxSaveChunkFileName.Checked;
                     bool storeChunkUrl = checkBoxSaveChunkUrl.Checked;
+                    bool useGmtTime = checkBoxUseGmtTime.Checked;
                     int maxPlaylistErrorsInRow = (int)numericUpDownPlaylistErrorCountInRow.Value;
                     int maxOtherErrorsInRow = (int)numericUpDownOtherErrorCountInRow.Value;
                     int playlistCheckingIntervalMilliseconds = (int)numericUpDownPlaylistCheckingInterval.Value;
@@ -557,7 +569,7 @@ namespace HlsDumpLib.GuiTest
                             OnUpdateErrors, OnDumpingProgress, OnDumpingFinished,
                             playlistCheckingIntervalMilliseconds,
                             maxPlaylistErrorsInRow, maxOtherErrorsInRow,
-                            saveChunksInfo, storeChunkFileName, storeChunkUrl);
+                            saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
                     });
                 }
             }

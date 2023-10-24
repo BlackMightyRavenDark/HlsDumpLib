@@ -19,10 +19,13 @@ namespace HlsDumpLib
         public List<StreamSegment> Segments { get; private set; }
         public List<string> SubPlaylistUrls { get; private set; }
 
-        public M3UPlaylist(string playlistContent, string playlistUrl)
+        public bool UseGmtTime;
+
+        public M3UPlaylist(string playlistContent, string playlistUrl, bool useGmtTime)
         {
             PlaylistContent = playlistContent;
             PlaylistUrl = playlistUrl;
+            UseGmtTime = useGmtTime;
             _playlistPath = ExtractUrlFilePath(playlistUrl);
         }
 
@@ -39,7 +42,7 @@ namespace HlsDumpLib
                     {
                         if (splitted[0] == "#EXT-SERVER")
                         {
-                            PlaylistDate = ExtractDateFromExtServerString(splitted[1]);
+                            PlaylistDate = ExtractDateFromExtServerString(splitted[1], UseGmtTime);
                         }
                         else if (splitted[0] == "#EXT-X-STREAM-INF")
                         {
@@ -102,7 +105,7 @@ namespace HlsDumpLib
                         {
                             if (s.Length == 2)
                             {
-                                tmpSegmentDate = ExtractDateFromExtProgramDateTime(s[1]);
+                                tmpSegmentDate = ExtractDateFromExtProgramDateTime(s[1], UseGmtTime);
                                 if (tmpSegmentDate != DateTime.MinValue) { segmentDate = tmpSegmentDate; }
                                 if (!dateFound)
                                 {
