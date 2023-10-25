@@ -20,9 +20,9 @@ namespace HlsDumpLib.ConsoleTest
                 if (errorCode == 200)
                 {
                     const bool useGmtTime = true;
-                    DateTime dateTime = useGmtTime ? DateTime.UtcNow : DateTime.Now;
-                    string outputFileName = $"hlsdump_{dateTime:yyyy-MM-dd HH-mm-ss}";
-                    if (useGmtTime) { outputFileName += " GMT"; }
+                    string outputFileName = useGmtTime ?
+                        $"hlsdump_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss} GMT" :
+                        $"hlsdump_{DateTime.Now:yyyy-MM-dd HH-mm-ss}";
 
                     HlsDumper dumper = new HlsDumper(url);
                     dumper.Dump(outputFileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null, null, null, null,
