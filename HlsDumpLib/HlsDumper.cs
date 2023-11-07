@@ -41,8 +41,8 @@ namespace HlsDumpLib
         public const int DUMPING_ERROR_PLAYLIST_GONE = -1;
         public const int DUMPING_ERROR_CANCELED = -2;
 
-        public delegate void PlaylistCheckingDelegate(object sender, string playlistUrl);
-        public delegate void PlaylistCheckedDelegate(object sender,
+        public delegate void PlaylistCheckingStartedDelegate(object sender, string playlistUrl);
+        public delegate void PlaylistCheckingFinishedDelegate(object sender,
             int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
             string playlistContent, int errorCode, int playlistErrorCountInRow);
         public delegate void PlaylistFirstArrivedDelegate(object sender, int chunkCount, int firstChunkId);
@@ -52,7 +52,7 @@ namespace HlsDumpLib
             int delay, int checkingInterval, int cycleProcessingTime);
         public delegate void NextChunkArrivedDelegate(object sender, StreamSegment chunk,
             long chunkSize, int sessionChunkId, int chunkProcessingTime);
-        public delegate void UpdateErrorsDelegate(object sender,
+        public delegate void ErrorsUpdatedDelegate(object sender,
             int playlistErrorCountInRow, int playlistErrorCountInRowMax,
             int otherErrorCountInRow, int otherErrorCountInRowMax,
             int chunkDownloadErrorCount, int chunkAppendErrorCount,
@@ -80,14 +80,14 @@ namespace HlsDumpLib
         }
 
         public async void Dump(string outputFilePath,
-            PlaylistCheckingDelegate playlistChecking,
-            PlaylistCheckedDelegate playlistChecked,
+            PlaylistCheckingStartedDelegate playlistCheckingStarted,
+            PlaylistCheckingFinishedDelegate playlistCheckingFinished,
             PlaylistFirstArrivedDelegate playlistFirstArrived,
             OutputStreamAssignedDelegate outputStreamAssigned,
             OutputStreamClosedDelegate outputStreamClosed,
             PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
             NextChunkArrivedDelegate nextChunkArrived,
-            UpdateErrorsDelegate updateErrors,
+            ErrorsUpdatedDelegate errorsUpdated,
             DumpProgressDelegate dumpProgress,
             ChunkDownloadFailedDelegate chunkDownloadFailed,
             ChunkAppendFailedDelegate chunkAppendFailed,
@@ -134,7 +134,7 @@ namespace HlsDumpLib
                     do
                     {
                         int timeStart = Environment.TickCount;
-                        playlistChecking?.Invoke(this, Url);
+                        playlistCheckingStarted?.Invoke(this, Url);
 
                         M3UPlaylist playlist = null;
                         List<StreamSegment> unfilteredPlaylist = null;
@@ -209,7 +209,7 @@ namespace HlsDumpLib
                                 dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
                             }
 
-                            playlistChecked?.Invoke(this,
+                            playlistCheckingFinished?.Invoke(this,
                                 CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
                                 _currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
                                 response, playlistErrorCode, PlaylistErrorCountInRow);
@@ -228,7 +228,7 @@ namespace HlsDumpLib
                         {
                             PlaylistErrorCountInRow++;
 
-                            playlistChecked?.Invoke(this,
+                            playlistCheckingFinished?.Invoke(this,
                                 CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
                                 _currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
                                 response, playlistErrorCode, PlaylistErrorCountInRow);
@@ -240,7 +240,7 @@ namespace HlsDumpLib
                                     dumpError?.Invoke(this,
                                         "Playlist lost! Max error count limit is reached! Breaking...",
                                         PlaylistErrorCountInRow);
-                                    updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                                    errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
                                         OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
                                         ChunkAppendErrorCount, LostChunkCount);
                                     break;
@@ -258,7 +258,7 @@ namespace HlsDumpLib
                             }
                         }
 
-                        updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                        errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
                             OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
                             ChunkAppendErrorCount, LostChunkCount);
 
@@ -422,7 +422,7 @@ namespace HlsDumpLib
 
                                     dumpProgress?.Invoke(this, outputStream.Length, chunkDownloadErrorCode);
 
-                                    updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                                    errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
                                         OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
                                         ChunkAppendErrorCount, LostChunkCount);
 
@@ -439,7 +439,7 @@ namespace HlsDumpLib
 
                         if (_cancellationToken.IsCancellationRequested) { break; }
 
-                        updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                        errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
                             OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
                             ChunkAppendErrorCount, LostChunkCount);
 
@@ -471,7 +471,7 @@ namespace HlsDumpLib
                     outputStreamClosed?.Invoke(this, outputFilePath);
                 }
 
-                updateErrors?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+                errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
                     OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
                     ChunkAppendErrorCount, LostChunkCount);
 

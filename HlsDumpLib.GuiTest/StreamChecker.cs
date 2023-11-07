@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MultiThreadedDownloaderLib;
+using static HlsDumpLib.HlsDumper;
 
 namespace HlsDumpLib.GuiTest
 {
@@ -10,10 +11,6 @@ namespace HlsDumpLib.GuiTest
 
         public delegate void CheckingStartedDelegate(object sender);
         public delegate void CheckingFinishedDelegate(object sender, int errorCode);
-        public delegate void PlaylistCheckingStartedDelegate(object sender, string url);
-        public delegate void PlaylistCheckingFinishedDelegate(object sender,
-            int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
-            string playlistContent, int errorCode, int playlistErrorCountInRow);
         public delegate void DumpingStartedDelegate(object sender);
 
         public void Check(string outputFilePath,
@@ -21,15 +18,15 @@ namespace HlsDumpLib.GuiTest
             CheckingFinishedDelegate checkingFinished,
             PlaylistCheckingStartedDelegate playlistCheckingStarted,
             PlaylistCheckingFinishedDelegate playlistCheckingFinished,
-            HlsDumper.PlaylistFirstArrivedDelegate playlistFirstArrived,
-            HlsDumper.OutputStreamAssignedDelegate outputStreamAssigned,
-            HlsDumper.OutputStreamClosedDelegate outputStreamClosed,
-            HlsDumper.PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
+            PlaylistFirstArrivedDelegate playlistFirstArrived,
+            OutputStreamAssignedDelegate outputStreamAssigned,
+            OutputStreamClosedDelegate outputStreamClosed,
+            PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
             DumpingStartedDelegate dumpingStarted,
-            HlsDumper.NextChunkArrivedDelegate nextChunkArrived,
-            HlsDumper.UpdateErrorsDelegate updateErrors,
-            HlsDumper.DumpProgressDelegate dumpingProgress,
-            HlsDumper.DumpFinishedDelegate dumpingFinished,
+            NextChunkArrivedDelegate nextChunkArrived,
+            ErrorsUpdatedDelegate errorsUpdated,
+            DumpProgressDelegate dumpingProgress,
+            DumpFinishedDelegate dumpingFinished,
             int playlistCheckingIntervalMilliseconds,
             int maxPlaylistErrorCountInRow,
             int maxOtherErrorsInRow,
@@ -63,7 +60,7 @@ namespace HlsDumpLib.GuiTest
                         otherErrorCountInRow, otherErrorCountInRowMax,
                         chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>
                             {
-                                updateErrors?.Invoke(this, playlistErrorCountInRow, playlistErrorCountInRowMax,
+                                errorsUpdated?.Invoke(this, playlistErrorCountInRow, playlistErrorCountInRowMax,
                                 otherErrorCountInRow, otherErrorCountInRowMax,
                                 chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount);
                             },

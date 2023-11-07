@@ -492,7 +492,7 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnUpdateErrors(object sender,
+        private void OnErrorsUpdated(object sender,
             int playlistErrorCountInRow, int playlistErrorCountInRowMax,
             int otherErrorCountInRow, int otherErrorCountInRowMax,
             int chunkDownloadErrorCount, int chunkAppendErrorCount,
@@ -501,7 +501,7 @@ namespace HlsDumpLib.GuiTest
             if (InvokeRequired)
             {
                 Invoke(new MethodInvoker(() =>
-                    OnUpdateErrors(sender, playlistErrorCountInRow, playlistErrorCountInRowMax,
+                    OnErrorsUpdated(sender, playlistErrorCountInRow, playlistErrorCountInRowMax,
                         otherErrorCountInRow, otherErrorCountInRowMax,
                         chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount)
                 ));
@@ -566,7 +566,7 @@ namespace HlsDumpLib.GuiTest
                             OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
                             OnOutputStreamAssigned, null,
                             OnPlaylistCheckingDelayCalculated, OnDumpingStarted, OnNextChunkArrived,
-                            OnUpdateErrors, OnDumpingProgress, OnDumpingFinished,
+                            OnErrorsUpdated, OnDumpingProgress, OnDumpingFinished,
                             playlistCheckingIntervalMilliseconds,
                             maxPlaylistErrorsInRow, maxOtherErrorsInRow,
                             saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
