@@ -26,7 +26,8 @@ namespace HlsDumpLib.ConsoleTest
 
                     HlsDumper dumper = new HlsDumper(url);
                     dumper.Dump(outputFileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null, null, null, null,
-                        OnNextChunkArrived, null, OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
+                        OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkArrived, null,
+                        OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
                         OnMessage, OnWarning, OnError, OnFinished,
                         2000, 5, 5, true, true, true, useGmtTime);
                 }
@@ -65,6 +66,26 @@ namespace HlsDumpLib.ConsoleTest
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Playlist checking failed! Error code: {errorCode}, " +
                     $"Error count: {playlistErrorCountInRow} / {(sender as HlsDumper).PlaylistErrorCountInRowMax}");
+            }
+        }
+
+        private static void OnNextChunkConnecting(object sender, StreamSegment chunk)
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"Connecting to the next chunk...");
+        }
+
+        private static void OnNextChunkConnected(object sender, StreamSegment chunk, long chunkFileSize, int errorCode)
+        {
+            if (errorCode == 200)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine($"Downloading chunk ({chunkFileSize} bytes)...");
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Can not connect to the next chunk!");
             }
         }
 

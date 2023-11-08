@@ -50,6 +50,8 @@ namespace HlsDumpLib
         public delegate void OutputStreamClosedDelegate(object sender, string fileName);
         public delegate void PlaylistCheckingDelayCalculatedDelegate(object sender,
             int delay, int checkingInterval, int cycleProcessingTime);
+        public delegate void NextChunkConnectingDelegate(object sender, StreamSegment chunk);
+        public delegate void NextChunkConnectedDelegate(object sender, StreamSegment chunk, long chunkFileSize, int errorCode);
         public delegate void NextChunkArrivedDelegate(object sender, StreamSegment chunk,
             long chunkSize, int sessionChunkId, int chunkProcessingTime);
         public delegate void ErrorsUpdatedDelegate(object sender,
@@ -86,6 +88,8 @@ namespace HlsDumpLib
             OutputStreamAssignedDelegate outputStreamAssigned,
             OutputStreamClosedDelegate outputStreamClosed,
             PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
+            NextChunkConnectingDelegate nextChunkConnecting,
+            NextChunkConnectedDelegate nextChunkConnected,
             NextChunkArrivedDelegate nextChunkArrived,
             ErrorsUpdatedDelegate errorsUpdated,
             DumpProgressDelegate dumpProgress,
@@ -357,6 +361,16 @@ namespace HlsDumpLib
                                         using (MemoryStream mem = new MemoryStream())
                                         {
                                             FileDownloader d = new FileDownloader() { Url = chunk.Url };
+                                            d.Connecting += (s, url) =>
+                                            {
+                                                nextChunkConnecting?.Invoke(this, chunk);
+                                            };
+                                            d.Connected += (s, url, chunkSize, code) =>
+                                            {
+                                                nextChunkConnected?.Invoke(this, chunk, chunkSize, code);
+                                                return code;
+                                            };
+
                                             chunkDownloadErrorCode = d.Download(mem);
                                             if (chunkDownloadErrorCode == 200)
                                             {

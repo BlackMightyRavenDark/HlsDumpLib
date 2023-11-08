@@ -436,6 +436,51 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
+        private void OnNextChunkConnecting(object sender, StreamSegment chunk)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() => OnNextChunkConnecting(sender, chunk)));
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = $"Подключение... {chunk.Url}";
+                }
+            }
+        }
+
+        private void OnNextChunkConnected(object sender, StreamSegment chunk, long chunkFileSize, int errorCode)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() => OnNextChunkConnected(sender, chunk, chunkFileSize, errorCode)));
+            }
+            else
+            {
+                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                int id = FindStreamItemInListView(streamItem, listViewStreams);
+                if (id >= 0)
+                {
+                    if (errorCode == 200)
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text =
+                            $"{FormatSize(chunkFileSize)} скачивание... {chunk.Url}";
+                    }
+                    else
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_FILE_SIZE].Text = $"Ошибка {errorCode}";
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME ].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = null;
+                    }
+                }
+            }
+        }
+
         private void OnNextChunkArrived(object sender, StreamSegment chunk,
             long chunkSize, int sessionChunkId, int chunkProcessingTime)
         {
@@ -565,7 +610,8 @@ namespace HlsDumpLib.GuiTest
                         checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
                             OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
                             OnOutputStreamAssigned, null,
-                            OnPlaylistCheckingDelayCalculated, OnDumpingStarted, OnNextChunkArrived,
+                            OnPlaylistCheckingDelayCalculated, OnDumpingStarted,
+                            OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkArrived,
                             OnErrorsUpdated, OnDumpingProgress, OnDumpingFinished,
                             playlistCheckingIntervalMilliseconds,
                             maxPlaylistErrorsInRow, maxOtherErrorsInRow,

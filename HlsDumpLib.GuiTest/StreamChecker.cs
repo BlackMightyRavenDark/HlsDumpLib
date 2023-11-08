@@ -23,6 +23,8 @@ namespace HlsDumpLib.GuiTest
             OutputStreamClosedDelegate outputStreamClosed,
             PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
             DumpingStartedDelegate dumpingStarted,
+            NextChunkConnectingDelegate nextChunkConnecting,
+            NextChunkConnectedDelegate nextChunkConnected,
             NextChunkArrivedDelegate nextChunkArrived,
             ErrorsUpdatedDelegate errorsUpdated,
             DumpProgressDelegate dumpingProgress,
@@ -54,6 +56,8 @@ namespace HlsDumpLib.GuiTest
                         (s, fn) => { outputStreamClosed?.Invoke(this, fn); },
                         (s, delay, checkingInterval, cycleProcessingTime) =>
                             { playlistCheckingDelayCalculated?.Invoke(this, delay, checkingInterval, cycleProcessingTime); },
+                        (s, url) => { nextChunkConnecting?.Invoke(this, url); },
+                        (s, url, chunkSize, code) => { nextChunkConnected?.Invoke(this, url, chunkSize, code); },
                         (s, chunk, chunkSize, sessionChunkId, chunkProcessingTime) =>
                             { nextChunkArrived?.Invoke(this, chunk, chunkSize, sessionChunkId, chunkProcessingTime); },
                         (s, playlistErrorCountInRow, playlistErrorCountInRowMax,
