@@ -52,7 +52,7 @@ namespace HlsDumpLib
             int delay, int checkingInterval, int cycleProcessingTime);
         public delegate void NextChunkConnectingDelegate(object sender, StreamSegment chunk);
         public delegate void NextChunkConnectedDelegate(object sender, StreamSegment chunk, long chunkFileSize, int errorCode);
-        public delegate void NextChunkArrivedDelegate(object sender, StreamSegment chunk,
+        public delegate void NextChunkProcessedDelegate(object sender, StreamSegment chunk,
             long chunkSize, int sessionChunkId, int chunkProcessingTime);
         public delegate void ErrorsUpdatedDelegate(object sender,
             int playlistErrorCountInRow, int playlistErrorCountInRowMax,
@@ -90,7 +90,7 @@ namespace HlsDumpLib
             PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
             NextChunkConnectingDelegate nextChunkConnecting,
             NextChunkConnectedDelegate nextChunkConnected,
-            NextChunkArrivedDelegate nextChunkArrived,
+            NextChunkProcessedDelegate nextChunkProcessed,
             ErrorsUpdatedDelegate errorsUpdated,
             DumpProgressDelegate dumpProgress,
             ChunkDownloadFailedDelegate chunkDownloadFailed,
@@ -430,7 +430,7 @@ namespace HlsDumpLib
 
                                     int chunkProcessingTime = Environment.TickCount - tickBeforeChunk;
 
-                                    nextChunkArrived?.Invoke(this, chunk, chunkFileSize,
+                                    nextChunkProcessed?.Invoke(this, chunk, chunkFileSize,
                                         ProcessedChunkCountTotal, chunkProcessingTime);
                                     ProcessedChunkCountTotal++;
 

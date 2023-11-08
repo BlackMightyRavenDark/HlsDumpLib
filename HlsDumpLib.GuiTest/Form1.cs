@@ -481,13 +481,13 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnNextChunkArrived(object sender, StreamSegment chunk,
+        private void OnNextChunkProcessed(object sender, StreamSegment chunk,
             long chunkSize, int sessionChunkId, int chunkProcessingTime)
         {
             if (InvokeRequired)
             {
                 Invoke(new MethodInvoker(() =>
-                    OnNextChunkArrived(sender, chunk, chunkSize,
+                    OnNextChunkProcessed(sender, chunk, chunkSize,
                         sessionChunkId, chunkProcessingTime)
                 ));
             }
@@ -611,7 +611,7 @@ namespace HlsDumpLib.GuiTest
                             OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
                             OnOutputStreamAssigned, null,
                             OnPlaylistCheckingDelayCalculated, OnDumpingStarted,
-                            OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkArrived,
+                            OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkProcessed,
                             OnErrorsUpdated, OnDumpingProgress, OnDumpingFinished,
                             playlistCheckingIntervalMilliseconds,
                             maxPlaylistErrorsInRow, maxOtherErrorsInRow,

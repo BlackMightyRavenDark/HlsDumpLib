@@ -26,7 +26,7 @@ namespace HlsDumpLib.ConsoleTest
 
                     HlsDumper dumper = new HlsDumper(url);
                     dumper.Dump(outputFileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null, null, null, null,
-                        OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkArrived, null,
+                        OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkProcessed, null,
                         OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
                         OnMessage, OnWarning, OnError, OnFinished,
                         2000, 5, 5, true, true, true, useGmtTime);
@@ -89,7 +89,7 @@ namespace HlsDumpLib.ConsoleTest
             }
         }
 
-        private static void OnNextChunkArrived(object sender, StreamSegment chunk,
+        private static void OnNextChunkProcessed(object sender, StreamSegment chunk,
             long chunkSize, int sessionChunkId, int chunkProcessingTime)
         {
             Console.ForegroundColor = ConsoleColor.Green;

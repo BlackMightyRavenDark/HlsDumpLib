@@ -25,7 +25,7 @@ namespace HlsDumpLib.GuiTest
             DumpingStartedDelegate dumpingStarted,
             NextChunkConnectingDelegate nextChunkConnecting,
             NextChunkConnectedDelegate nextChunkConnected,
-            NextChunkArrivedDelegate nextChunkArrived,
+            NextChunkProcessedDelegate nextChunkProcessed,
             ErrorsUpdatedDelegate errorsUpdated,
             DumpProgressDelegate dumpingProgress,
             DumpFinishedDelegate dumpingFinished,
@@ -59,7 +59,7 @@ namespace HlsDumpLib.GuiTest
                         (s, url) => { nextChunkConnecting?.Invoke(this, url); },
                         (s, url, chunkSize, code) => { nextChunkConnected?.Invoke(this, url, chunkSize, code); },
                         (s, chunk, chunkSize, sessionChunkId, chunkProcessingTime) =>
-                            { nextChunkArrived?.Invoke(this, chunk, chunkSize, sessionChunkId, chunkProcessingTime); },
+                            { nextChunkProcessed?.Invoke(this, chunk, chunkSize, sessionChunkId, chunkProcessingTime); },
                         (s, playlistErrorCountInRow, playlistErrorCountInRowMax,
                         otherErrorCountInRow, otherErrorCountInRowMax,
                         chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>
