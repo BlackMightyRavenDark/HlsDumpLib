@@ -71,6 +71,7 @@ namespace HlsDumpLib
         public HlsDumper(string url)
         {
             Url = url;
+            ActualUrl = url;
         }
 
         public void Dispose()
