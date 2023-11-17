@@ -12,7 +12,7 @@ namespace HlsDumpLib
     public class HlsDumper : IDisposable
     {
         public string Url { get; }
-        public string ActualUrl { get; set; }
+        public string ActualUrl { get; private set; }
         public int ProcessedChunkCountTotal { get; private set; } = 0;
         public int ChunkDownloadErrorCount { get; private set; } = 0;
         public int ChunkAppendErrorCount { get; private set; } = 0;
