@@ -430,8 +430,28 @@ namespace HlsDumpLib.GuiTest
                     listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_DELAY].Text = null;
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = null;
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = null;
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
-                        errorCode == HlsDumper.DUMPING_ERROR_PLAYLIST_GONE ? "Завершён" : "Отменён";
+
+                    string errorText;
+                    switch (errorCode)
+                    {
+                        case HlsDumper.DUMPING_ERROR_PLAYLIST_GONE:
+                            errorText = "Завершён";
+                            break;
+
+                        case HlsDumper.DUMPING_ERROR_CANCELED:
+                            errorText = "Отменён";
+                            break;
+
+                        case HlsDumper.DUMPING_ERROR_NO_FILE_NAME_SPECIFIED:
+                            errorText = "Не указано имя файла";
+                            break;
+
+                        default:
+                            errorText = null;
+                            break;
+                    }
+
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = errorText;
                 }
             }
         }

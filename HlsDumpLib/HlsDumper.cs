@@ -40,6 +40,7 @@ namespace HlsDumpLib
 
         public const int DUMPING_ERROR_PLAYLIST_GONE = -1;
         public const int DUMPING_ERROR_CANCELED = -2;
+        public const int DUMPING_ERROR_NO_FILE_NAME_SPECIFIED = -3;
 
         public delegate void PlaylistCheckingStartedDelegate(object sender, string playlistUrl);
         public delegate void PlaylistCheckingFinishedDelegate(object sender,
@@ -110,6 +111,7 @@ namespace HlsDumpLib
             if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
             {
                 dumpError?.Invoke(this, "No filename specified", 1);
+                dumpFinished?.Invoke(this, DUMPING_ERROR_NO_FILE_NAME_SPECIFIED);
                 return;
             }
 
@@ -367,6 +369,7 @@ namespace HlsDumpLib
                                             };
                                             d.Connected += (s, url, chunkSize, code) =>
                                             {
+                                                System.Diagnostics.Debug.WriteLine($"Connected: {chunkSize}");
                                                 nextChunkConnected?.Invoke(this, chunk, chunkSize, code);
                                                 return code;
                                             };
