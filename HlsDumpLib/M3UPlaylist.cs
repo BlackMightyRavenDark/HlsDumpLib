@@ -19,7 +19,7 @@ namespace HlsDumpLib
         public List<StreamSegment> Segments { get; private set; }
         public List<string> SubPlaylistUrls { get; private set; }
 
-        public bool UseGmtTime;
+        public bool UseGmtTime { get; }
 
         public M3UPlaylist(string playlistContent, string playlistUrl, bool useGmtTime)
         {
