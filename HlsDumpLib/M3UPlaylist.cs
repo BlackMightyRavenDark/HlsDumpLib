@@ -170,13 +170,19 @@ namespace HlsDumpLib
                 {
                     if (splitted[0] == "#EXT-X-STREAM-INF")
                     {
-                        if (!manifestStrings[i + 1].StartsWith("#"))
+                        if (i < manifestStrings.Length - 1)
                         {
-                            if (manifestStrings[i + 1].EndsWith("m3u8", StringComparison.OrdinalIgnoreCase))
+                            string t = manifestStrings[i + 1];
+                            if (!t.StartsWith("#"))
                             {
-                                string url = manifestStrings[i + 1].StartsWith("http", StringComparison.OrdinalIgnoreCase) ?
-                                    manifestStrings[i + 1] : $"{_playlistPath}/{manifestStrings[i + 1]}";
-                                SubPlaylistUrls.Add(url);
+                                int n = t.IndexOf("?");
+                                if (n > 0) { t = t.Substring(0, n); }
+                                if (t.EndsWith("m3u8", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    string url = t.StartsWith("http", StringComparison.OrdinalIgnoreCase) ?
+                                        t : $"{_playlistPath}/{t}";
+                                    SubPlaylistUrls.Add(url);
+                                }
                             }
                         }
                     }
