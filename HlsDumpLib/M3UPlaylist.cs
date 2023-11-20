@@ -19,13 +19,10 @@ namespace HlsDumpLib
         public List<StreamSegment> Segments { get; private set; }
         public List<string> SubPlaylistUrls { get; private set; }
 
-        public bool UseGmtTime { get; }
-
-        public M3UPlaylist(string playlistContent, string playlistUrl, bool useGmtTime)
+        public M3UPlaylist(string playlistContent, string playlistUrl)
         {
             PlaylistContent = playlistContent;
             PlaylistUrl = playlistUrl;
-            UseGmtTime = useGmtTime;
             _playlistPath = ExtractUrlFilePath(playlistUrl);
         }
 
@@ -42,7 +39,7 @@ namespace HlsDumpLib
                     {
                         if (splitted[0] == "#EXT-SERVER")
                         {
-                            PlaylistDate = ExtractDateFromExtServerString(splitted[1], UseGmtTime);
+                            PlaylistDate = ExtractDateFromExtServerString(splitted[1]);
                         }
                         else if (splitted[0] == "#EXT-X-STREAM-INF")
                         {
@@ -73,7 +70,7 @@ namespace HlsDumpLib
             Segments = new List<StreamSegment>();
 
             bool firstSegment = true;
-            bool dateFound = PlaylistDate != DateTime.MinValue;
+            bool playlistDateFound = PlaylistDate != DateTime.MinValue;
 
             DateTime segmentDate = PlaylistDate;
             int segmentId = MediaSequence < 0 ? 0 : MediaSequence;
@@ -81,13 +78,14 @@ namespace HlsDumpLib
             int stringCount = playlistStrings.Length;
             for (int i = startStringId; i < stringCount; ++i)
             {
-                double segmentLength = 0.0;
-                string segmentFileName = null;
-                string segmentUrl = null;
-
                 string[] splitted = playlistStrings[i].Split(new char[] { ':' }, 2, StringSplitOptions.None);
                 if (splitted[0] == "#EXTINF")
                 {
+                    double segmentLength = 0.0;
+                    string segmentFileName = null;
+                    string segmentUrl = null;
+                    bool segmentDateFound = false;
+
                     if (splitted.Length == 2)
                     {
                         string[] lengthSplitted = splitted[1].Split(',');
@@ -98,28 +96,27 @@ namespace HlsDumpLib
 
                     if (i > 0)
                     {
-                        DateTime tmpSegmentDate = DateTime.MinValue;
-
                         string[] s = playlistStrings[i - 1].Split(new char[] { ':' }, 2, StringSplitOptions.None);
                         if (s[0] == "#EXT-X-PROGRAM-DATE-TIME")
                         {
                             if (s.Length == 2)
                             {
-                                tmpSegmentDate = ExtractDateFromExtProgramDateTime(s[1], UseGmtTime);
-                                if (tmpSegmentDate != DateTime.MinValue) { segmentDate = tmpSegmentDate; }
-                                if (!dateFound)
+                                DateTime tmpSegmentDate = ExtractDateFromExtProgramDateTime(s[1]);
+                                if (tmpSegmentDate != DateTime.MinValue)
                                 {
-                                    PlaylistDate = segmentDate;
-                                    dateFound = tmpSegmentDate != DateTime.MinValue;
+                                    segmentDate = tmpSegmentDate;
+                                    segmentDateFound = true;
+
+                                    if (!playlistDateFound)
+                                    {
+                                        PlaylistDate = segmentDate;
+                                        playlistDateFound = true;
+                                    }
                                 }
                             }
                         }
 
-                        if (tmpSegmentDate != DateTime.MinValue)
-                        {
-                            segmentDate = tmpSegmentDate;
-                        }
-                        else if (!firstSegment)
+                        if (!segmentDateFound && !firstSegment)
                         {
                             segmentDate += TimeSpan.FromSeconds(segmentLength);
                         }
@@ -150,8 +147,9 @@ namespace HlsDumpLib
 
                     if (!string.IsNullOrEmpty(segmentUrl) && !string.IsNullOrWhiteSpace(segmentUrl))
                     {
+                        bool dateFound = playlistDateFound || segmentDateFound;
                         StreamSegment segment = new StreamSegment(segmentDate, segmentLength,
-                            segmentId, segmentFileName, segmentUrl);
+                            segmentId, segmentFileName, segmentUrl, !dateFound);
                         Segments.Add(segment);
                     }
 

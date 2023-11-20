@@ -151,7 +151,7 @@ namespace HlsDumpLib
                         {
                             PlaylistErrorCountInRow = 0;
 
-                            playlist = new M3UPlaylist(response, Url, useGmtTime);
+                            playlist = new M3UPlaylist(response, Url);
                             playlist.Parse();
 
                             if (first)
@@ -168,7 +168,7 @@ namespace HlsDumpLib
                                         dumpError?.Invoke(this, "Failed to download playlist", OtherErrorCountInRow);
                                         break;
                                     }
-                                    playlist = new M3UPlaylist(response, Url, useGmtTime);
+                                    playlist = new M3UPlaylist(response, Url);
                                     playlist.Parse();
                                 }
 
@@ -297,7 +297,7 @@ namespace HlsDumpLib
                                         {
                                             string chunkHeaderFileName = Utils.ExtractUrlFileName(playlist.StreamHeaderSegmentUrl);
                                             StreamSegment headerChunk = new StreamSegment(DateTime.MinValue,
-                                                0.0, -1, chunkHeaderFileName, playlist.StreamHeaderSegmentUrl);
+                                                0.0, -1, chunkHeaderFileName, playlist.StreamHeaderSegmentUrl, true);
                                             OtherErrorCountInRow = 0;
                                             streamHeader.Position = 0L;
                                             if (StreamAppender.Append(streamHeader, outputStream))
@@ -309,7 +309,7 @@ namespace HlsDumpLib
                                                     {
                                                         long size = streamHeader.Length;
                                                         long position = outputStream.Position - size;
-                                                        jHeaderChunk = headerChunk.ToJson(position, size, true, true);
+                                                        jHeaderChunk = headerChunk.ToJson(position, size, true, true, useGmtTime);
                                                     }
                                                     catch (Exception ex)
                                                     {
@@ -370,7 +370,6 @@ namespace HlsDumpLib
                                             };
                                             d.Connected += (s, url, chunkSize, code) =>
                                             {
-                                                System.Diagnostics.Debug.WriteLine($"Connected: {chunkSize}");
                                                 nextChunkConnected?.Invoke(this, chunk, chunkSize, code);
                                                 return code;
                                             };
@@ -390,7 +389,7 @@ namespace HlsDumpLib
                                                         {
                                                             long size = mem.Length;
                                                             long position = outputStream.Position - size;
-                                                            JObject jChunk = chunk.ToJson(position, size, storeChunkFileName, storeChunkUrl);
+                                                            JObject jChunk = chunk.ToJson(position, size, storeChunkFileName, storeChunkUrl, useGmtTime);
                                                             jaValidChunks.Add(jChunk);
                                                         }
                                                         catch (Exception ex)

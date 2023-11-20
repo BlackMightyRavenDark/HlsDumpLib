@@ -403,7 +403,7 @@ namespace HlsDumpLib.GuiTest
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_DATE_DUMP_STARTED].Text =
-                        streamItem.DumpStarted.ToString("yyyy-MM-dd HH-mm-ss");
+                        DateTimeToString(streamItem.DumpStarted);
                     listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSED_CHUNKS].Text = "0";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_LOST_CHUNKS].Text = "0";
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_DOWNLOAD_ERRORS].Text = "0";
@@ -677,6 +677,12 @@ namespace HlsDumpLib.GuiTest
                 }
             }
             return -1;
+        }
+
+        public static string DateTimeToString(DateTime dateTime, string format = "yyyy-MM-dd HH-mm-ss")
+        {
+            string t = dateTime.ToString(format);
+            return dateTime.IsGmt() ? $"{t} GMT" : t;
         }
 
         public static string FormatSize(long n)

@@ -44,7 +44,7 @@ namespace HlsDumpLib.GuiTest
             {
                 if (!StreamItem.IsDumping)
                 {
-                    StreamItem.DumpStarted = DateTime.Now;
+                    StreamItem.DumpStarted = DateTime.UtcNow;
                     StreamItem.Dumper = new HlsDumper(StreamItem.PlaylistUrl);
                     dumpingStarted?.Invoke(this);
                     Task.Run(() => StreamItem.Dumper.Dump(outputFilePath,
