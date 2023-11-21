@@ -66,11 +66,14 @@
             this.label5 = new System.Windows.Forms.Label();
             this.checkBoxSaveChunkFileName = new System.Windows.Forms.CheckBox();
             this.checkBoxSaveChunkUrl = new System.Windows.Forms.CheckBox();
+            this.checkBoxUseGmtTime = new System.Windows.Forms.CheckBox();
             this.numericUpDownPlaylistErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownOtherErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownPlaylistCheckingInterval = new System.Windows.Forms.NumericUpDown();
             this.label6 = new System.Windows.Forms.Label();
-            this.checkBoxUseGmtTime = new System.Windows.Forms.CheckBox();
+            this.btnSelectDownloadingDir = new System.Windows.Forms.Button();
+            this.label7 = new System.Windows.Forms.Label();
+            this.textBoxDownloadingDir = new System.Windows.Forms.TextBox();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
@@ -80,7 +83,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 15);
+            this.label1.Location = new System.Drawing.Point(12, 39);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(146, 13);
             this.label1.TabIndex = 0;
@@ -90,7 +93,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 41);
+            this.label2.Location = new System.Drawing.Point(12, 65);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(114, 13);
             this.label2.TabIndex = 1;
@@ -100,7 +103,7 @@
             // 
             this.textBoxTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxTitle.Location = new System.Drawing.Point(164, 12);
+            this.textBoxTitle.Location = new System.Drawing.Point(164, 36);
             this.textBoxTitle.Name = "textBoxTitle";
             this.textBoxTitle.Size = new System.Drawing.Size(624, 20);
             this.textBoxTitle.TabIndex = 2;
@@ -109,7 +112,7 @@
             // 
             this.textBoxUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxUrl.Location = new System.Drawing.Point(164, 38);
+            this.textBoxUrl.Location = new System.Drawing.Point(164, 62);
             this.textBoxUrl.Name = "textBoxUrl";
             this.textBoxUrl.Size = new System.Drawing.Size(624, 20);
             this.textBoxUrl.TabIndex = 3;
@@ -146,10 +149,10 @@
             this.listViewStreams.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.listViewStreams.FullRowSelect = true;
             this.listViewStreams.HideSelection = false;
-            this.listViewStreams.Location = new System.Drawing.Point(11, 164);
+            this.listViewStreams.Location = new System.Drawing.Point(11, 191);
             this.listViewStreams.MultiSelect = false;
             this.listViewStreams.Name = "listViewStreams";
-            this.listViewStreams.Size = new System.Drawing.Size(777, 179);
+            this.listViewStreams.Size = new System.Drawing.Size(777, 152);
             this.listViewStreams.TabIndex = 4;
             this.listViewStreams.UseCompatibleStateImageBehavior = false;
             this.listViewStreams.View = System.Windows.Forms.View.Details;
@@ -265,7 +268,7 @@
             // btnAdd
             // 
             this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAdd.Location = new System.Drawing.Point(713, 136);
+            this.btnAdd.Location = new System.Drawing.Point(713, 160);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(75, 25);
             this.btnAdd.TabIndex = 5;
@@ -300,7 +303,7 @@
             this.checkBoxSaveChunksInfo.AutoSize = true;
             this.checkBoxSaveChunksInfo.Checked = true;
             this.checkBoxSaveChunksInfo.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxSaveChunksInfo.Location = new System.Drawing.Point(12, 141);
+            this.checkBoxSaveChunksInfo.Location = new System.Drawing.Point(12, 165);
             this.checkBoxSaveChunksInfo.Name = "checkBoxSaveChunksInfo";
             this.checkBoxSaveChunksInfo.Size = new System.Drawing.Size(194, 17);
             this.checkBoxSaveChunksInfo.TabIndex = 6;
@@ -311,7 +314,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 94);
+            this.label3.Location = new System.Drawing.Point(12, 118);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(200, 13);
             this.label3.TabIndex = 7;
@@ -321,7 +324,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 120);
+            this.label4.Location = new System.Drawing.Point(12, 144);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(180, 13);
             this.label4.TabIndex = 8;
@@ -331,7 +334,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 68);
+            this.label5.Location = new System.Drawing.Point(12, 92);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(159, 13);
             this.label5.TabIndex = 12;
@@ -343,7 +346,7 @@
             this.checkBoxSaveChunkFileName.AutoSize = true;
             this.checkBoxSaveChunkFileName.Checked = true;
             this.checkBoxSaveChunkFileName.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxSaveChunkFileName.Location = new System.Drawing.Point(212, 141);
+            this.checkBoxSaveChunkFileName.Location = new System.Drawing.Point(212, 165);
             this.checkBoxSaveChunkFileName.Name = "checkBoxSaveChunkFileName";
             this.checkBoxSaveChunkFileName.Size = new System.Drawing.Size(169, 17);
             this.checkBoxSaveChunkFileName.TabIndex = 14;
@@ -356,7 +359,7 @@
             this.checkBoxSaveChunkUrl.AutoSize = true;
             this.checkBoxSaveChunkUrl.Checked = true;
             this.checkBoxSaveChunkUrl.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxSaveChunkUrl.Location = new System.Drawing.Point(387, 141);
+            this.checkBoxSaveChunkUrl.Location = new System.Drawing.Point(387, 165);
             this.checkBoxSaveChunkUrl.Name = "checkBoxSaveChunkUrl";
             this.checkBoxSaveChunkUrl.Size = new System.Drawing.Size(160, 17);
             this.checkBoxSaveChunkUrl.TabIndex = 15;
@@ -364,9 +367,22 @@
             this.toolTip1.SetToolTip(this.checkBoxSaveChunkUrl, "Невозможно изменить для уже добавленных элементов");
             this.checkBoxSaveChunkUrl.UseVisualStyleBackColor = true;
             // 
+            // checkBoxUseGmtTime
+            // 
+            this.checkBoxUseGmtTime.AutoSize = true;
+            this.checkBoxUseGmtTime.Checked = true;
+            this.checkBoxUseGmtTime.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxUseGmtTime.Location = new System.Drawing.Point(553, 165);
+            this.checkBoxUseGmtTime.Name = "checkBoxUseGmtTime";
+            this.checkBoxUseGmtTime.Size = new System.Drawing.Size(101, 17);
+            this.checkBoxUseGmtTime.TabIndex = 16;
+            this.checkBoxUseGmtTime.Text = "Время по GMT";
+            this.toolTip1.SetToolTip(this.checkBoxUseGmtTime, "Невозможно изменить для уже добавленных элементов");
+            this.checkBoxUseGmtTime.UseVisualStyleBackColor = true;
+            // 
             // numericUpDownPlaylistErrorCountInRow
             // 
-            this.numericUpDownPlaylistErrorCountInRow.Location = new System.Drawing.Point(218, 92);
+            this.numericUpDownPlaylistErrorCountInRow.Location = new System.Drawing.Point(218, 116);
             this.numericUpDownPlaylistErrorCountInRow.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -383,7 +399,7 @@
             // 
             // numericUpDownOtherErrorCountInRow
             // 
-            this.numericUpDownOtherErrorCountInRow.Location = new System.Drawing.Point(218, 118);
+            this.numericUpDownOtherErrorCountInRow.Location = new System.Drawing.Point(218, 142);
             this.numericUpDownOtherErrorCountInRow.Minimum = new decimal(new int[] {
             1,
             0,
@@ -405,7 +421,7 @@
             0,
             0,
             0});
-            this.numericUpDownPlaylistCheckingInterval.Location = new System.Drawing.Point(218, 66);
+            this.numericUpDownPlaylistCheckingInterval.Location = new System.Drawing.Point(218, 90);
             this.numericUpDownPlaylistCheckingInterval.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -428,30 +444,50 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(277, 68);
+            this.label6.Location = new System.Drawing.Point(277, 92);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(74, 13);
             this.label6.TabIndex = 13;
             this.label6.Text = "миллисекунд";
             // 
-            // checkBoxUseGmtTime
+            // btnSelectDownloadingDir
             // 
-            this.checkBoxUseGmtTime.AutoSize = true;
-            this.checkBoxUseGmtTime.Checked = true;
-            this.checkBoxUseGmtTime.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxUseGmtTime.Location = new System.Drawing.Point(553, 141);
-            this.checkBoxUseGmtTime.Name = "checkBoxUseGmtTime";
-            this.checkBoxUseGmtTime.Size = new System.Drawing.Size(101, 17);
-            this.checkBoxUseGmtTime.TabIndex = 16;
-            this.checkBoxUseGmtTime.Text = "Время по GMT";
-            this.toolTip1.SetToolTip(this.checkBoxUseGmtTime, "Невозможно изменить для уже добавленных элементов");
-            this.checkBoxUseGmtTime.UseVisualStyleBackColor = true;
+            this.btnSelectDownloadingDir.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSelectDownloadingDir.Location = new System.Drawing.Point(738, 7);
+            this.btnSelectDownloadingDir.Name = "btnSelectDownloadingDir";
+            this.btnSelectDownloadingDir.Size = new System.Drawing.Size(50, 23);
+            this.btnSelectDownloadingDir.TabIndex = 17;
+            this.btnSelectDownloadingDir.Text = "...";
+            this.toolTip1.SetToolTip(this.btnSelectDownloadingDir, "Выбрать папку");
+            this.btnSelectDownloadingDir.UseVisualStyleBackColor = true;
+            this.btnSelectDownloadingDir.Click += new System.EventHandler(this.btnSelectDownloadingDir_Click);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(12, 12);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(125, 13);
+            this.label7.TabIndex = 18;
+            this.label7.Text = "Папка для скачивания:";
+            // 
+            // textBoxDownloadingDir
+            // 
+            this.textBoxDownloadingDir.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxDownloadingDir.Location = new System.Drawing.Point(164, 9);
+            this.textBoxDownloadingDir.Name = "textBoxDownloadingDir";
+            this.textBoxDownloadingDir.Size = new System.Drawing.Size(568, 20);
+            this.textBoxDownloadingDir.TabIndex = 19;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 355);
+            this.Controls.Add(this.textBoxDownloadingDir);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.btnSelectDownloadingDir);
             this.Controls.Add(this.checkBoxUseGmtTime);
             this.Controls.Add(this.checkBoxSaveChunkUrl);
             this.Controls.Add(this.checkBoxSaveChunkFileName);
@@ -470,7 +506,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.DoubleBuffered = true;
-            this.MinimumSize = new System.Drawing.Size(770, 300);
+            this.MinimumSize = new System.Drawing.Size(770, 350);
             this.Name = "Form1";
             this.Text = "GUI test";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
@@ -528,6 +564,9 @@
         private System.Windows.Forms.CheckBox checkBoxSaveChunkFileName;
         private System.Windows.Forms.CheckBox checkBoxSaveChunkUrl;
         private System.Windows.Forms.CheckBox checkBoxUseGmtTime;
+        private System.Windows.Forms.Button btnSelectDownloadingDir;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox textBoxDownloadingDir;
     }
 }
 

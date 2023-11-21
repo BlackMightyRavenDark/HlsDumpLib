@@ -79,6 +79,7 @@ namespace HlsDumpLib.GuiTest
         private void SaveConfig()
         {
             JObject json = new JObject();
+            json["downloadingDir"] = textBoxDownloadingDir.Text;
             json["maxPlaylistErrorsInRow"] = (int)numericUpDownPlaylistErrorCountInRow.Value;
             json["maxOtherErrorsInRow"] = (int)numericUpDownOtherErrorCountInRow.Value;
             json["playlistCheckingInterval"] = (int)numericUpDownPlaylistCheckingInterval.Value;
@@ -106,6 +107,14 @@ namespace HlsDumpLib.GuiTest
         private void LoadConfig()
         {
             JObject json = JObject.Parse(File.ReadAllText(_configFileName));
+            {
+                string dir = json.Value<string>("downloadingDir");
+                if (string.IsNullOrEmpty(dir) || string.IsNullOrWhiteSpace(dir))
+                {
+                    dir = Path.GetDirectoryName(Application.ExecutablePath);
+                }
+                textBoxDownloadingDir.Text = dir;
+            }
             {
                 JToken jt = json.Value<JToken>("maxPlaylistErrorsInRow");
                 numericUpDownPlaylistErrorCountInRow.Value = jt == null ? 5 : jt.Value<int>();
@@ -165,6 +174,18 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
+        private void btnSelectDownloadingDir_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = "Выберите папку для скачивания";
+            fbd.SelectedPath = textBoxDownloadingDir.Text;
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                textBoxDownloadingDir.Text = fbd.SelectedPath;
+            }
+            fbd.Dispose();
+        }
+
         private void btnAdd_Click(object sender, EventArgs e)
         {
             string url = textBoxUrl.Text;
@@ -181,15 +202,25 @@ namespace HlsDumpLib.GuiTest
                 title = "untitled";
             }
 
+            string downloadingDir = textBoxDownloadingDir.Text;
+            bool dirIsEmpty = string.IsNullOrEmpty(downloadingDir) || string.IsNullOrWhiteSpace(downloadingDir);
+            if (!dirIsEmpty && !Directory.Exists(downloadingDir))
+            {
+                MessageBox.Show("Папка для скачивания не найдена!", "Ошибка!",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             string fileName = checkBoxUseGmtTime.Checked ?
                 FixFileName($"{title}_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss-fff} GMT") :
                 FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss-fff}");
+            string filePath = dirIsEmpty ? fileName : Path.Combine(downloadingDir, fileName);
 
             StreamItem item = new StreamItem()
             {
                 Title = title,
                 PlaylistUrl = url,
-                FilePath = fileName
+                FilePath = filePath
             };
             AddItemToListView(item);
         }
