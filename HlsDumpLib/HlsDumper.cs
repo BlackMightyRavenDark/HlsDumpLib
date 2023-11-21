@@ -133,7 +133,7 @@ namespace HlsDumpLib
                 JObject jHeaderChunk = null;
                 JArray jaValidChunks = new JArray();
                 JArray jaLostChunks = new JArray();
-                FileDownloader playlistDownloader = new FileDownloader() { Url = Url };
+                FileDownloader playlistDownloader = new FileDownloader() { Url = ActualUrl };
                 Stream outputStream = null;
 
                 try
@@ -141,7 +141,7 @@ namespace HlsDumpLib
                     do
                     {
                         int timeStart = Environment.TickCount;
-                        playlistCheckingStarted?.Invoke(this, Url);
+                        playlistCheckingStarted?.Invoke(this, ActualUrl);
 
                         M3UPlaylist playlist = null;
                         List<StreamSegment> unfilteredPlaylist = null;
@@ -151,7 +151,7 @@ namespace HlsDumpLib
                         {
                             PlaylistErrorCountInRow = 0;
 
-                            playlist = new M3UPlaylist(response, Url);
+                            playlist = new M3UPlaylist(response, ActualUrl);
                             playlist.Parse();
 
                             if (first)
@@ -168,7 +168,7 @@ namespace HlsDumpLib
                                         dumpError?.Invoke(this, "Failed to download playlist", OtherErrorCountInRow);
                                         break;
                                     }
-                                    playlist = new M3UPlaylist(response, Url);
+                                    playlist = new M3UPlaylist(response, ActualUrl);
                                     playlist.Parse();
                                 }
 
