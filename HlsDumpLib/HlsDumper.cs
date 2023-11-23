@@ -549,7 +549,9 @@ namespace HlsDumpLib
             if (!string.IsNullOrEmpty(url) && !string.IsNullOrWhiteSpace(url))
             {
                 string ext = Path.GetExtension(url);
-                return string.IsNullOrEmpty(ext) || string.IsNullOrWhiteSpace(ext) ? ".ts" : ext;
+                if (string.IsNullOrEmpty(ext) || string.IsNullOrWhiteSpace(ext)) { return ".ts"; }
+
+                return ext.Equals(".pts", StringComparison.OrdinalIgnoreCase) ? ".ts" : ext;
             }
 
             return ".ts";
