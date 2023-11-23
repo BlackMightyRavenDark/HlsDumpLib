@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using static HlsDumpLib.Utils;
 
@@ -18,6 +19,10 @@ namespace HlsDumpLib
         public string StreamHeaderSegmentUrl { get; private set; }
         public List<StreamSegment> Segments { get; private set; }
         public List<string> SubPlaylistUrls { get; private set; }
+
+        public bool HasHeaderSegment => !string.IsNullOrEmpty(StreamHeaderSegmentUrl) && !string.IsNullOrWhiteSpace(StreamHeaderSegmentUrl);
+        public bool HasSegments => Segments != null && Segments.Count > 0;
+        public bool HasSubPlaylists => SubPlaylistUrls != null && SubPlaylistUrls.Count > 0;
 
         public M3UPlaylist(string playlistContent, string playlistUrl)
         {
@@ -226,6 +231,27 @@ namespace HlsDumpLib
         public IEnumerable<StreamSegment> Filter(IEnumerable<StreamSegment> filter)
         {
             return Segments?.Where(s => !filter.Any(a => a.Url == s.Url));
+        }
+
+        /// <summary>
+        /// Warning! Playlist must be parsed before calling this method!
+        /// </summary>
+        /// <returns>Extension for the output file name</returns>
+        public string GetOutputFileExtension()
+        {
+            const string defaultExtension = ".ts";
+
+            if (!HasSegments) { return defaultExtension; }
+
+            if (!string.IsNullOrEmpty(Segments[0].Url) && !string.IsNullOrWhiteSpace(Segments[0].Url))
+            {
+                string ext = Path.GetExtension(Segments[0].Url);
+                if (string.IsNullOrEmpty(ext) || string.IsNullOrWhiteSpace(ext)) { return defaultExtension; }
+
+                return ext.Equals(".pts", StringComparison.OrdinalIgnoreCase) ? defaultExtension : ext;
+            }
+
+            return defaultExtension;
         }
     }
 }

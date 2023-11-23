@@ -11,8 +11,8 @@ namespace HlsDumpLib
 {
     public class HlsDumper : IDisposable
     {
-        public string Url { get; }
-        public string ActualUrl { get; private set; }
+        public string PlaylistUrl { get; }
+        public string ActualPlaylistUrl { get; private set; }
         public int ProcessedChunkCountTotal { get; private set; } = 0;
         public int ChunkDownloadErrorCount { get; private set; } = 0;
         public int ChunkAppendErrorCount { get; private set; } = 0;
@@ -68,10 +68,10 @@ namespace HlsDumpLib
         public delegate void DumpErrorDelegate(object sender, string message, int errorCount);
         public delegate void DumpFinishedDelegate(object sender, int errorCode);
 
-        public HlsDumper(string url)
+        public HlsDumper(string playlistUrl)
         {
-            Url = url;
-            ActualUrl = url;
+            PlaylistUrl = playlistUrl;
+            ActualPlaylistUrl = playlistUrl;
         }
 
         public void Dispose()
@@ -133,7 +133,7 @@ namespace HlsDumpLib
                 JObject jHeaderChunk = null;
                 JArray jaValidChunks = new JArray();
                 JArray jaLostChunks = new JArray();
-                FileDownloader playlistDownloader = new FileDownloader() { Url = ActualUrl };
+                FileDownloader playlistDownloader = new FileDownloader() { Url = ActualPlaylistUrl };
                 Stream outputStream = null;
 
                 try
@@ -141,7 +141,7 @@ namespace HlsDumpLib
                     do
                     {
                         int timeStart = Environment.TickCount;
-                        playlistCheckingStarted?.Invoke(this, ActualUrl);
+                        playlistCheckingStarted?.Invoke(this, ActualPlaylistUrl);
 
                         M3UPlaylist playlist = null;
                         List<StreamSegment> unfilteredPlaylist = null;
@@ -151,16 +151,16 @@ namespace HlsDumpLib
                         {
                             PlaylistErrorCountInRow = 0;
 
-                            playlist = new M3UPlaylist(response, ActualUrl);
+                            playlist = new M3UPlaylist(response, ActualPlaylistUrl);
                             playlist.Parse();
 
                             if (first)
                             {
                                 first = false;
-                                if (playlist.SubPlaylistUrls != null && playlist.SubPlaylistUrls.Count > 0)
+                                if (playlist.HasSubPlaylists)
                                 {
-                                    ActualUrl = playlist.SubPlaylistUrls[0];
-                                    playlistDownloader.Url = ActualUrl;
+                                    ActualPlaylistUrl = playlist.SubPlaylistUrls[0];
+                                    playlistDownloader.Url = ActualPlaylistUrl;
                                     playlistErrorCode = playlistDownloader.DownloadString(out response);
                                     if (playlistErrorCode != 200)
                                     {
@@ -168,15 +168,14 @@ namespace HlsDumpLib
                                         dumpError?.Invoke(this, "Failed to download playlist", OtherErrorCountInRow);
                                         break;
                                     }
-                                    playlist = new M3UPlaylist(response, ActualUrl);
+                                    playlist = new M3UPlaylist(response, ActualPlaylistUrl);
                                     playlist.Parse();
                                 }
 
-                                headerChunkExists = !string.IsNullOrEmpty(playlist.StreamHeaderSegmentUrl) &&
-                                    !string.IsNullOrWhiteSpace(playlist.StreamHeaderSegmentUrl);
+                                headerChunkExists = playlist.HasHeaderSegment;
 
                                 CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
-                                outputFilePath += GetOutputFileExtension(playlist);
+                                outputFilePath += playlist.GetOutputFileExtension();
 
                                 playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
                             }
@@ -497,11 +496,12 @@ namespace HlsDumpLib
                     try
                     {
                         JObject json = new JObject();
-                        json["playlistUrl"] = Url;
-                        if (!string.IsNullOrEmpty(ActualUrl) && !string.IsNullOrWhiteSpace(ActualUrl) &&
-                            ActualUrl != Url)
+                        json["playlistUrl"] = PlaylistUrl;
+                        if (!string.IsNullOrEmpty(ActualPlaylistUrl) &&
+                            !string.IsNullOrWhiteSpace(ActualPlaylistUrl) &&
+                            ActualPlaylistUrl != PlaylistUrl)
                         {
-                            json["actualPlaylistUrl"] = ActualUrl;
+                            json["actualPlaylistUrl"] = ActualPlaylistUrl;
                         }
                         json["outputFile"] = outputFilePath;
                         if (jHeaderChunk != null)
@@ -536,25 +536,6 @@ namespace HlsDumpLib
             {
                 _cancellationTokenSource.Cancel();
             }
-        }
-
-        private string GetOutputFileExtension(M3UPlaylist playlist)
-        {
-            if (playlist.Segments == null || playlist.Segments.Count == 0)
-            {
-                return ".ts";
-            }
-
-            string url = playlist.Segments[0].Url;
-            if (!string.IsNullOrEmpty(url) && !string.IsNullOrWhiteSpace(url))
-            {
-                string ext = Path.GetExtension(url);
-                if (string.IsNullOrEmpty(ext) || string.IsNullOrWhiteSpace(ext)) { return ".ts"; }
-
-                return ext.Equals(".pts", StringComparison.OrdinalIgnoreCase) ? ".ts" : ext;
-            }
-
-            return ".ts";
         }
     }
 }
