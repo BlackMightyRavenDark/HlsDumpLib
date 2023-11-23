@@ -5,12 +5,12 @@ namespace HlsDumpLib
 {
     public class StreamSegment
     {
-        public DateTime CreationDate { get; }
+        public DateTime CreationDate { get; private set; }
         public double LengthSeconds { get; }
         public int Id { get; }
         public string FileName { get; }
         public string Url { get; }
-        public bool IsRelativeTime { get; }
+        public bool IsRelativeTime { get; private set; }
 
         public StreamSegment(DateTime creationDate, double lengthSeconds,
             int id, string fileName, string url, bool isRelativeTime)
@@ -20,6 +20,12 @@ namespace HlsDumpLib
             Id = id;
             FileName = fileName;
             Url = url;
+            IsRelativeTime = isRelativeTime;
+        }
+
+        internal void SetCreationDate(DateTime creationDate, bool isRelativeTime = false)
+        {
+            CreationDate = creationDate;
             IsRelativeTime = isRelativeTime;
         }
 

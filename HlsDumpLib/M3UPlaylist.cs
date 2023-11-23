@@ -74,6 +74,7 @@ namespace HlsDumpLib
 
             DateTime segmentDate = PlaylistDate;
             int segmentId = MediaSequence < 0 ? 0 : MediaSequence;
+            int noDateSegmentCount = 0;
 
             int stringCount = playlistStrings.Length;
             for (int i = startStringId; i < stringCount; ++i)
@@ -107,6 +108,24 @@ namespace HlsDumpLib
                                     segmentDate = tmpSegmentDate;
                                     segmentDateFound = true;
 
+                                    //Для плейлистов, в которых дата указана, начиная не с первого сегмента.
+                                    if (noDateSegmentCount > 0 && Segments.Count > 0)
+                                    {
+                                        double summaryLength = 0.0;
+                                        for (; noDateSegmentCount > 0; noDateSegmentCount--)
+                                        {
+                                            summaryLength += Segments[noDateSegmentCount - 1].LengthSeconds;
+                                            DateTime previousSegmentDate = segmentDate - TimeSpan.FromSeconds(summaryLength);
+                                            Segments[noDateSegmentCount - 1].SetCreationDate(previousSegmentDate);
+
+                                            if (!playlistDateFound && noDateSegmentCount == 1)
+                                            {
+                                                PlaylistDate = previousSegmentDate;
+                                                playlistDateFound = true;
+                                            }
+                                        }
+                                    }
+
                                     if (!playlistDateFound)
                                     {
                                         PlaylistDate = segmentDate;
@@ -115,11 +134,25 @@ namespace HlsDumpLib
                                 }
                             }
                         }
+                        else if (!playlistDateFound)
+                        {
+                            noDateSegmentCount++;
+                        }
 
                         if (!segmentDateFound && !firstSegment)
                         {
-                            segmentDate += TimeSpan.FromSeconds(segmentLength);
+                            double lastSegmentLength = Segments.Count > 0 ?
+                                Segments[Segments.Count - 1].LengthSeconds :
+                                //Безвыходное положение.
+                                //Негде взять продолжительность предыдущего сегмента.
+                                //По-этому, делаем её равной одной десятой секунды.
+                                0.1;
+                            segmentDate += TimeSpan.FromSeconds(lastSegmentLength);
                         }
+                    }
+                    else if (!playlistDateFound)
+                    {
+                        noDateSegmentCount++;
                     }
 
                     if (i < stringCount - 1)
