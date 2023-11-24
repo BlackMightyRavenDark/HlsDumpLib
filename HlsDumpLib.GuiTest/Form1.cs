@@ -518,8 +518,10 @@ namespace HlsDumpLib.GuiTest
                 {
                     if (errorCode == 200)
                     {
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text =
-                            $"{FormatSize(chunkFileSize)} скачивание... {chunk.Url}";
+                        string t = chunkFileSize >= 0L ?
+                            $"{FormatSize(chunkFileSize)} скачивание... {chunk.Url}" :
+                            $"Скачивание... {chunk.Url}";
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = t;
                     }
                     else
                     {
@@ -549,7 +551,8 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = $"{chunkProcessingTime}ms";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = FormatSize(chunkSize);
+                    string chunkSizeString = chunkSize >= 0L ? FormatSize(chunkSize) : "<unknown>";
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = chunkSizeString;
                     if (chunk != null)
                     {
                         listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = chunk.Id.ToString();
