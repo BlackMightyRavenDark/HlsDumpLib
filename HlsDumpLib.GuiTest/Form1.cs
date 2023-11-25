@@ -216,12 +216,7 @@ namespace HlsDumpLib.GuiTest
                 FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss-fff}");
             string filePath = dirIsEmpty ? fileName : Path.Combine(downloadingDir, fileName);
 
-            StreamItem item = new StreamItem()
-            {
-                Title = title,
-                PlaylistUrl = url,
-                FilePath = filePath
-            };
+            StreamItem item = new StreamItem(title, url, filePath);
             AddItemToListView(item);
         }
 
@@ -265,7 +260,7 @@ namespace HlsDumpLib.GuiTest
             ListViewItem item = new ListViewItem(streamItem.Title);
             string[] subItems = new string[]
             {
-                streamItem.FilePath,
+                streamItem.OutputFilePath,
                 string.Empty,
                 string.Empty,
                 string.Empty,
@@ -299,7 +294,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -317,14 +312,13 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
                         errorCode == 200 ? streamItem.IsDumping ? "Дампинг..." : null : $"Ошибка {errorCode}";
                 }
-                streamItem.IsChecking = false;
             }
         }
 
@@ -336,7 +330,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -359,7 +353,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -391,7 +385,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -410,7 +404,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -428,7 +422,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -453,7 +447,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -495,7 +489,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -512,7 +506,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -546,7 +540,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -579,7 +573,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -607,7 +601,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -632,7 +626,7 @@ namespace HlsDumpLib.GuiTest
             }
             else
             {
-                StreamItem streamItem = (sender as StreamChecker).StreamItem;
+                StreamItem streamItem = sender as StreamItem;
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
@@ -646,9 +640,8 @@ namespace HlsDumpLib.GuiTest
             if (!_isClosing)
             {
                 StreamItem streamItem = listViewStreams.Items[itemId].Tag as StreamItem;
-                if (!streamItem.IsChecking)
+                if (!streamItem.IsChecking && !streamItem.IsDumping)
                 {
-                    streamItem.IsChecking = true;
                     listViewStreams.Items[itemId].SubItems[COLUMN_ID_STATE].Text = "Запуск проверки...";
                     bool saveChunksInfo = checkBoxSaveChunksInfo.Checked;
                     bool storeChunkFileName = checkBoxSaveChunkFileName.Checked;
@@ -658,19 +651,15 @@ namespace HlsDumpLib.GuiTest
                     int maxOtherErrorsInRow = (int)numericUpDownOtherErrorCountInRow.Value;
                     int playlistCheckingIntervalMilliseconds = (int)numericUpDownPlaylistCheckingInterval.Value;
 
-                    Task.Run(() =>
-                    {
-                        StreamChecker checker = new StreamChecker() { StreamItem = streamItem };
-                        checker.Check(streamItem.FilePath, OnCheckingStarted, OnCheckingFinished,
-                            OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
-                            OnOutputStreamAssigned, null,
-                            OnPlaylistCheckingDelayCalculated, OnDumpingStarted,
-                            OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkProcessed,
-                            OnErrorsUpdated, OnDumpingProgress, OnDumpingFinished,
-                            playlistCheckingIntervalMilliseconds,
-                            maxPlaylistErrorsInRow, maxOtherErrorsInRow,
-                            saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
-                    });
+                    streamItem.Check(OnCheckingStarted, OnCheckingFinished,
+                        OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
+                        OnOutputStreamAssigned, null,
+                        OnPlaylistCheckingDelayCalculated, OnDumpingStarted,
+                        OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkProcessed,
+                        OnErrorsUpdated, OnDumpingProgress, OnDumpingFinished,
+                        playlistCheckingIntervalMilliseconds,
+                        maxPlaylistErrorsInRow, maxOtherErrorsInRow,
+                        saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
                 }
             }
         }
