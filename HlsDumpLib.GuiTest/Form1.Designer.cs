@@ -53,7 +53,17 @@
             this.columnHeaderPlaylistErrors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderChunkDownloadErrors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderChunkAppendErrors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeaderOtherErroors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderOtherErrors = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderProgramId = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderGroupId = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderFormatName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderClosedCaptions = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderBandwidth = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderVideoResolution = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderFrameRate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderCodecs = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderLanguage = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderPlaylistUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.btnAdd = new System.Windows.Forms.Button();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -67,11 +77,11 @@
             this.checkBoxSaveChunkFileName = new System.Windows.Forms.CheckBox();
             this.checkBoxSaveChunkUrl = new System.Windows.Forms.CheckBox();
             this.checkBoxUseGmtTime = new System.Windows.Forms.CheckBox();
+            this.btnSelectDownloadingDir = new System.Windows.Forms.Button();
             this.numericUpDownPlaylistErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownOtherErrorCountInRow = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownPlaylistCheckingInterval = new System.Windows.Forms.NumericUpDown();
             this.label6 = new System.Windows.Forms.Label();
-            this.btnSelectDownloadingDir = new System.Windows.Forms.Button();
             this.label7 = new System.Windows.Forms.Label();
             this.textBoxDownloadingDir = new System.Windows.Forms.TextBox();
             this.contextMenuStrip1.SuspendLayout();
@@ -144,7 +154,17 @@
             this.columnHeaderPlaylistErrors,
             this.columnHeaderChunkDownloadErrors,
             this.columnHeaderChunkAppendErrors,
-            this.columnHeaderOtherErroors,
+            this.columnHeaderOtherErrors,
+            this.columnHeaderType,
+            this.columnHeaderProgramId,
+            this.columnHeaderGroupId,
+            this.columnHeaderFormatName,
+            this.columnHeaderClosedCaptions,
+            this.columnHeaderBandwidth,
+            this.columnHeaderVideoResolution,
+            this.columnHeaderFrameRate,
+            this.columnHeaderCodecs,
+            this.columnHeaderLanguage,
             this.columnHeaderPlaylistUrl});
             this.listViewStreams.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.listViewStreams.FullRowSelect = true;
@@ -255,10 +275,61 @@
             this.columnHeaderChunkAppendErrors.Text = "Ошибки объединения чанков";
             this.columnHeaderChunkAppendErrors.Width = 90;
             // 
-            // columnHeaderOtherErroors
+            // columnHeaderOtherErrors
             // 
-            this.columnHeaderOtherErroors.Text = "Другие ошибки";
-            this.columnHeaderOtherErroors.Width = 100;
+            this.columnHeaderOtherErrors.Text = "Другие ошибки";
+            this.columnHeaderOtherErrors.Width = 100;
+            // 
+            // columnHeaderType
+            // 
+            this.columnHeaderType.Text = "Тип";
+            this.columnHeaderType.Width = 100;
+            // 
+            // columnHeaderProgramId
+            // 
+            this.columnHeaderProgramId.Text = "Program ID";
+            this.columnHeaderProgramId.Width = 120;
+            // 
+            // columnHeaderGroupId
+            // 
+            this.columnHeaderGroupId.Text = "Group ID";
+            this.columnHeaderGroupId.Width = 100;
+            // 
+            // columnHeaderFormatName
+            // 
+            this.columnHeaderFormatName.Text = "Format name";
+            this.columnHeaderFormatName.Width = 120;
+            // 
+            // columnHeaderClosedCaptions
+            // 
+            this.columnHeaderClosedCaptions.Text = "Closed captions";
+            this.columnHeaderClosedCaptions.Width = 120;
+            // 
+            // columnHeaderBandwidth
+            // 
+            this.columnHeaderBandwidth.Text = "Bandwidth";
+            this.columnHeaderBandwidth.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.columnHeaderBandwidth.Width = 120;
+            // 
+            // columnHeaderVideoResolution
+            // 
+            this.columnHeaderVideoResolution.Text = "Видео";
+            this.columnHeaderVideoResolution.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.columnHeaderVideoResolution.Width = 120;
+            // 
+            // columnHeaderFrameRate
+            // 
+            this.columnHeaderFrameRate.Text = "Кадров в секунду";
+            this.columnHeaderFrameRate.Width = 130;
+            // 
+            // columnHeaderCodecs
+            // 
+            this.columnHeaderCodecs.Text = "Кодеки";
+            this.columnHeaderCodecs.Width = 100;
+            // 
+            // columnHeaderLanguage
+            // 
+            this.columnHeaderLanguage.Text = "Язык";
             // 
             // columnHeaderPlaylistUrl
             // 
@@ -380,6 +451,18 @@
             this.toolTip1.SetToolTip(this.checkBoxUseGmtTime, "Невозможно изменить для уже добавленных элементов");
             this.checkBoxUseGmtTime.UseVisualStyleBackColor = true;
             // 
+            // btnSelectDownloadingDir
+            // 
+            this.btnSelectDownloadingDir.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSelectDownloadingDir.Location = new System.Drawing.Point(738, 7);
+            this.btnSelectDownloadingDir.Name = "btnSelectDownloadingDir";
+            this.btnSelectDownloadingDir.Size = new System.Drawing.Size(50, 23);
+            this.btnSelectDownloadingDir.TabIndex = 17;
+            this.btnSelectDownloadingDir.Text = "...";
+            this.toolTip1.SetToolTip(this.btnSelectDownloadingDir, "Выбрать папку");
+            this.btnSelectDownloadingDir.UseVisualStyleBackColor = true;
+            this.btnSelectDownloadingDir.Click += new System.EventHandler(this.btnSelectDownloadingDir_Click);
+            // 
             // numericUpDownPlaylistErrorCountInRow
             // 
             this.numericUpDownPlaylistErrorCountInRow.Location = new System.Drawing.Point(218, 116);
@@ -449,18 +532,6 @@
             this.label6.Size = new System.Drawing.Size(74, 13);
             this.label6.TabIndex = 13;
             this.label6.Text = "миллисекунд";
-            // 
-            // btnSelectDownloadingDir
-            // 
-            this.btnSelectDownloadingDir.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSelectDownloadingDir.Location = new System.Drawing.Point(738, 7);
-            this.btnSelectDownloadingDir.Name = "btnSelectDownloadingDir";
-            this.btnSelectDownloadingDir.Size = new System.Drawing.Size(50, 23);
-            this.btnSelectDownloadingDir.TabIndex = 17;
-            this.btnSelectDownloadingDir.Text = "...";
-            this.toolTip1.SetToolTip(this.btnSelectDownloadingDir, "Выбрать папку");
-            this.btnSelectDownloadingDir.UseVisualStyleBackColor = true;
-            this.btnSelectDownloadingDir.Click += new System.EventHandler(this.btnSelectDownloadingDir_Click);
             // 
             // label7
             // 
@@ -550,7 +621,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.NumericUpDown numericUpDownPlaylistErrorCountInRow;
         private System.Windows.Forms.NumericUpDown numericUpDownOtherErrorCountInRow;
-        private System.Windows.Forms.ColumnHeader columnHeaderOtherErroors;
+        private System.Windows.Forms.ColumnHeader columnHeaderOtherErrors;
         private System.Windows.Forms.ColumnHeader columnHeaderChunkFileSize;
         private System.Windows.Forms.NumericUpDown numericUpDownPlaylistCheckingInterval;
         private System.Windows.Forms.Label label5;
@@ -567,6 +638,16 @@
         private System.Windows.Forms.Button btnSelectDownloadingDir;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox textBoxDownloadingDir;
+        private System.Windows.Forms.ColumnHeader columnHeaderType;
+        private System.Windows.Forms.ColumnHeader columnHeaderProgramId;
+        private System.Windows.Forms.ColumnHeader columnHeaderGroupId;
+        private System.Windows.Forms.ColumnHeader columnHeaderFormatName;
+        private System.Windows.Forms.ColumnHeader columnHeaderClosedCaptions;
+        private System.Windows.Forms.ColumnHeader columnHeaderBandwidth;
+        private System.Windows.Forms.ColumnHeader columnHeaderVideoResolution;
+        private System.Windows.Forms.ColumnHeader columnHeaderFrameRate;
+        private System.Windows.Forms.ColumnHeader columnHeaderCodecs;
+        private System.Windows.Forms.ColumnHeader columnHeaderLanguage;
     }
 }
 

@@ -23,7 +23,7 @@ namespace HlsDumpLib.GuiTest
         public const int COLUMN_ID_CHUNK_SIZE = 8;
         public const int COLUMN_ID_CHUNK_FILENAME = 9;
         public const int COLUMN_ID_CHUNK_URL = 10;
-        public const int COLUMN_ID_FIRST_CHUNK = 11;
+        public const int COLUMN_ID_FIRST_CHUNK_ID = 11;
         public const int COLUMN_ID_PROCESSED_CHUNKS = 12;
         public const int COLUMN_ID_LOST_CHUNKS = 13;
         public const int COLUMN_ID_DATE_DUMP_STARTED = 14;
@@ -32,7 +32,17 @@ namespace HlsDumpLib.GuiTest
         public const int COLUMN_ID_CHUNK_DOWNLOAD_ERRORS = 17;
         public const int COLUMN_ID_CHUNK_APPEND_ERRORS = 18;
         public const int COLUMN_ID_OTHER_ERRORS = 19;
-        public const int COLUMN_ID_PLAYLIST_URL = 20;
+        public const int COLUMN_ID_TYPE = 20;
+        public const int COLUMN_ID_PROGRAM_ID = 21;
+        public const int COLUMN_ID_GROUP_ID = 22;
+        public const int COLUMN_ID_FORMAT_NAME = 23;
+        public const int COLUMN_ID_CLOSED_CAPTIONS = 24;
+        public const int COLUMN_ID_BANDWIDTH = 25;
+        public const int COLUMN_ID_VIDEO_RESOLUTION = 26;
+        public const int COLUMN_ID_VIDEO_FRAME_RATE = 27;
+        public const int COLUMN_ID_CODECS = 28;
+        public const int COLUMN_ID_LANGUAGE = 29;
+        public const int COLUMN_ID_PLAYLIST_URL = 30;
 
         public Form1()
         {
@@ -164,7 +174,8 @@ namespace HlsDumpLib.GuiTest
             JArray jaColumns = json.Value<JArray>("columns");
             if (jaColumns != null)
             {
-                for (int i = 0; i < jaColumns.Count; ++i)
+                int columnCount = listViewStreams.Columns.Count; //too late bugfix
+                for (int i = 0; i < jaColumns.Count && i < columnCount; ++i)
                 {
                     JObject jColumn = jaColumns[i] as JObject;
                     listViewStreams.Columns[i].DisplayIndex = jColumn.Value<int>("displayIndex");
@@ -279,6 +290,16 @@ namespace HlsDumpLib.GuiTest
                 string.Empty,
                 string.Empty,
                 string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
                 streamItem.PlaylistUrl
             };
             item.SubItems.AddRange(subItems);
@@ -299,7 +320,36 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Проверяется...";
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_NEW_CHUNKS].Text = null;
+                    if (!streamItem.IsDumping)
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_FILE_SIZE].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_NEW_CHUNKS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_DELAY].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_FIRST_CHUNK_ID].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSED_CHUNKS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_LOST_CHUNKS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_DATE_DUMP_STARTED].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_ERRORS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_DOWNLOAD_ERRORS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_APPEND_ERRORS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_OTHER_ERRORS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_TYPE].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_PROGRAM_ID].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_GROUP_ID].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_FORMAT_NAME].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CLOSED_CAPTIONS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_BANDWIDTH].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_RESOLUTION].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_FRAME_RATE].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CODECS].Text = null;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_LANGUAGE].Text = null;
+                    }
                 }
             }
         }
@@ -377,11 +427,11 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnPlaylistFirstArrived(object sender, int chunkCount, int firstChunkId)
+        private void OnPlaylistFirstArrived(object sender, int chunkCount, int firstChunkId, M3UManifestItem manifestItem)
         {
             if (InvokeRequired)
             {
-                Invoke(new MethodInvoker(() => OnPlaylistFirstArrived(sender, chunkCount, firstChunkId)));
+                Invoke(new MethodInvoker(() => OnPlaylistFirstArrived(sender, chunkCount, firstChunkId, manifestItem)));
             }
             else
             {
@@ -389,7 +439,27 @@ namespace HlsDumpLib.GuiTest
                 int id = FindStreamItemInListView(streamItem, listViewStreams);
                 if (id >= 0)
                 {
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_FIRST_CHUNK].Text = firstChunkId.ToString();
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_FIRST_CHUNK_ID].Text = firstChunkId.ToString();
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_TYPE].Text = manifestItem.ItemType;
+                    if (manifestItem.ProgramId >= 0)
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_PROGRAM_ID].Text = manifestItem.ProgramId.ToString();
+                    }
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_GROUP_ID].Text = manifestItem.GroupId;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_FORMAT_NAME].Text = manifestItem.Name;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CLOSED_CAPTIONS].Text = manifestItem.ClosedCaptions;
+                    if (manifestItem.Bandwidth >= 0)
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_BANDWIDTH].Text = manifestItem.Bandwidth.ToString();
+                    }
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_RESOLUTION].Text =
+                        $"{manifestItem.VideoResolutionWidth}x{manifestItem.VideoResolutionHeight}";
+                    if (manifestItem.VideoFrameRate >= 0)
+                    {
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_FRAME_RATE].Text = manifestItem.VideoFrameRate.ToString();
+                    }
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CODECS].Text = manifestItem.Codecs;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_LANGUAGE].Text = manifestItem.Language;
                 }
             }
         }

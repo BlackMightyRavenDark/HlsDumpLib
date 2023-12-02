@@ -71,7 +71,7 @@ namespace HlsDumpLib.GuiTest
                                 (s, url) => playlistCheckingStarted?.Invoke(this, url),
                                 (s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow) =>
                                     playlistCheckingFinished?.Invoke(this, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow),
-                                (s, count, first) => playlistFirstArrived?.Invoke(this, count, first),
+                                (s, count, first, manifestItem) => playlistFirstArrived?.Invoke(this, count, first, manifestItem),
                                 (s, stream, fn) => outputStreamAssigned?.Invoke(this, stream, fn),
                                 (s, fn) => outputStreamClosed?.Invoke(this, fn),
                                 (s, delay, checkingInterval, cycleProcessingTime) =>

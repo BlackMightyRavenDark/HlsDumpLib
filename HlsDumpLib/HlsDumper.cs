@@ -47,7 +47,7 @@ namespace HlsDumpLib
         public delegate void PlaylistCheckingFinishedDelegate(object sender,
             int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
             string playlistContent, int errorCode, int playlistErrorCountInRow);
-        public delegate void PlaylistFirstArrivedDelegate(object sender, int chunkCount, int firstChunkId);
+        public delegate void PlaylistFirstArrivedDelegate(object sender, int chunkCount, int firstChunkId, M3UManifestItem manifestItem);
         public delegate void OutputStreamAssignedDelegate(object sender, Stream stream, string fileName);
         public delegate void OutputStreamClosedDelegate(object sender, string fileName);
         public delegate void PlaylistCheckingDelayCalculatedDelegate(object sender,
@@ -158,6 +158,7 @@ namespace HlsDumpLib
                             if (first)
                             {
                                 first = false;
+                                M3UManifestItem manifestItem = null;
                                 if (playlist.IsManifest)
                                 {
                                     if (playlist.Manifest.Items.Count == 0)
@@ -169,7 +170,8 @@ namespace HlsDumpLib
                                     }
 
                                     playlist.Manifest.SortByBandwidth();
-                                    ActualPlaylistUrl = playlist.Manifest.Items[0].PlaylistUrl;
+                                    manifestItem = playlist.Manifest.Items[0];
+                                    ActualPlaylistUrl = manifestItem.PlaylistUrl;
                                     playlistDownloader.Url = ActualPlaylistUrl;
                                     playlistErrorCode = playlistDownloader.DownloadString(out response);
                                     if (playlistErrorCode != 200)
@@ -186,7 +188,7 @@ namespace HlsDumpLib
                                 CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
                                 outputFilePath += playlist.GetOutputFileExtension();
 
-                                playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId);
+                                playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId, manifestItem);
                             }
 
                             _currentPlaylistFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
