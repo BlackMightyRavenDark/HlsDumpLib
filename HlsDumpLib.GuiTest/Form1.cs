@@ -439,11 +439,11 @@ namespace HlsDumpLib.GuiTest
             }
         }
 
-        private void OnDumpingFinished(object sender, int errorCode)
+        private void OnDumpingFinished(object sender, int errorCode, string errorText)
         {
             if (InvokeRequired)
             {
-                Invoke(new MethodInvoker(() => OnDumpingFinished(sender, errorCode)));
+                Invoke(new MethodInvoker(() => OnDumpingFinished(sender, errorCode, errorText)));
             }
             else
             {
@@ -456,27 +456,43 @@ namespace HlsDumpLib.GuiTest
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = null;
                     listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = null;
 
-                    string errorText;
+                    string t;
                     switch (errorCode)
                     {
                         case HlsDumper.DUMPING_ERROR_PLAYLIST_GONE:
-                            errorText = "Завершён";
+                            t = "Завершён";
                             break;
 
                         case HlsDumper.DUMPING_ERROR_CANCELED:
-                            errorText = "Отменён";
+                            t = "Отменён";
                             break;
 
                         case HlsDumper.DUMPING_ERROR_NO_FILE_NAME_SPECIFIED:
-                            errorText = "Не указано имя файла";
+                            t = "Не указано имя файла";
+                            break;
+
+                        case HlsDumper.DUMPING_ERROR_MANIFEST_HAS_NO_PLAYLISTS:
+                            t = "Плейлисты не найдены";
                             break;
 
                         default:
-                            errorText = null;
+                            t = null;
                             break;
                     }
 
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = errorText;
+                    if (!string.IsNullOrEmpty(errorText))
+                    {
+                        if (string.IsNullOrEmpty(t))
+                        {
+                            t = errorText;
+                        }
+                        else
+                        {
+                            t += $" ({errorText})";
+                        }
+                    }
+
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = t;
                 }
             }
         }

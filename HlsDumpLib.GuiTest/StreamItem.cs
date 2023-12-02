@@ -88,9 +88,9 @@ namespace HlsDumpLib.GuiTest
                                     chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount),
                                 (s, fs, e) => dumpingProgress?.Invoke(this, fs, e),
                                 null, null, null, null, null,
-                                (s, e) =>
+                                (s, e, t) =>
                                 {
-                                    dumpingFinished?.Invoke(this, e);
+                                    dumpingFinished?.Invoke(this, e, t);
                                     Dumper = null;
                                 },
                                 playlistCheckingIntervalMilliseconds,

@@ -33,7 +33,7 @@ namespace HlsDumpLib
                 return null;
             }
 
-            string[] keyValues = inputString.Split(new char[] { keySeparator }, 2);
+            string[] keyValues = inputString.Split(keySeparator);
             Dictionary<string, string> dict = new Dictionary<string, string>();
             for (int i = 0; i < keyValues.Length; ++i)
             {

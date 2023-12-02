@@ -41,6 +41,7 @@ namespace HlsDumpLib
         public const int DUMPING_ERROR_PLAYLIST_GONE = -1;
         public const int DUMPING_ERROR_CANCELED = -2;
         public const int DUMPING_ERROR_NO_FILE_NAME_SPECIFIED = -3;
+        public const int DUMPING_ERROR_MANIFEST_HAS_NO_PLAYLISTS = -4;
 
         public delegate void PlaylistCheckingStartedDelegate(object sender, string playlistUrl);
         public delegate void PlaylistCheckingFinishedDelegate(object sender,
@@ -66,7 +67,7 @@ namespace HlsDumpLib
         public delegate void DumpMessageDelegate(object sender, string message);
         public delegate void DumpWarningDelegate(object sender, string message, int errorCount);
         public delegate void DumpErrorDelegate(object sender, string message, int errorCount);
-        public delegate void DumpFinishedDelegate(object sender, int errorCode);
+        public delegate void DumpFinishedDelegate(object sender, int errorCode, string errorText);
 
         public HlsDumper(string playlistUrl)
         {
@@ -112,7 +113,7 @@ namespace HlsDumpLib
             if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
             {
                 dumpError?.Invoke(this, "No filename specified", 1);
-                dumpFinished?.Invoke(this, DUMPING_ERROR_NO_FILE_NAME_SPECIFIED);
+                dumpFinished?.Invoke(this, DUMPING_ERROR_NO_FILE_NAME_SPECIFIED, null);
                 return;
             }
 
@@ -157,9 +158,18 @@ namespace HlsDumpLib
                             if (first)
                             {
                                 first = false;
-                                if (playlist.HasSubPlaylists)
+                                if (playlist.IsManifest)
                                 {
-                                    ActualPlaylistUrl = playlist.SubPlaylistUrls[0];
+                                    if (playlist.Manifest.Items.Count == 0)
+                                    {
+                                        OtherErrorCountInRow++;
+                                        dumpError?.Invoke(this, "No playlists found in manifest", OtherErrorCountInRow);
+                                        dumpFinished?.Invoke(this, DUMPING_ERROR_MANIFEST_HAS_NO_PLAYLISTS, playlist.Manifest.ErrorText);
+                                        return;
+                                    }
+
+                                    playlist.Manifest.SortByBandwidth();
+                                    ActualPlaylistUrl = playlist.Manifest.Items[0].PlaylistUrl;
                                     playlistDownloader.Url = ActualPlaylistUrl;
                                     playlistErrorCode = playlistDownloader.DownloadString(out response);
                                     if (playlistErrorCode != 200)
@@ -171,7 +181,6 @@ namespace HlsDumpLib
                                     playlist = new M3UPlaylist(response, ActualPlaylistUrl);
                                     playlist.Parse();
                                 }
-
                                 headerChunkExists = playlist.HasHeaderSegment;
 
                                 CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
@@ -527,7 +536,7 @@ namespace HlsDumpLib
             });
 
             int e = _cancellationToken.IsCancellationRequested ? DUMPING_ERROR_CANCELED : DUMPING_ERROR_PLAYLIST_GONE;
-            dumpFinished?.Invoke(this, e);
+            dumpFinished?.Invoke(this, e, null);
         }
 
         public void StopDumping()

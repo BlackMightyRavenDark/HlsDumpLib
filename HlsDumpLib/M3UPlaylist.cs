@@ -18,11 +18,11 @@ namespace HlsDumpLib
         public int MediaSequence { get; private set; } = -1;
         public string StreamHeaderSegmentUrl { get; private set; }
         public List<StreamSegment> Segments { get; private set; }
-        public List<string> SubPlaylistUrls { get; private set; }
+        public M3UManifest Manifest { get; private set; }
 
         public bool HasHeaderSegment => !string.IsNullOrEmpty(StreamHeaderSegmentUrl) && !string.IsNullOrWhiteSpace(StreamHeaderSegmentUrl);
         public bool HasSegments => Segments != null && Segments.Count > 0;
-        public bool HasSubPlaylists => SubPlaylistUrls != null && SubPlaylistUrls.Count > 0;
+        public bool IsManifest => Manifest != null;
 
         public M3UPlaylist(string playlistContent, string playlistUrl)
         {
@@ -46,11 +46,6 @@ namespace HlsDumpLib
                         {
                             PlaylistDate = ExtractDateFromExtServerString(splitted[1]);
                         }
-                        else if (splitted[0] == "#EXT-X-STREAM-INF")
-                        {
-                            ParseManifest(strings, i);
-                            break;
-                        }
                         else if (splitted[0] == "#EXT-X-MEDIA-SEQUENCE")
                         {
                             MediaSequence = int.TryParse(splitted[1], out int id) ? id : -1;
@@ -58,6 +53,11 @@ namespace HlsDumpLib
                         else if (splitted[0] == "#EXT-X-MAP")
                         {
                             StreamHeaderSegmentUrl = ExtractUrlFromXMapString(splitted[1]);
+                        }
+                        else if (splitted[0] == "#EXT-X-STREAM-INF")
+                        {
+                            Manifest = M3UManifest.Parse(PlaylistContent, PlaylistUrl);
+                            return;
                         }
                         else if (splitted[0] == "#EXT-X-PROGRAM-DATE-TIME" ||
                             splitted[0] == "#EXTINF")
@@ -193,37 +193,6 @@ namespace HlsDumpLib
 
                     segmentId++;
                     firstSegment = false;
-                }
-            }
-        }
-
-        private void ParseManifest(string[] manifestStrings, int startStringId)
-        {
-            SubPlaylistUrls = new List<string>();
-            int max = manifestStrings.Length - 2;
-            for (int i = startStringId; i <= max; i += 2)
-            {
-                string[] splitted = manifestStrings[i].Split(new char[] { ':' }, 2);
-                if (splitted != null && splitted.Length == 2)
-                {
-                    if (splitted[0] == "#EXT-X-STREAM-INF")
-                    {
-                        if (i < manifestStrings.Length - 1)
-                        {
-                            string t = manifestStrings[i + 1];
-                            if (!t.StartsWith("#"))
-                            {
-                                int n = t.IndexOf("?");
-                                if (n > 0) { t = t.Substring(0, n); }
-                                if (t.EndsWith("m3u8", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    string url = t.StartsWith("http", StringComparison.OrdinalIgnoreCase) ?
-                                        t : $"{_playlistPath}/{t}";
-                                    SubPlaylistUrls.Add(url);
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
