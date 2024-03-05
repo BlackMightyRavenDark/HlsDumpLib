@@ -422,7 +422,10 @@ namespace HlsDumpLib
                                             {
                                                 ChunkDownloadErrorCount++;
                                                 OtherErrorCountInRow++;
-                                                jaLostChunks.Add(chunk.Id);
+                                                if (!jaLostChunks.Any(element => element.Value<int>() == chunk.Id))
+                                                {
+                                                    jaLostChunks.Add(chunk.Id);
+                                                }
                                                 chunkDownloadFailed?.Invoke(this, chunkDownloadErrorCode, ChunkDownloadErrorCount);
                                             }
                                         }
