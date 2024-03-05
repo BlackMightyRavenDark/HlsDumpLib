@@ -440,26 +440,42 @@ namespace HlsDumpLib.GuiTest
                 if (id >= 0)
                 {
                     listViewStreams.Items[id].SubItems[COLUMN_ID_FIRST_CHUNK_ID].Text = firstChunkId.ToString();
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_TYPE].Text = manifestItem.ItemType;
-                    if (manifestItem.ProgramId >= 0)
+                    if (manifestItem != null)
                     {
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_PROGRAM_ID].Text = manifestItem.ProgramId.ToString();
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_TYPE].Text = manifestItem.ItemType;
+                        if (manifestItem.ProgramId >= 0)
+                        {
+                            listViewStreams.Items[id].SubItems[COLUMN_ID_PROGRAM_ID].Text = manifestItem.ProgramId.ToString();
+                        }
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_GROUP_ID].Text = manifestItem.GroupId;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_FORMAT_NAME].Text = manifestItem.Name;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CLOSED_CAPTIONS].Text = manifestItem.ClosedCaptions;
+                        if (manifestItem.Bandwidth >= 0)
+                        {
+                            listViewStreams.Items[id].SubItems[COLUMN_ID_BANDWIDTH].Text = manifestItem.Bandwidth.ToString();
+                        }
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_RESOLUTION].Text =
+                            $"{manifestItem.VideoResolutionWidth}x{manifestItem.VideoResolutionHeight}";
+                        if (manifestItem.VideoFrameRate >= 0)
+                        {
+                            listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_FRAME_RATE].Text = manifestItem.VideoFrameRate.ToString();
+                        }
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_CODECS].Text = manifestItem.Codecs;
+                        listViewStreams.Items[id].SubItems[COLUMN_ID_LANGUAGE].Text = manifestItem.Language;
                     }
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_GROUP_ID].Text = manifestItem.GroupId;
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_FORMAT_NAME].Text = manifestItem.Name;
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_CLOSED_CAPTIONS].Text = manifestItem.ClosedCaptions;
-                    if (manifestItem.Bandwidth >= 0)
-                    {
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_BANDWIDTH].Text = manifestItem.Bandwidth.ToString();
-                    }
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_RESOLUTION].Text =
-                        $"{manifestItem.VideoResolutionWidth}x{manifestItem.VideoResolutionHeight}";
-                    if (manifestItem.VideoFrameRate >= 0)
-                    {
-                        listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_FRAME_RATE].Text = manifestItem.VideoFrameRate.ToString();
-                    }
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_CODECS].Text = manifestItem.Codecs;
-                    listViewStreams.Items[id].SubItems[COLUMN_ID_LANGUAGE].Text = manifestItem.Language;
+                }
+                else
+                {
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_TYPE].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_PROGRAM_ID].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_GROUP_ID].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_FORMAT_NAME].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CLOSED_CAPTIONS].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_BANDWIDTH].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_RESOLUTION].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_FRAME_RATE].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_CODECS].Text = null;
+                    listViewStreams.Items[id].SubItems[COLUMN_ID_LANGUAGE].Text = null;
                 }
             }
         }
