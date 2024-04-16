@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HlsDumpLib", "HlsDumpLib\Hl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HlsDumpLib.GuiTest", "HlsDumpLib.GuiTest\HlsDumpLib.GuiTest.csproj", "{CACF9B1C-2138-42D3-835E-056158B0DCCD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HlsDumpLib.GuiTestWPF", "HlsDumpLib.GuiTestWPF\HlsDumpLib.GuiTestWPF.csproj", "{D4614430-BF36-45D3-A6BE-B79FF83C3BC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{CACF9B1C-2138-42D3-835E-056158B0DCCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CACF9B1C-2138-42D3-835E-056158B0DCCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CACF9B1C-2138-42D3-835E-056158B0DCCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4614430-BF36-45D3-A6BE-B79FF83C3BC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4614430-BF36-45D3-A6BE-B79FF83C3BC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4614430-BF36-45D3-A6BE-B79FF83C3BC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4614430-BF36-45D3-A6BE-B79FF83C3BC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
