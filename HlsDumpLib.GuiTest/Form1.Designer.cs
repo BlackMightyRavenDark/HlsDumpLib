@@ -506,12 +506,12 @@
             0});
             this.numericUpDownPlaylistCheckingInterval.Location = new System.Drawing.Point(218, 90);
             this.numericUpDownPlaylistCheckingInterval.Maximum = new decimal(new int[] {
-            10000,
+            5000,
             0,
             0,
             0});
             this.numericUpDownPlaylistCheckingInterval.Minimum = new decimal(new int[] {
-            200,
+            500,
             0,
             0,
             0});
