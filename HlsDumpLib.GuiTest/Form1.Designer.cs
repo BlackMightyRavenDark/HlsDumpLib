@@ -31,7 +31,7 @@
 			this.components = new System.ComponentModel.Container();
 			this.label1 = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
-			this.textBoxTitle = new System.Windows.Forms.TextBox();
+			this.textBoxStreamTitle = new System.Windows.Forms.TextBox();
 			this.textBoxUrl = new System.Windows.Forms.TextBox();
 			this.listViewStreams = new System.Windows.Forms.ListView();
 			this.columnHeaderTitle = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -65,11 +65,11 @@
 			this.columnHeaderCodecs = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.columnHeaderLanguage = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.columnHeaderPlaylistUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.btnAdd = new System.Windows.Forms.Button();
+			this.btnAddStream = new System.Windows.Forms.Button();
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.miCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.checkBoxSaveChunksInfo = new System.Windows.Forms.CheckBox();
+			this.checkBoxSaveChunkInfos = new System.Windows.Forms.CheckBox();
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.label3 = new System.Windows.Forms.Label();
 			this.label4 = new System.Windows.Forms.Label();
@@ -77,17 +77,17 @@
 			this.checkBoxSaveChunkFileName = new System.Windows.Forms.CheckBox();
 			this.checkBoxSaveChunkUrl = new System.Windows.Forms.CheckBox();
 			this.checkBoxUseGmtTime = new System.Windows.Forms.CheckBox();
-			this.btnSelectDownloadingDir = new System.Windows.Forms.Button();
+			this.btnBrowseDownloadDir = new System.Windows.Forms.Button();
 			this.numericUpDownPlaylistErrorCountInRow = new System.Windows.Forms.NumericUpDown();
 			this.numericUpDownOtherErrorCountInRow = new System.Windows.Forms.NumericUpDown();
-			this.numericUpDownPlaylistCheckingInterval = new System.Windows.Forms.NumericUpDown();
+			this.numericUpDownPlaylistCheckInterval = new System.Windows.Forms.NumericUpDown();
 			this.label6 = new System.Windows.Forms.Label();
 			this.label7 = new System.Windows.Forms.Label();
-			this.textBoxDownloadingDir = new System.Windows.Forms.TextBox();
+			this.textBoxDownloadDir = new System.Windows.Forms.TextBox();
 			this.contextMenuStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
-			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckingInterval)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckInterval)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -109,14 +109,14 @@
 			this.label2.TabIndex = 1;
 			this.label2.Text = "Ссылка на плейлист:";
 			// 
-			// textBoxTitle
+			// textBoxStreamTitle
 			// 
-			this.textBoxTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+			this.textBoxStreamTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
 			| System.Windows.Forms.AnchorStyles.Right)));
-			this.textBoxTitle.Location = new System.Drawing.Point(164, 36);
-			this.textBoxTitle.Name = "textBoxTitle";
-			this.textBoxTitle.Size = new System.Drawing.Size(624, 20);
-			this.textBoxTitle.TabIndex = 2;
+			this.textBoxStreamTitle.Location = new System.Drawing.Point(164, 36);
+			this.textBoxStreamTitle.Name = "textBoxStreamTitle";
+			this.textBoxStreamTitle.Size = new System.Drawing.Size(624, 20);
+			this.textBoxStreamTitle.TabIndex = 2;
 			// 
 			// textBoxUrl
 			// 
@@ -176,7 +176,7 @@
 			this.listViewStreams.TabIndex = 4;
 			this.listViewStreams.UseCompatibleStateImageBehavior = false;
 			this.listViewStreams.View = System.Windows.Forms.View.Details;
-			this.listViewStreams.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseDoubleClick);
+			this.listViewStreams.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listViewStreams_MouseDoubleClick);
 			this.listViewStreams.MouseUp += new System.Windows.Forms.MouseEventHandler(this.listViewStreams_MouseUp);
 			// 
 			// columnHeaderTitle
@@ -336,16 +336,16 @@
 			this.columnHeaderPlaylistUrl.Text = "Ссылка на плейлист";
 			this.columnHeaderPlaylistUrl.Width = 300;
 			// 
-			// btnAdd
+			// btnAddStream
 			// 
-			this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnAdd.Location = new System.Drawing.Point(713, 160);
-			this.btnAdd.Name = "btnAdd";
-			this.btnAdd.Size = new System.Drawing.Size(75, 25);
-			this.btnAdd.TabIndex = 5;
-			this.btnAdd.Text = "Добавить";
-			this.btnAdd.UseVisualStyleBackColor = true;
-			this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
+			this.btnAddStream.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.btnAddStream.Location = new System.Drawing.Point(713, 160);
+			this.btnAddStream.Name = "btnAddStream";
+			this.btnAddStream.Size = new System.Drawing.Size(75, 25);
+			this.btnAddStream.TabIndex = 5;
+			this.btnAddStream.Text = "Добавить";
+			this.btnAddStream.UseVisualStyleBackColor = true;
+			this.btnAddStream.Click += new System.EventHandler(this.btnAddStream_Click);
 			// 
 			// contextMenuStrip1
 			// 
@@ -369,18 +369,18 @@
 			this.miCancelToolStripMenuItem.Text = "Отменить";
 			this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
 			// 
-			// checkBoxSaveChunksInfo
+			// checkBoxSaveChunkInfos
 			// 
-			this.checkBoxSaveChunksInfo.AutoSize = true;
-			this.checkBoxSaveChunksInfo.Checked = true;
-			this.checkBoxSaveChunksInfo.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxSaveChunksInfo.Location = new System.Drawing.Point(12, 165);
-			this.checkBoxSaveChunksInfo.Name = "checkBoxSaveChunksInfo";
-			this.checkBoxSaveChunksInfo.Size = new System.Drawing.Size(194, 17);
-			this.checkBoxSaveChunksInfo.TabIndex = 6;
-			this.checkBoxSaveChunksInfo.Text = "Сохранять информацию о чанках";
-			this.toolTip1.SetToolTip(this.checkBoxSaveChunksInfo, "Невозможно изменить для уже добавленных элементов");
-			this.checkBoxSaveChunksInfo.UseVisualStyleBackColor = true;
+			this.checkBoxSaveChunkInfos.AutoSize = true;
+			this.checkBoxSaveChunkInfos.Checked = true;
+			this.checkBoxSaveChunkInfos.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkBoxSaveChunkInfos.Location = new System.Drawing.Point(12, 165);
+			this.checkBoxSaveChunkInfos.Name = "checkBoxSaveChunkInfos";
+			this.checkBoxSaveChunkInfos.Size = new System.Drawing.Size(194, 17);
+			this.checkBoxSaveChunkInfos.TabIndex = 6;
+			this.checkBoxSaveChunkInfos.Text = "Сохранять информацию о чанках";
+			this.toolTip1.SetToolTip(this.checkBoxSaveChunkInfos, "Невозможно изменить для уже добавленных элементов");
+			this.checkBoxSaveChunkInfos.UseVisualStyleBackColor = true;
 			// 
 			// label3
 			// 
@@ -451,17 +451,17 @@
 			this.toolTip1.SetToolTip(this.checkBoxUseGmtTime, "Невозможно изменить для уже добавленных элементов");
 			this.checkBoxUseGmtTime.UseVisualStyleBackColor = true;
 			// 
-			// btnSelectDownloadingDir
+			// btnBrowseDownloadDir
 			// 
-			this.btnSelectDownloadingDir.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnSelectDownloadingDir.Location = new System.Drawing.Point(738, 7);
-			this.btnSelectDownloadingDir.Name = "btnSelectDownloadingDir";
-			this.btnSelectDownloadingDir.Size = new System.Drawing.Size(50, 23);
-			this.btnSelectDownloadingDir.TabIndex = 17;
-			this.btnSelectDownloadingDir.Text = "...";
-			this.toolTip1.SetToolTip(this.btnSelectDownloadingDir, "Выбрать папку");
-			this.btnSelectDownloadingDir.UseVisualStyleBackColor = true;
-			this.btnSelectDownloadingDir.Click += new System.EventHandler(this.btnSelectDownloadingDir_Click);
+			this.btnBrowseDownloadDir.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.btnBrowseDownloadDir.Location = new System.Drawing.Point(738, 7);
+			this.btnBrowseDownloadDir.Name = "btnBrowseDownloadDir";
+			this.btnBrowseDownloadDir.Size = new System.Drawing.Size(50, 23);
+			this.btnBrowseDownloadDir.TabIndex = 17;
+			this.btnBrowseDownloadDir.Text = "...";
+			this.toolTip1.SetToolTip(this.btnBrowseDownloadDir, "Выбрать папку");
+			this.btnBrowseDownloadDir.UseVisualStyleBackColor = true;
+			this.btnBrowseDownloadDir.Click += new System.EventHandler(this.btnBrowseDownloadDir_Click);
 			// 
 			// numericUpDownPlaylistErrorCountInRow
 			// 
@@ -497,28 +497,28 @@
 			0,
 			0});
 			// 
-			// numericUpDownPlaylistCheckingInterval
+			// numericUpDownPlaylistCheckInterval
 			// 
-			this.numericUpDownPlaylistCheckingInterval.Increment = new decimal(new int[] {
+			this.numericUpDownPlaylistCheckInterval.Increment = new decimal(new int[] {
 			100,
 			0,
 			0,
 			0});
-			this.numericUpDownPlaylistCheckingInterval.Location = new System.Drawing.Point(218, 90);
-			this.numericUpDownPlaylistCheckingInterval.Maximum = new decimal(new int[] {
+			this.numericUpDownPlaylistCheckInterval.Location = new System.Drawing.Point(218, 90);
+			this.numericUpDownPlaylistCheckInterval.Maximum = new decimal(new int[] {
 			5000,
 			0,
 			0,
 			0});
-			this.numericUpDownPlaylistCheckingInterval.Minimum = new decimal(new int[] {
+			this.numericUpDownPlaylistCheckInterval.Minimum = new decimal(new int[] {
 			500,
 			0,
 			0,
 			0});
-			this.numericUpDownPlaylistCheckingInterval.Name = "numericUpDownPlaylistCheckingInterval";
-			this.numericUpDownPlaylistCheckingInterval.Size = new System.Drawing.Size(53, 20);
-			this.numericUpDownPlaylistCheckingInterval.TabIndex = 11;
-			this.numericUpDownPlaylistCheckingInterval.Value = new decimal(new int[] {
+			this.numericUpDownPlaylistCheckInterval.Name = "numericUpDownPlaylistCheckInterval";
+			this.numericUpDownPlaylistCheckInterval.Size = new System.Drawing.Size(53, 20);
+			this.numericUpDownPlaylistCheckInterval.TabIndex = 11;
+			this.numericUpDownPlaylistCheckInterval.Value = new decimal(new int[] {
 			2000,
 			0,
 			0,
@@ -542,38 +542,38 @@
 			this.label7.TabIndex = 18;
 			this.label7.Text = "Папка для скачивания:";
 			// 
-			// textBoxDownloadingDir
+			// textBoxDownloadDir
 			// 
-			this.textBoxDownloadingDir.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+			this.textBoxDownloadDir.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
 			| System.Windows.Forms.AnchorStyles.Right)));
-			this.textBoxDownloadingDir.Location = new System.Drawing.Point(164, 9);
-			this.textBoxDownloadingDir.Name = "textBoxDownloadingDir";
-			this.textBoxDownloadingDir.Size = new System.Drawing.Size(568, 20);
-			this.textBoxDownloadingDir.TabIndex = 19;
+			this.textBoxDownloadDir.Location = new System.Drawing.Point(164, 9);
+			this.textBoxDownloadDir.Name = "textBoxDownloadDir";
+			this.textBoxDownloadDir.Size = new System.Drawing.Size(568, 20);
+			this.textBoxDownloadDir.TabIndex = 19;
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(800, 355);
-			this.Controls.Add(this.textBoxDownloadingDir);
+			this.Controls.Add(this.textBoxDownloadDir);
 			this.Controls.Add(this.label7);
-			this.Controls.Add(this.btnSelectDownloadingDir);
+			this.Controls.Add(this.btnBrowseDownloadDir);
 			this.Controls.Add(this.checkBoxUseGmtTime);
 			this.Controls.Add(this.checkBoxSaveChunkUrl);
 			this.Controls.Add(this.checkBoxSaveChunkFileName);
 			this.Controls.Add(this.label6);
 			this.Controls.Add(this.label5);
-			this.Controls.Add(this.numericUpDownPlaylistCheckingInterval);
+			this.Controls.Add(this.numericUpDownPlaylistCheckInterval);
 			this.Controls.Add(this.numericUpDownOtherErrorCountInRow);
 			this.Controls.Add(this.numericUpDownPlaylistErrorCountInRow);
 			this.Controls.Add(this.label4);
 			this.Controls.Add(this.label3);
-			this.Controls.Add(this.checkBoxSaveChunksInfo);
-			this.Controls.Add(this.btnAdd);
+			this.Controls.Add(this.checkBoxSaveChunkInfos);
+			this.Controls.Add(this.btnAddStream);
 			this.Controls.Add(this.listViewStreams);
 			this.Controls.Add(this.textBoxUrl);
-			this.Controls.Add(this.textBoxTitle);
+			this.Controls.Add(this.textBoxStreamTitle);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.label1);
 			this.DoubleBuffered = true;
@@ -585,7 +585,7 @@
 			this.contextMenuStrip1.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).EndInit();
-			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckingInterval)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckInterval)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -595,14 +595,14 @@
 
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Label label2;
-		private System.Windows.Forms.TextBox textBoxTitle;
+		private System.Windows.Forms.TextBox textBoxStreamTitle;
 		private System.Windows.Forms.TextBox textBoxUrl;
 		private System.Windows.Forms.ListView listViewStreams;
 		private System.Windows.Forms.ColumnHeader columnHeaderTitle;
 		private System.Windows.Forms.ColumnHeader columnHeaderFileName;
 		private System.Windows.Forms.ColumnHeader columnHeaderFileSize;
 		private System.Windows.Forms.ColumnHeader columnHeaderPlaylistUrl;
-		private System.Windows.Forms.Button btnAdd;
+		private System.Windows.Forms.Button btnAddStream;
 		private System.Windows.Forms.ColumnHeader columnHeaderDateStarted;
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem miCheckToolStripMenuItem;
@@ -610,7 +610,7 @@
 		private System.Windows.Forms.ColumnHeader columnHeaderState;
 		private System.Windows.Forms.ColumnHeader columnHeaderNewChunks;
 		private System.Windows.Forms.ColumnHeader columnHeaderDelay;
-		private System.Windows.Forms.CheckBox checkBoxSaveChunksInfo;
+		private System.Windows.Forms.CheckBox checkBoxSaveChunkInfos;
 		private System.Windows.Forms.ToolTip toolTip1;
 		private System.Windows.Forms.ColumnHeader columnHeaderFirstChunkSession;
 		private System.Windows.Forms.ColumnHeader columnHeaderProcessedChunks;
@@ -623,7 +623,7 @@
 		private System.Windows.Forms.NumericUpDown numericUpDownOtherErrorCountInRow;
 		private System.Windows.Forms.ColumnHeader columnHeaderOtherErrors;
 		private System.Windows.Forms.ColumnHeader columnHeaderChunkFileSize;
-		private System.Windows.Forms.NumericUpDown numericUpDownPlaylistCheckingInterval;
+		private System.Windows.Forms.NumericUpDown numericUpDownPlaylistCheckInterval;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.ColumnHeader columnHeaderChunkDownloadErrors;
@@ -635,9 +635,9 @@
 		private System.Windows.Forms.CheckBox checkBoxSaveChunkFileName;
 		private System.Windows.Forms.CheckBox checkBoxSaveChunkUrl;
 		private System.Windows.Forms.CheckBox checkBoxUseGmtTime;
-		private System.Windows.Forms.Button btnSelectDownloadingDir;
+		private System.Windows.Forms.Button btnBrowseDownloadDir;
 		private System.Windows.Forms.Label label7;
-		private System.Windows.Forms.TextBox textBoxDownloadingDir;
+		private System.Windows.Forms.TextBox textBoxDownloadDir;
 		private System.Windows.Forms.ColumnHeader columnHeaderType;
 		private System.Windows.Forms.ColumnHeader columnHeaderProgramId;
 		private System.Windows.Forms.ColumnHeader columnHeaderGroupId;

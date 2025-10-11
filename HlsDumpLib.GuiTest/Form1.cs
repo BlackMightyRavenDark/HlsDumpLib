@@ -90,11 +90,11 @@ namespace HlsDumpLib.GuiTest
 		{
 			JObject json = new JObject()
 			{
-				["downloadDir"] = textBoxDownloadingDir.Text,
+				["downloadDir"] = textBoxDownloadDir.Text,
 				["maxPlaylistErrorsInRow"] = (int)numericUpDownPlaylistErrorCountInRow.Value,
 				["maxOtherErrorsInRow"] = (int)numericUpDownOtherErrorCountInRow.Value,
-				["playlistCheckInterval"] = (int)numericUpDownPlaylistCheckingInterval.Value,
-				["saveChunkInfos"] = checkBoxSaveChunksInfo.Checked,
+				["playlistCheckInterval"] = (int)numericUpDownPlaylistCheckInterval.Value,
+				["saveChunkInfos"] = checkBoxSaveChunkInfos.Checked,
 				["storeChunkFileName"] = checkBoxSaveChunkFileName.Checked,
 				["storeChunkUrl"] = checkBoxSaveChunkUrl.Checked,
 				["useGmtTime"] = checkBoxUseGmtTime.Checked
@@ -126,7 +126,7 @@ namespace HlsDumpLib.GuiTest
 				{
 					dir = Path.GetDirectoryName(Application.ExecutablePath);
 				}
-				textBoxDownloadingDir.Text = dir;
+				textBoxDownloadDir.Text = dir;
 			}
 			{
 				JToken jt = json.Value<JToken>("maxPlaylistErrorsInRow");
@@ -141,15 +141,15 @@ namespace HlsDumpLib.GuiTest
 				if (jt != null)
 				{
 					int n = jt.Value<int>();
-					int min = (int)numericUpDownPlaylistCheckingInterval.Minimum;
-					numericUpDownPlaylistCheckingInterval.Value = n < min ? min : n;
+					int min = (int)numericUpDownPlaylistCheckInterval.Minimum;
+					numericUpDownPlaylistCheckInterval.Value = n < min ? min : n;
 				}
 			}
 			{
 				JToken jt = json.Value<JToken>("saveChunkInfos");
 				if (jt != null)
 				{
-					checkBoxSaveChunksInfo.Checked = jt.Value<bool>();
+					checkBoxSaveChunkInfos.Checked = jt.Value<bool>();
 				}
 			}
 			{
@@ -188,19 +188,19 @@ namespace HlsDumpLib.GuiTest
 			}
 		}
 
-		private void btnSelectDownloadingDir_Click(object sender, EventArgs e)
+		private void btnBrowseDownloadDir_Click(object sender, EventArgs e)
 		{
 			FolderBrowserDialog fbd = new FolderBrowserDialog();
 			fbd.Description = "Выберите папку для скачивания";
-			fbd.SelectedPath = textBoxDownloadingDir.Text;
+			fbd.SelectedPath = textBoxDownloadDir.Text;
 			if (fbd.ShowDialog() == DialogResult.OK)
 			{
-				textBoxDownloadingDir.Text = fbd.SelectedPath;
+				textBoxDownloadDir.Text = fbd.SelectedPath;
 			}
 			fbd.Dispose();
 		}
 
-		private void btnAdd_Click(object sender, EventArgs e)
+		private void btnAddStream_Click(object sender, EventArgs e)
 		{
 			string url = textBoxUrl.Text;
 			if (string.IsNullOrEmpty(url) || string.IsNullOrWhiteSpace(url))
@@ -210,15 +210,15 @@ namespace HlsDumpLib.GuiTest
 				return;
 			}
 
-			string title = textBoxTitle.Text?.Trim();
+			string title = textBoxStreamTitle.Text?.Trim();
 			if (string.IsNullOrEmpty(title))
 			{
 				title = "untitled";
 			}
 
-			string downloadingDir = textBoxDownloadingDir.Text;
-			bool dirIsEmpty = string.IsNullOrEmpty(downloadingDir) || string.IsNullOrWhiteSpace(downloadingDir);
-			if (!dirIsEmpty && !Directory.Exists(downloadingDir))
+			string downloadDir = textBoxDownloadDir.Text;
+			bool dirIsEmpty = string.IsNullOrEmpty(downloadDir) || string.IsNullOrWhiteSpace(downloadDir);
+			if (!dirIsEmpty && !Directory.Exists(downloadDir))
 			{
 				MessageBox.Show("Папка для скачивания не найдена!", "Ошибка!",
 					MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -228,7 +228,7 @@ namespace HlsDumpLib.GuiTest
 			string fileName = checkBoxUseGmtTime.Checked ?
 				FixFileName($"{title}_{DateTime.UtcNow:yyyy-MM-dd HH-mm-ss-fff} GMT") :
 				FixFileName($"{title}_{DateTime.Now:yyyy-MM-dd HH-mm-ss-fff}");
-			string filePath = dirIsEmpty ? fileName : Path.Combine(downloadingDir, fileName);
+			string filePath = dirIsEmpty ? fileName : Path.Combine(downloadDir, fileName);
 
 			StreamItem item = new StreamItem(title, url, filePath);
 			AddItemToListView(item);
@@ -261,7 +261,7 @@ namespace HlsDumpLib.GuiTest
 			}
 		}
 
-		private void listView1_MouseDoubleClick(object sender, MouseEventArgs e)
+		private void listViewStreams_MouseDoubleClick(object sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Left)
 			{
@@ -748,13 +748,13 @@ namespace HlsDumpLib.GuiTest
 				if (!streamItem.IsChecking && !streamItem.IsDumping)
 				{
 					listViewStreams.Items[itemId].SubItems[COLUMN_ID_STATE].Text = "Запуск проверки...";
-					bool saveChunksInfo = checkBoxSaveChunksInfo.Checked;
+					bool saveChunksInfo = checkBoxSaveChunkInfos.Checked;
 					bool storeChunkFileName = checkBoxSaveChunkFileName.Checked;
 					bool storeChunkUrl = checkBoxSaveChunkUrl.Checked;
 					bool useGmtTime = checkBoxUseGmtTime.Checked;
 					int maxPlaylistErrorsInRow = (int)numericUpDownPlaylistErrorCountInRow.Value;
 					int maxOtherErrorsInRow = (int)numericUpDownOtherErrorCountInRow.Value;
-					int playlistCheckingIntervalMilliseconds = (int)numericUpDownPlaylistCheckingInterval.Value;
+					int playlistCheckingIntervalMilliseconds = (int)numericUpDownPlaylistCheckInterval.Value;
 
 					streamItem.Check(OnCheckingStarted, OnCheckingFinished,
 						OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
