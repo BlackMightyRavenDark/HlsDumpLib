@@ -88,23 +88,26 @@ namespace HlsDumpLib.GuiTest
 
 		private void SaveConfig()
 		{
-			JObject json = new JObject();
-			json["downloadingDir"] = textBoxDownloadingDir.Text;
-			json["maxPlaylistErrorsInRow"] = (int)numericUpDownPlaylistErrorCountInRow.Value;
-			json["maxOtherErrorsInRow"] = (int)numericUpDownOtherErrorCountInRow.Value;
-			json["playlistCheckingInterval"] = (int)numericUpDownPlaylistCheckingInterval.Value;
-			json["saveChunksInfo"] = checkBoxSaveChunksInfo.Checked;
-			json["storeChunkFileName"] = checkBoxSaveChunkFileName.Checked;
-			json["storeChunkUrl"] = checkBoxSaveChunkUrl.Checked;
-			json["useGmtTime"] = checkBoxUseGmtTime.Checked;
+			JObject json = new JObject()
+			{
+				["downloadingDir"] = textBoxDownloadingDir.Text,
+				["maxPlaylistErrorsInRow"] = (int)numericUpDownPlaylistErrorCountInRow.Value,
+				["maxOtherErrorsInRow"] = (int)numericUpDownOtherErrorCountInRow.Value,
+				["playlistCheckingInterval"] = (int)numericUpDownPlaylistCheckingInterval.Value,
+				["saveChunksInfo"] = checkBoxSaveChunksInfo.Checked,
+				["storeChunkFileName"] = checkBoxSaveChunkFileName.Checked,
+				["storeChunkUrl"] = checkBoxSaveChunkUrl.Checked,
+				["useGmtTime"] = checkBoxUseGmtTime.Checked
+			};
 
 			JArray jaColumns = new JArray();
 			foreach (ColumnHeader columnHeader in listViewStreams.Columns)
 			{
-				JObject jColumn = new JObject();
-				jColumn["displayIndex"] = columnHeader.DisplayIndex;
-				jColumn["width"] = columnHeader.Width;
-
+				JObject jColumn = new JObject()
+				{
+					["displayIndex"] = columnHeader.DisplayIndex,
+					["width"] = columnHeader.Width
+				};
 				jaColumns.Add(jColumn);
 			}
 
