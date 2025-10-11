@@ -90,11 +90,11 @@ namespace HlsDumpLib.GuiTest
 		{
 			JObject json = new JObject()
 			{
-				["downloadingDir"] = textBoxDownloadingDir.Text,
+				["downloadDir"] = textBoxDownloadingDir.Text,
 				["maxPlaylistErrorsInRow"] = (int)numericUpDownPlaylistErrorCountInRow.Value,
 				["maxOtherErrorsInRow"] = (int)numericUpDownOtherErrorCountInRow.Value,
-				["playlistCheckingInterval"] = (int)numericUpDownPlaylistCheckingInterval.Value,
-				["saveChunksInfo"] = checkBoxSaveChunksInfo.Checked,
+				["playlistCheckInterval"] = (int)numericUpDownPlaylistCheckingInterval.Value,
+				["saveChunkInfos"] = checkBoxSaveChunksInfo.Checked,
 				["storeChunkFileName"] = checkBoxSaveChunkFileName.Checked,
 				["storeChunkUrl"] = checkBoxSaveChunkUrl.Checked,
 				["useGmtTime"] = checkBoxUseGmtTime.Checked
@@ -121,7 +121,7 @@ namespace HlsDumpLib.GuiTest
 		{
 			JObject json = JObject.Parse(File.ReadAllText(_configFileName));
 			{
-				string dir = json.Value<string>("downloadingDir");
+				string dir = json.Value<string>("downloadDir");
 				if (string.IsNullOrEmpty(dir) || string.IsNullOrWhiteSpace(dir))
 				{
 					dir = Path.GetDirectoryName(Application.ExecutablePath);
@@ -137,7 +137,7 @@ namespace HlsDumpLib.GuiTest
 				numericUpDownOtherErrorCountInRow.Value = jt == null ? 5 : jt.Value<int>();
 			}
 			{
-				JToken jt = json.Value<JToken>("playlistCheckingInterval");
+				JToken jt = json.Value<JToken>("playlistCheckInterval");
 				if (jt != null)
 				{
 					int n = jt.Value<int>();
@@ -146,7 +146,7 @@ namespace HlsDumpLib.GuiTest
 				}
 			}
 			{
-				JToken jt = json.Value<JToken>("saveChunksInfo");
+				JToken jt = json.Value<JToken>("saveChunkInfos");
 				if (jt != null)
 				{
 					checkBoxSaveChunksInfo.Checked = jt.Value<bool>();
