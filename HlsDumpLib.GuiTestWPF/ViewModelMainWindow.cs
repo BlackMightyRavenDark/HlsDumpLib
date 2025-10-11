@@ -120,9 +120,15 @@ namespace HlsDumpLib.GuiTestWPF
 						DownloadingDir = fbd.SelectedPath;
 					}
 				}
-			} catch (Exception ex)
+			}
+#if DEBUG
+			catch (Exception ex)
 			{
 				System.Diagnostics.Debug.WriteLine(ex.Message);
+#else
+			catch
+			{
+#endif
 			}
 		}
 

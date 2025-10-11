@@ -65,11 +65,14 @@ namespace HlsDumpLib
 					}
 				}
 			}
+#if DEBUG
 			catch (Exception ex)
 			{
 				System.Diagnostics.Debug.WriteLine(ex.Message);
 			}
-
+#else
+			catch { }
+#endif
 			return DateTime.MinValue;
 		}
 

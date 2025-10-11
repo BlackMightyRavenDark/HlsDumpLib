@@ -321,9 +321,14 @@ namespace HlsDumpLib
 														long position = outputStream.Position - size;
 														jHeaderChunk = headerChunk.ToJson(position, size, true, true, useGmtTime);
 													}
+#if DEBUG
 													catch (Exception ex)
 													{
 														System.Diagnostics.Debug.WriteLine(ex.Message);
+#else
+													catch
+													{
+#endif
 														jHeaderChunk = null;
 														OtherErrorCountInRow++;
 														dumpError?.Invoke(this, "Failed to append header (metadata) chunk info", OtherErrorCountInRow);
@@ -347,9 +352,14 @@ namespace HlsDumpLib
 										}
 									}
 								}
+#if DEBUG
 								catch (Exception ex)
 								{
 									System.Diagnostics.Debug.WriteLine(ex.Message);
+#else
+								catch
+								{
+#endif
 									jHeaderChunk = null;
 									ChunkDownloadErrorCount++;
 									OtherErrorCountInRow++;
@@ -402,9 +412,14 @@ namespace HlsDumpLib
 															JObject jChunk = chunk.ToJson(position, size, storeChunkFileName, storeChunkUrl, useGmtTime);
 															jaValidChunks.Add(jChunk);
 														}
+#if DEBUG
 														catch (Exception ex)
 														{
 															System.Diagnostics.Debug.WriteLine(ex.Message);
+#else
+														catch
+														{
+#endif
 															OtherErrorCountInRow++;
 															dumpError?.Invoke(this, "Failed to append chunk info", OtherErrorCountInRow);
 														}
@@ -429,9 +444,12 @@ namespace HlsDumpLib
 												chunkDownloadFailed?.Invoke(this, chunkDownloadErrorCode, ChunkDownloadErrorCount);
 											}
 										}
-									} catch (Exception ex)
+									}
+									catch (Exception ex)
 									{
+#if DEBUG
 										System.Diagnostics.Debug.WriteLine(ex.Message);
+#endif
 										chunkDownloadErrorCode = ex.HResult;
 										OtherErrorCountInRow++;
 										jaLostChunks.Add(chunk.Id);
@@ -489,7 +507,9 @@ namespace HlsDumpLib
 							!_cancellationToken.IsCancellationRequested);
 				} catch (Exception ex)
 				{
+#if DEBUG
 					System.Diagnostics.Debug.WriteLine(ex.Message);
+#endif
 					OtherErrorCountInRow++;
 					dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
 				}
@@ -533,7 +553,9 @@ namespace HlsDumpLib
 					}
 					catch (Exception ex)
 					{
+#if DEBUG
 						System.Diagnostics.Debug.WriteLine(ex.Message);
+#endif
 						OtherErrorCountInRow++;
 						dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
 					}
