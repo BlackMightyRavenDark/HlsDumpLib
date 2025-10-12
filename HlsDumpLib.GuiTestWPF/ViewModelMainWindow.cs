@@ -132,12 +132,15 @@ namespace HlsDumpLib.GuiTestWPF
 		{
 			try
 			{
-				string dir = obj as string;
 				using (System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog())
 				{
 					fbd.Description = "Выберите папку для скачивания";
 					fbd.ShowNewFolderButton = true;
-					if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir)) { fbd.SelectedPath = dir; }
+					if (!string.IsNullOrEmpty(DownloadDir) && Directory.Exists(DownloadDir))
+					{
+						fbd.SelectedPath = DownloadDir;
+					}
+
 					if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
 					{
 						DownloadDir = fbd.SelectedPath;

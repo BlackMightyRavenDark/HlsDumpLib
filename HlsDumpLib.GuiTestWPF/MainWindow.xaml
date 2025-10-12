@@ -59,10 +59,9 @@
 						<ColumnDefinition Width="30" />
 					</Grid.ColumnDefinitions>
 
-					<TextBox Name="textBoxDownloadDir" Grid.Row="0" Grid.Column="0" Text="{Binding DownloadDir}" VerticalContentAlignment="Center" Margin="0 4 4 4" Style="{StaticResource menuTextBlock}" />
+					<TextBox Grid.Row="0" Grid.Column="0" Text="{Binding DownloadDir}" VerticalContentAlignment="Center" Margin="0 4 4 4" Style="{StaticResource menuTextBlock}" />
 					<Button Grid.Row="0" Grid.Column="1" Content="..." ToolTip="Выбрать папку..." Margin="4 4 0 4"
-							Command="{Binding BtnSelectDownloadDirCommand}"
-							CommandParameter="{Binding ElementName=textBoxDownloadDir, Path=Text}" />
+							Command="{Binding BtnSelectDownloadDirCommand}" />
 				</Grid>
 
 				<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding StreamTitle}" VerticalContentAlignment="Center" Margin="0 4" Style="{StaticResource menuTextBlock}" />
