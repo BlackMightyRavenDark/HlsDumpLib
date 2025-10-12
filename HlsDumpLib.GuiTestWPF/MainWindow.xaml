@@ -59,10 +59,10 @@
 						<ColumnDefinition Width="30" />
 					</Grid.ColumnDefinitions>
 
-					<TextBox Name="textBoxDownloadingDir" Grid.Row="0" Grid.Column="0" Text="{Binding DownloadingDir}" VerticalContentAlignment="Center" Margin="0 4 4 4" Style="{StaticResource menuTextBlock}" />
+					<TextBox Name="textBoxDownloadDir" Grid.Row="0" Grid.Column="0" Text="{Binding DownloadDir}" VerticalContentAlignment="Center" Margin="0 4 4 4" Style="{StaticResource menuTextBlock}" />
 					<Button Grid.Row="0" Grid.Column="1" Content="..." ToolTip="Выбрать папку..." Margin="4 4 0 4"
-							Command="{Binding BtnSelectDownloadingDirCommand}"
-							CommandParameter="{Binding ElementName=textBoxDownloadingDir, Path=Text}" />
+							Command="{Binding BtnSelectDownloadDirCommand}"
+							CommandParameter="{Binding ElementName=textBoxDownloadDir, Path=Text}" />
 				</Grid>
 
 				<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding StreamTitle}" VerticalContentAlignment="Center" Margin="0 4" Style="{StaticResource menuTextBlock}" />
@@ -86,7 +86,7 @@
 
 				<StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1">
 					<local:NumericUpDown MaxValue="5000" MinValue="500"
-										 Value="{Binding PlaylistCheckingIntervalMilliseconds, Mode=TwoWay}"
+										 Value="{Binding PlaylistCheckIntervalMilliseconds, Mode=TwoWay}"
 										 StepSize="100" Width="60" Margin="0 2" />
 					<Label Content="миллисекунд" />
 				</StackPanel>
@@ -99,14 +99,14 @@
 
 			<GroupBox Header="Чанки" Margin="0 0 0 2">
 				<WrapPanel Orientation="Horizontal">
-					<CheckBox Content="Сохранять информацию о чанках" IsChecked="{Binding SaveChunksInfo}" Margin="4 0" />
+					<CheckBox Content="Сохранять информацию о чанках" IsChecked="{Binding SaveChunkInfos}" Margin="4 0" />
 					<CheckBox Content="Сохранять имя файла чанка" IsChecked="{Binding SaveChunkFileName}" Margin="4 0" />
 					<CheckBox Content="Сохранять ссылку на чанк" IsChecked="{Binding SaveChunkFileUrl}" Margin="4 0" />
 					<CheckBox Content="Время по GMT" IsChecked="{Binding UseGmtTime}" Margin="4 0" />
 				</WrapPanel>
 			</GroupBox>
 
-			<CheckBox Content="Начинать дампинг сразу" IsChecked="{Binding StartDumpingImmediately}" Margin="4 0" />
+			<CheckBox Content="Начинать дампинг сразу" IsChecked="{Binding StartDumpImmediately}" Margin="4 0" />
 
 			<StackPanel Orientation="Horizontal" Margin="4">
 				<Button Content="Добавить" Padding="6 2"

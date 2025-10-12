@@ -16,44 +16,44 @@ namespace HlsDumpLib.GuiTestWPF
 	{
 		public ObservableCollection<ModelStreamItem> StreamItems { get; }
 
-		public string DownloadingDir { get => _downloadingDir; set => SetProperty(ref _downloadingDir, value); }
+		public string DownloadDir { get => _downloadDir; set => SetProperty(ref _downloadDir, value); }
 		public string StreamTitle { get => _streamTitle; set => SetProperty(ref _streamTitle, value); }
 		public string StreamPlaylistUrl { get => _streamPlaylistUrl; set => SetProperty(ref _streamPlaylistUrl, value); }
-		public int PlaylistCheckingIntervalMilliseconds
+		public int PlaylistCheckIntervalMilliseconds
 		{
-			get => _playlistCheckingIntervalMilliseconds;
-			set => SetProperty(ref _playlistCheckingIntervalMilliseconds, value);
+			get => _playlistCheckIntervalMilliseconds;
+			set => SetProperty(ref _playlistCheckIntervalMilliseconds, value);
 		}
 		public int PlaylistErrorCountInRowMax { get => _playlistErrorCountInRowMax; set => SetProperty(ref _playlistErrorCountInRowMax, value); }
 		public int OtherErrorCountInRowMax { get => _otherErrorCountInRowMax; set => SetProperty(ref _otherErrorCountInRowMax, value); }
-		public bool SaveChunksInfo { get => _saveChunksInfo; set => SetProperty(ref _saveChunksInfo, value); }
+		public bool SaveChunkInfos { get => _saveChunkInfos; set => SetProperty(ref _saveChunkInfos, value); }
 		public bool SaveChunkFileName { get => _saveChunkFileName; set => SetProperty(ref _saveChunkFileName, value); }
 		public bool SaveChunkFileUrl { get => _saveChunkFileUrl; set => SetProperty(ref _saveChunkFileUrl, value); }
 		public bool UseGmtTime { get => _useGmtTime; set => SetProperty(ref _useGmtTime, value); }
-		public bool StartDumpingImmediately { get => _startDumpingImmediately; set => SetProperty(ref _startDumpingImmediately, value); }
+		public bool StartDumpImmediately { get => _startDumpImmediately; set => SetProperty(ref _startDumpImmediately, value); }
 
 		public ModelStreamItem SelectedItem { get => _selectedItem; set => SetProperty(ref _selectedItem, value); }
 
-		private string _downloadingDir;
+		private string _downloadDir;
 		private string _streamTitle;
 		private string _streamPlaylistUrl;
-		private int _playlistCheckingIntervalMilliseconds = 2000;
+		private int _playlistCheckIntervalMilliseconds = 2000;
 		private int _playlistErrorCountInRowMax = 5;
 		private int _otherErrorCountInRowMax = 10;
-		private bool _saveChunksInfo = true;
+		private bool _saveChunkInfos = true;
 		private bool _saveChunkFileName = true;
 		private bool _saveChunkFileUrl = true;
 		private bool _useGmtTime = true;
-		private bool _startDumpingImmediately = true;
+		private bool _startDumpImmediately = true;
 		private ModelStreamItem _selectedItem;
 
 		private bool _isClosing = false;
 		private readonly string _configurationFilePath;
 
 		public ICommand BtnAddStreamCommand { get; }
-		public ICommand BtnSelectDownloadingDirCommand { get; }
-		public ICommand StartDumpingCommand { get; }
-		public ICommand StopDumpingCommand { get; }
+		public ICommand BtnSelectDownloadDirCommand { get; }
+		public ICommand StartDumpCommand { get; }
+		public ICommand StopDumpCommand { get; }
 
 		private ListView _listViewStreams;
 
@@ -62,9 +62,9 @@ namespace HlsDumpLib.GuiTestWPF
 			StreamItems = new ObservableCollection<ModelStreamItem>();
 
 			BtnAddStreamCommand = new LambdaCommand(btnAddStream_Handler);
-			BtnSelectDownloadingDirCommand = new LambdaCommand(btnSelectDownloadingDir_Handler);
-			StartDumpingCommand = new LambdaCommand(CheckStream, obj => SelectedItem != null && !SelectedItem.IsDumping);
-			StopDumpingCommand = new LambdaCommand(
+			BtnSelectDownloadDirCommand = new LambdaCommand(btnSelectDownloadDir_Handler);
+			StartDumpCommand = new LambdaCommand(CheckStream, obj => SelectedItem != null && !SelectedItem.IsDumping);
+			StopDumpCommand = new LambdaCommand(
 				obj => SelectedItem.Stop(),
 				obj => SelectedItem != null && SelectedItem.IsDumping && !SelectedItem.WantsStop);
 
@@ -128,7 +128,7 @@ namespace HlsDumpLib.GuiTestWPF
 			}
 		}
 
-		private void btnSelectDownloadingDir_Handler(object obj)
+		private void btnSelectDownloadDir_Handler(object obj)
 		{
 			try
 			{
@@ -140,7 +140,7 @@ namespace HlsDumpLib.GuiTestWPF
 					if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir)) { fbd.SelectedPath = dir; }
 					if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
 					{
-						DownloadingDir = fbd.SelectedPath;
+						DownloadDir = fbd.SelectedPath;
 					}
 				}
 			}
@@ -173,7 +173,7 @@ namespace HlsDumpLib.GuiTestWPF
 				return;
 			}
 
-			string dir = DownloadingDir?.Trim();
+			string dir = DownloadDir?.Trim();
 			if (string.IsNullOrEmpty(dir))
 			{
 				MessageBox.Show("Не указана папка для скачивания!", "Ошибка!",
@@ -200,7 +200,7 @@ namespace HlsDumpLib.GuiTestWPF
 			StreamItems.Add(item);
 			_listViewStreams.ScrollIntoView(item);
 
-			if (StartDumpingImmediately)
+			if (StartDumpImmediately)
 			{
 				CheckStream(item);
 			}
@@ -210,15 +210,15 @@ namespace HlsDumpLib.GuiTestWPF
 		{
 			JObject json = new JObject()
 			{
-				["downloadDir"] = DownloadingDir,
+				["downloadDir"] = DownloadDir,
 				["maxPlaylistErrorsInRow"] = PlaylistErrorCountInRowMax,
 				["maxOtherErrorsInRow"] = OtherErrorCountInRowMax,
-				["playlistCheckInterval"] = PlaylistCheckingIntervalMilliseconds,
-				["saveChunkInfos"] = SaveChunksInfo,
+				["playlistCheckInterval"] = PlaylistCheckIntervalMilliseconds,
+				["saveChunkInfos"] = SaveChunkInfos,
 				["storeChunkFileName"] = SaveChunkFileName,
 				["storeChunkUrl"] = SaveChunkFileUrl,
 				["useGmtTime"] = UseGmtTime,
-				["startDumpImmediately"] = StartDumpingImmediately
+				["startDumpImmediately"] = StartDumpImmediately
 			};
 
 			if (File.Exists(filePath)) { File.Delete(filePath); }
@@ -229,7 +229,7 @@ namespace HlsDumpLib.GuiTestWPF
 		{
 			JObject json = JObject.Parse(File.ReadAllText(filePath));
 
-			DownloadingDir = json.Value<string>("downloadDir");
+			DownloadDir = json.Value<string>("downloadDir");
 			{
 				JToken jt = json.Value<JToken>("maxPlaylistErrorsInRow");
 				int n = jt != null ? jt.Value<int>() : 5;
@@ -243,11 +243,11 @@ namespace HlsDumpLib.GuiTestWPF
 			{
 				JToken jt = json.Value<JToken>("playlistCheckInterval");
 				int n = jt != null ? jt.Value<int>() : 2000;
-				PlaylistCheckingIntervalMilliseconds = Utils.Clamp(n, 500, 5000);
+				PlaylistCheckIntervalMilliseconds = Utils.Clamp(n, 500, 5000);
 			}
 			{
 				JToken jt = json.Value<JToken>("saveChunkInfos");
-				SaveChunksInfo = jt != null && jt.Value<bool>();
+				SaveChunkInfos = jt != null && jt.Value<bool>();
 			}
 			{
 				JToken jt = json.Value<JToken>("storeChunkFileName");
@@ -263,7 +263,7 @@ namespace HlsDumpLib.GuiTestWPF
 			}
 			{
 				JToken jt = json.Value<JToken>("startDumpImmediately");
-				StartDumpingImmediately = jt != null && jt.Value<bool>();
+				StartDumpImmediately = jt != null && jt.Value<bool>();
 			}
 		}
 
@@ -282,10 +282,10 @@ namespace HlsDumpLib.GuiTestWPF
 				}
 
 				streamItem.Check(
-					PlaylistCheckingIntervalMilliseconds,
+					PlaylistCheckIntervalMilliseconds,
 					PlaylistErrorCountInRowMax,
 					OtherErrorCountInRowMax,
-					SaveChunksInfo, SaveChunkFileName, SaveChunkFileUrl,
+					SaveChunkInfos, SaveChunkFileName, SaveChunkFileUrl,
 					UseGmtTime);
 			}
 		}
