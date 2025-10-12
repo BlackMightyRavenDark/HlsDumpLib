@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace HlsDumpLib.GuiTestWPF
 {
@@ -37,6 +38,20 @@ namespace HlsDumpLib.GuiTestWPF
 		public static bool IsGmt(this DateTime dateTime)
 		{
 			return dateTime.Kind == DateTimeKind.Utc;
+		}
+
+		internal static string GetConfigurationFilePath()
+		{
+			string exePath = Environment.GetCommandLineArgs()[0];
+			string withoutExt = exePath.Substring(0, exePath.LastIndexOf("."));
+			return withoutExt + "_config.json";
+		}
+
+		public static int Clamp(int value, int min, int max)
+		{
+			if (value < min) { return min; }
+			if (value > max) { return max; }
+			return value;
 		}
 	}
 }

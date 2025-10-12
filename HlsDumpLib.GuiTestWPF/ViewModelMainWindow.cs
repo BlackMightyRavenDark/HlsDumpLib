@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Newtonsoft.Json.Linq;
 
 namespace HlsDumpLib.GuiTestWPF
 {
@@ -47,6 +48,7 @@ namespace HlsDumpLib.GuiTestWPF
 		private ModelStreamItem _selectedItem;
 
 		private bool _isClosing = false;
+		private readonly string _configurationFilePath;
 
 		public ICommand BtnAddStreamCommand { get; }
 		public ICommand BtnSelectDownloadingDirCommand { get; }
@@ -65,6 +67,20 @@ namespace HlsDumpLib.GuiTestWPF
 			StopDumpingCommand = new LambdaCommand(
 				obj => SelectedItem.Stop(),
 				obj => SelectedItem != null && SelectedItem.IsDumping && !SelectedItem.WantsStop);
+
+			try
+			{
+				_configurationFilePath = Utils.GetConfigurationFilePath();
+				if (File.Exists(_configurationFilePath))
+				{
+					LoadConfig(_configurationFilePath);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Не удалось загрузить настройки!{Environment.NewLine}{ex.Message}", "Ошибка!",
+					MessageBoxButton.OK, MessageBoxImage.Error);
+			}
 		}
 
 		public void Initialize(object obj)
@@ -84,6 +100,7 @@ namespace HlsDumpLib.GuiTestWPF
 			if (_isClosing)
 			{
 				e.Cancel = true;
+				return;
 			}
 			else if (IsUnfinishedTaskPresent())
 			{
@@ -102,6 +119,12 @@ namespace HlsDumpLib.GuiTestWPF
 
 				_isClosing = false;
 				(sender as Window).Close();
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(_configurationFilePath) && !string.IsNullOrWhiteSpace(_configurationFilePath))
+			{
+				SaveConfig(_configurationFilePath);
 			}
 		}
 
@@ -180,6 +203,67 @@ namespace HlsDumpLib.GuiTestWPF
 			if (StartDumpingImmediately)
 			{
 				CheckStream(item);
+			}
+		}
+
+		private void SaveConfig(string filePath)
+		{
+			JObject json = new JObject()
+			{
+				["downloadDir"] = DownloadingDir,
+				["maxPlaylistErrorsInRow"] = PlaylistErrorCountInRowMax,
+				["maxOtherErrorsInRow"] = OtherErrorCountInRowMax,
+				["playlistCheckInterval"] = PlaylistCheckingIntervalMilliseconds,
+				["saveChunkInfos"] = SaveChunksInfo,
+				["storeChunkFileName"] = SaveChunkFileName,
+				["storeChunkUrl"] = SaveChunkFileUrl,
+				["useGmtTime"] = UseGmtTime,
+				["startDumpImmediately"] = StartDumpingImmediately
+			};
+
+			if (File.Exists(filePath)) { File.Delete(filePath); }
+			File.WriteAllText(filePath, json.ToString());
+		}
+
+		private void LoadConfig(string filePath)
+		{
+			JObject json = JObject.Parse(File.ReadAllText(filePath));
+
+			DownloadingDir = json.Value<string>("downloadDir");
+			{
+				JToken jt = json.Value<JToken>("maxPlaylistErrorsInRow");
+				int n = jt != null ? jt.Value<int>() : 5;
+				PlaylistErrorCountInRowMax = Utils.Clamp(n, 1, 10);
+			}
+			{
+				JToken jt = json.Value<JToken>("maxOtherErrorsInRow");
+				int n = jt != null ? jt.Value<int>() : 5;
+				OtherErrorCountInRowMax = Utils.Clamp(n, 1, 10);
+			}
+			{
+				JToken jt = json.Value<JToken>("playlistCheckInterval");
+				int n = jt != null ? jt.Value<int>() : 2000;
+				PlaylistCheckingIntervalMilliseconds = Utils.Clamp(n, 500, 5000);
+			}
+			{
+				JToken jt = json.Value<JToken>("saveChunkInfos");
+				SaveChunksInfo = jt != null && jt.Value<bool>();
+			}
+			{
+				JToken jt = json.Value<JToken>("storeChunkFileName");
+				SaveChunkFileName = jt != null && jt.Value<bool>();
+			}
+			{
+				JToken jt = json.Value<JToken>("storeChunkUrl");
+				SaveChunkFileUrl = jt != null && jt.Value<bool>();
+			}
+			{
+				JToken jt = json.Value<JToken>("useGmtTime");
+				UseGmtTime = jt != null && jt.Value<bool>();
+			}
+			{
+				JToken jt = json.Value<JToken>("startDumpImmediately");
+				StartDumpingImmediately = jt != null && jt.Value<bool>();
 			}
 		}
 
