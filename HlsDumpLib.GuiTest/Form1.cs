@@ -249,7 +249,11 @@ namespace HlsDumpLib.GuiTest
 			{
 				int id = listViewStreams.SelectedIndices[0];
 				StreamItem streamItem = listViewStreams.Items[id].Tag as StreamItem;
-				streamItem.Dumper?.StopDumping();
+				if (streamItem.Dumper != null)
+				{
+					streamItem.Dumper.StopDumping();
+					listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Останавливается...";
+				}
 			}
 		}
 
@@ -370,7 +374,7 @@ namespace HlsDumpLib.GuiTest
 				if (id >= 0)
 				{
 					listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
-						errorCode == 200 ? streamItem.IsDumping ? "Дампинг..." : null : $"Ошибка {errorCode}";
+						errorCode == 200 ? "Дампинг..." : $"Ошибка {errorCode}";
 				}
 			}
 		}

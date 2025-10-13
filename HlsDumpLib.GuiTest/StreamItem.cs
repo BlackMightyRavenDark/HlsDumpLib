@@ -99,7 +99,10 @@ namespace HlsDumpLib.GuiTest
 						}
 					}
 
-					checkFinished?.Invoke(this, errorCode);
+					if (IsDumping && checkFinished != null)
+					{
+						checkFinished.Invoke(this, errorCode);
+					}
 				});
 
 				IsChecking = false;
