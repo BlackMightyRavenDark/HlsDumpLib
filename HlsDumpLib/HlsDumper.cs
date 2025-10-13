@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using MultiThreadedDownloaderLib;
 
@@ -84,7 +83,7 @@ namespace HlsDumpLib
 			}
 		}
 
-		public async void Dump(string outputFilePath,
+		public void Dump(string outputFilePath,
 			PlaylistCheckStartedDelegate playlistCheckStarted,
 			PlaylistCheckFinishedDelegate playlistCheckFinished,
 			PlaylistFirstArrivedDelegate playlistFirstArrived,
@@ -126,386 +125,431 @@ namespace HlsDumpLib
 			OtherErrorCountInRowMax = maxOtherErrorsInRow <= 0 ? 5 : maxOtherErrorsInRow;
 			PlaylistErrorCountInRow = OtherErrorCountInRow = 0;
 
-			await Task.Run(() =>
+			bool first = true;
+			bool headerChunkExists = false;
+
+			JObject jHeaderChunk = null;
+			JArray jaValidChunks = new JArray();
+			JArray jaLostChunks = new JArray();
+			FileDownloader playlistDownloader = new FileDownloader() { Url = ActualPlaylistUrl };
+			Stream outputStream = null;
+
+			try
 			{
-				bool first = true;
-				bool headerChunkExists = false;
-
-				JObject jHeaderChunk = null;
-				JArray jaValidChunks = new JArray();
-				JArray jaLostChunks = new JArray();
-				FileDownloader playlistDownloader = new FileDownloader() { Url = ActualPlaylistUrl };
-				Stream outputStream = null;
-
-				try
+				do
 				{
-					do
+					int timeStart = Environment.TickCount;
+					playlistCheckStarted?.Invoke(this, ActualPlaylistUrl);
+
+					M3UPlaylist playlist = null;
+					List<StreamSegment> unfilteredPlaylist = null;
+					List<StreamSegment> filteredPlaylist = null;
+					int playlistErrorCode = playlistDownloader.DownloadString(out string response);
+					if (playlistErrorCode == 200)
 					{
-						int timeStart = Environment.TickCount;
-						playlistCheckStarted?.Invoke(this, ActualPlaylistUrl);
+						PlaylistErrorCountInRow = 0;
 
-						M3UPlaylist playlist = null;
-						List<StreamSegment> unfilteredPlaylist = null;
-						List<StreamSegment> filteredPlaylist = null;
-						int playlistErrorCode = playlistDownloader.DownloadString(out string response);
-						if (playlistErrorCode == 200)
+						playlist = new M3UPlaylist(response, ActualPlaylistUrl);
+						playlist.Parse();
+
+						if (first)
 						{
-							PlaylistErrorCountInRow = 0;
-
-							playlist = new M3UPlaylist(response, ActualPlaylistUrl);
-							playlist.Parse();
-
-							if (first)
+							first = false;
+							M3UManifestItem manifestItem = null;
+							if (playlist.IsManifest)
 							{
-								first = false;
-								M3UManifestItem manifestItem = null;
-								if (playlist.IsManifest)
+								if (playlist.Manifest.Items.Count == 0)
 								{
-									if (playlist.Manifest.Items.Count == 0)
-									{
-										OtherErrorCountInRow++;
-										dumpError?.Invoke(this, "No playlists found in manifest", OtherErrorCountInRow);
-										dumpFinished?.Invoke(this, DUMP_ERROR_MANIFEST_HAS_NO_PLAYLISTS, playlist.Manifest.ErrorText);
-										return;
-									}
-
-									playlist.Manifest.SortByBandwidth();
-									manifestItem = playlist.Manifest.Items[0];
-									ActualPlaylistUrl = manifestItem.PlaylistUrl;
-									playlistDownloader.Url = ActualPlaylistUrl;
-									playlistErrorCode = playlistDownloader.DownloadString(out response);
-									if (playlistErrorCode != 200)
-									{
-										OtherErrorCountInRow++;
-										dumpError?.Invoke(this, "Failed to download playlist", OtherErrorCountInRow);
-										break;
-									}
-									playlist = new M3UPlaylist(response, ActualPlaylistUrl);
-									playlist.Parse();
+									OtherErrorCountInRow++;
+									dumpError?.Invoke(this, "No playlists found in manifest", OtherErrorCountInRow);
+									dumpFinished?.Invoke(this, DUMP_ERROR_MANIFEST_HAS_NO_PLAYLISTS, playlist.Manifest.ErrorText);
+									return;
 								}
-								headerChunkExists = playlist.HasHeaderSegment;
 
-								CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
-								outputFilePath += playlist.GetOutputFileExtension();
-
-								playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId, manifestItem);
+								playlist.Manifest.SortByBandwidth();
+								manifestItem = playlist.Manifest.Items[0];
+								ActualPlaylistUrl = manifestItem.PlaylistUrl;
+								playlistDownloader.Url = ActualPlaylistUrl;
+								playlistErrorCode = playlistDownloader.DownloadString(out response);
+								if (playlistErrorCode != 200)
+								{
+									OtherErrorCountInRow++;
+									dumpError?.Invoke(this, "Failed to download playlist", OtherErrorCountInRow);
+									break;
+								}
+								playlist = new M3UPlaylist(response, ActualPlaylistUrl);
+								playlist.Parse();
 							}
+							headerChunkExists = playlist.HasHeaderSegment;
 
-							_currentPlaylistFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
+							CurrentSessionFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
+							outputFilePath += playlist.GetOutputFileExtension();
 
-							unfilteredPlaylist = new List<StreamSegment>();
-							if (playlist.Segments != null)
+							playlistFirstArrived?.Invoke(this, CurrentPlaylistChunkCount, CurrentSessionFirstChunkId, manifestItem);
+						}
+
+						_currentPlaylistFirstChunkId = playlist.MediaSequence >= 0 ? playlist.MediaSequence : 0;
+
+						unfilteredPlaylist = new List<StreamSegment>();
+						if (playlist.Segments != null)
+						{
+							unfilteredPlaylist.AddRange(playlist.Segments);
+						}
+						CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
+
+						filteredPlaylist = playlist.Filter(_chunkList)?.ToList();
+						if (filteredPlaylist != null)
+						{
+							CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
+							CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId +
+								CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount;
+						}
+						else
+						{
+							CurrentPlaylistNewChunkCount = 0;
+							CurrentPlaylistFirstNewChunkId = -1;
+						}
+
+						int diff = _lastProcessedChunkId >= 0 ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1;
+						int lost = diff - 1;
+						if (lost > 0)
+						{
+							LostChunkCount += lost;
+							OtherErrorCountInRow++;
+							for (int i = _lastProcessedChunkId + 1; i < CurrentPlaylistFirstNewChunkId; ++i)
 							{
-								unfilteredPlaylist.AddRange(playlist.Segments);
+								jaLostChunks.Add(i);
 							}
-							CurrentPlaylistChunkCount = unfilteredPlaylist.Count;
+							dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
+						}
 
-							filteredPlaylist = playlist.Filter(_chunkList)?.ToList();
-							if (filteredPlaylist != null)
+						playlistCheckFinished?.Invoke(this,
+							CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
+							_currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
+							response, playlistErrorCode, PlaylistErrorCountInRow);
+
+						if (CurrentPlaylistNewChunkCount == 0)
+						{
+							OtherErrorCountInRow++;
+							dumpWarning?.Invoke(this, "No new files detected", OtherErrorCountInRow);
+						}
+						else
+						{
+							OtherErrorCountInRow = 0;
+						}
+					}
+					else
+					{
+						PlaylistErrorCountInRow++;
+
+						playlistCheckFinished?.Invoke(this,
+							CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
+							_currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
+							response, playlistErrorCode, PlaylistErrorCountInRow);
+
+						if (PlaylistErrorCountInRowMax > 0)
+						{
+							if (PlaylistErrorCountInRow >= PlaylistErrorCountInRowMax)
 							{
-								CurrentPlaylistNewChunkCount = filteredPlaylist.Count;
-								CurrentPlaylistFirstNewChunkId = _currentPlaylistFirstChunkId +
-									CurrentPlaylistChunkCount - CurrentPlaylistNewChunkCount;
+								dumpError?.Invoke(this,
+									"Playlist lost! Max error count limit is reached! Breaking...",
+									PlaylistErrorCountInRow);
+								errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+									OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+									ChunkAppendErrorCount, LostChunkCount);
+								break;
 							}
 							else
 							{
-								CurrentPlaylistNewChunkCount = 0;
-								CurrentPlaylistFirstNewChunkId = -1;
-							}
-
-							int diff = _lastProcessedChunkId >= 0 ? CurrentPlaylistFirstNewChunkId - _lastProcessedChunkId : 1;
-							int lost = diff - 1;
-							if (lost > 0)
-							{
-								LostChunkCount += lost;
-								OtherErrorCountInRow++;
-								for (int i = _lastProcessedChunkId + 1; i < CurrentPlaylistFirstNewChunkId; ++i)
-								{
-									jaLostChunks.Add(i);
-								}
-								dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
-							}
-
-							playlistCheckFinished?.Invoke(this,
-								CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
-								_currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
-								response, playlistErrorCode, PlaylistErrorCountInRow);
-
-							if (CurrentPlaylistNewChunkCount == 0)
-							{
-								OtherErrorCountInRow++;
-								dumpWarning?.Invoke(this, "No new files detected", OtherErrorCountInRow);
-							}
-							else
-							{
-								OtherErrorCountInRow = 0;
+								dumpError?.Invoke(this,
+									$"Playlist lost {PlaylistErrorCountInRow} / {PlaylistErrorCountInRowMax}!",
+									PlaylistErrorCountInRow);
 							}
 						}
 						else
 						{
-							PlaylistErrorCountInRow++;
-
-							playlistCheckFinished?.Invoke(this,
-								CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
-								_currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
-								response, playlistErrorCode, PlaylistErrorCountInRow);
-
-							if (PlaylistErrorCountInRowMax > 0)
-							{
-								if (PlaylistErrorCountInRow >= PlaylistErrorCountInRowMax)
-								{
-									dumpError?.Invoke(this,
-										"Playlist lost! Max error count limit is reached! Breaking...",
-										PlaylistErrorCountInRow);
-									errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
-										OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
-										ChunkAppendErrorCount, LostChunkCount);
-									break;
-								}
-								else
-								{
-									dumpError?.Invoke(this,
-										$"Playlist lost {PlaylistErrorCountInRow} / {PlaylistErrorCountInRowMax}!",
-										PlaylistErrorCountInRow);
-								}
-							}
-							else
-							{
-								dumpError?.Invoke(this, "Playlist lost!", PlaylistErrorCountInRow);
-							}
+							dumpError?.Invoke(this, "Playlist lost!", PlaylistErrorCountInRow);
 						}
+					}
 
-						errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
-							OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
-							ChunkAppendErrorCount, LostChunkCount);
+					errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+						OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+						ChunkAppendErrorCount, LostChunkCount);
 
-						if (OtherErrorCountInRow >= OtherErrorCountInRowMax)
+					if (OtherErrorCountInRow >= OtherErrorCountInRowMax)
+					{
+						dumpError?.Invoke(this, "Max error count limit is reached! Breaking...", OtherErrorCountInRow);
+						break;
+					}
+
+					if (outputStream == null)
+					{
+						outputFilePath = MultiThreadedDownloader.GetNumberedFileName(outputFilePath);
+						outputStream = File.OpenWrite(outputFilePath);
+						outputStreamAssigned?.Invoke(this, outputStream, outputFilePath);
+					}
+
+					if (playlistErrorCode == 200)
+					{
+						if (headerChunkExists)
 						{
-							dumpError?.Invoke(this, "Max error count limit is reached! Breaking...", OtherErrorCountInRow);
-							break;
-						}
-
-						if (outputStream == null)
-						{
-							outputFilePath = MultiThreadedDownloader.GetNumberedFileName(outputFilePath);
-							outputStream = File.OpenWrite(outputFilePath);
-							outputStreamAssigned?.Invoke(this, outputStream, outputFilePath);
-						}
-
-						if (playlistErrorCode == 200)
-						{
-							if (headerChunkExists)
+							headerChunkExists = false;
+							try
 							{
-								headerChunkExists = false;
-								try
+								using (MemoryStream streamHeader = new MemoryStream())
 								{
-									using (MemoryStream streamHeader = new MemoryStream())
+									FileDownloader d = new FileDownloader() { Url = playlist?.StreamHeaderSegmentUrl };
+									int headerErrorCode = d.Download(streamHeader);
+									if (headerErrorCode == 200)
 									{
-										FileDownloader d = new FileDownloader() { Url = playlist?.StreamHeaderSegmentUrl };
-										int headerErrorCode = d.Download(streamHeader);
-										if (headerErrorCode == 200)
+										string chunkHeaderFileName = Utils.ExtractUrlFileName(playlist.StreamHeaderSegmentUrl);
+										StreamSegment headerChunk = new StreamSegment(DateTime.MinValue,
+											0.0, -1, chunkHeaderFileName, playlist.StreamHeaderSegmentUrl, true);
+										OtherErrorCountInRow = 0;
+										streamHeader.Position = 0L;
+										if (StreamAppender.Append(streamHeader, outputStream))
 										{
-											string chunkHeaderFileName = Utils.ExtractUrlFileName(playlist.StreamHeaderSegmentUrl);
-											StreamSegment headerChunk = new StreamSegment(DateTime.MinValue,
-												0.0, -1, chunkHeaderFileName, playlist.StreamHeaderSegmentUrl, true);
-											OtherErrorCountInRow = 0;
-											streamHeader.Position = 0L;
-											if (StreamAppender.Append(streamHeader, outputStream))
+											ProcessedChunkCountTotal++;
+											if (writeChunksInfo)
 											{
-												ProcessedChunkCountTotal++;
-												if (writeChunksInfo)
+												try
 												{
-													try
-													{
-														long size = streamHeader.Length;
-														long position = outputStream.Position - size;
-														jHeaderChunk = headerChunk.ToJson(position, size, true, true, useGmtTime);
-													}
+													long size = streamHeader.Length;
+													long position = outputStream.Position - size;
+													jHeaderChunk = headerChunk.ToJson(position, size, true, true, useGmtTime);
+												}
 #if DEBUG
-													catch (Exception ex)
-													{
-														System.Diagnostics.Debug.WriteLine(ex.Message);
+												catch (Exception ex)
+												{
+													System.Diagnostics.Debug.WriteLine(ex.Message);
 #else
 													catch
 													{
 #endif
-														jHeaderChunk = null;
-														OtherErrorCountInRow++;
-														dumpError?.Invoke(this, "Failed to append header (metadata) chunk info", OtherErrorCountInRow);
-													}
+													jHeaderChunk = null;
+													OtherErrorCountInRow++;
+													dumpError?.Invoke(this, "Failed to append header (metadata) chunk info", OtherErrorCountInRow);
 												}
-											}
-											else
-											{
-												OtherErrorCountInRow++;
-												dumpError?.Invoke(this,
-													"Header (metadata) chunk append error! Video might be unplayable!",
-													OtherErrorCountInRow);
 											}
 										}
 										else
 										{
 											OtherErrorCountInRow++;
 											dumpError?.Invoke(this,
-												"Header (metadata) chunk download error! Video will be unplayable!",
+												"Header (metadata) chunk append error! Video might be unplayable!",
 												OtherErrorCountInRow);
 										}
 									}
+									else
+									{
+										OtherErrorCountInRow++;
+										dumpError?.Invoke(this,
+											"Header (metadata) chunk download error! Video will be unplayable!",
+											OtherErrorCountInRow);
+									}
 								}
+							}
 #if DEBUG
-								catch (Exception ex)
-								{
-									System.Diagnostics.Debug.WriteLine(ex.Message);
+							catch (Exception ex)
+							{
+								System.Diagnostics.Debug.WriteLine(ex.Message);
 #else
 								catch
 								{
 #endif
-									jHeaderChunk = null;
-									ChunkDownloadErrorCount++;
-									OtherErrorCountInRow++;
-									dumpError?.Invoke(this,
-										"Header (metadata) chunk processing error! Video might be unplayable!",
-										OtherErrorCountInRow);
-								}
+								jHeaderChunk = null;
+								ChunkDownloadErrorCount++;
+								OtherErrorCountInRow++;
+								dumpError?.Invoke(this,
+									"Header (metadata) chunk processing error! Video might be unplayable!",
+									OtherErrorCountInRow);
 							}
+						}
 
-							if (filteredPlaylist != null && filteredPlaylist.Count > 0)
+						if (filteredPlaylist != null && filteredPlaylist.Count > 0)
+						{
+							for (int i = 0; i < filteredPlaylist.Count; ++i)
 							{
-								for (int i = 0; i < filteredPlaylist.Count; ++i)
+								int tickBeforeChunk = Environment.TickCount;
+
+								StreamSegment chunk = filteredPlaylist[i];
+								long chunkFileSize = -1L;
+
+								int chunkDownloadErrorCode;
+								try
 								{
-									int tickBeforeChunk = Environment.TickCount;
-
-									StreamSegment chunk = filteredPlaylist[i];
-									long chunkFileSize = -1L;
-
-									int chunkDownloadErrorCode;
-									try
+									using (MemoryStream mem = new MemoryStream())
 									{
-										using (MemoryStream mem = new MemoryStream())
+										FileDownloader d = new FileDownloader() { Url = chunk.Url };
+										d.Connecting += (s, url) =>
 										{
-											FileDownloader d = new FileDownloader() { Url = chunk.Url };
-											d.Connecting += (s, url) =>
-											{
-												nextChunkConnecting?.Invoke(this, chunk);
-											};
-											d.Connected += (s, url, chunkSize, code) =>
-											{
-												nextChunkConnected?.Invoke(this, chunk, chunkSize, code);
-												return code;
-											};
+											nextChunkConnecting?.Invoke(this, chunk);
+										};
+										d.Connected += (s, url, chunkSize, code) =>
+										{
+											nextChunkConnected?.Invoke(this, chunk, chunkSize, code);
+											return code;
+										};
 
-											chunkDownloadErrorCode = d.Download(mem);
-											if (chunkDownloadErrorCode == 200)
+										chunkDownloadErrorCode = d.Download(mem);
+										if (chunkDownloadErrorCode == 200)
+										{
+											chunkFileSize = mem.Length;
+											mem.Position = 0L;
+											if (StreamAppender.Append(mem, outputStream))
 											{
-												chunkFileSize = mem.Length;
-												mem.Position = 0L;
-												if (StreamAppender.Append(mem, outputStream))
+												OtherErrorCountInRow = 0;
+												_lastProcessedChunkId = chunk.Id;
+												if (writeChunksInfo)
 												{
-													OtherErrorCountInRow = 0;
-													_lastProcessedChunkId = chunk.Id;
-													if (writeChunksInfo)
+													try
 													{
-														try
-														{
-															long size = mem.Length;
-															long position = outputStream.Position - size;
-															JObject jChunk = chunk.ToJson(position, size, storeChunkFileName, storeChunkUrl, useGmtTime);
-															jaValidChunks.Add(jChunk);
-														}
+														long size = mem.Length;
+														long position = outputStream.Position - size;
+														JObject jChunk = chunk.ToJson(position, size, storeChunkFileName, storeChunkUrl, useGmtTime);
+														jaValidChunks.Add(jChunk);
+													}
 #if DEBUG
-														catch (Exception ex)
-														{
-															System.Diagnostics.Debug.WriteLine(ex.Message);
+													catch (Exception ex)
+													{
+														System.Diagnostics.Debug.WriteLine(ex.Message);
 #else
 														catch
 														{
 #endif
-															OtherErrorCountInRow++;
-															dumpError?.Invoke(this, "Failed to append chunk info", OtherErrorCountInRow);
-														}
+														OtherErrorCountInRow++;
+														dumpError?.Invoke(this, "Failed to append chunk info", OtherErrorCountInRow);
 													}
-												}
-												else
-												{
-													ChunkAppendErrorCount++;
-													OtherErrorCountInRow++;
-													chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
-													//TODO: The stream and chunks information data will be corrupted here, so it's strongly needed to do some magic thing!
 												}
 											}
 											else
 											{
-												ChunkDownloadErrorCount++;
+												ChunkAppendErrorCount++;
 												OtherErrorCountInRow++;
-												if (!jaLostChunks.Any(element => element.Value<int>() == chunk.Id))
-												{
-													jaLostChunks.Add(chunk.Id);
-												}
-												chunkDownloadFailed?.Invoke(this, chunkDownloadErrorCode, ChunkDownloadErrorCount);
+												chunkAppendFailed?.Invoke(this, ChunkAppendErrorCount);
+												//TODO: The stream and chunks information data will be corrupted here, so it's strongly needed to do some magic thing!
 											}
 										}
+										else
+										{
+											ChunkDownloadErrorCount++;
+											OtherErrorCountInRow++;
+											if (!jaLostChunks.Any(element => element.Value<int>() == chunk.Id))
+											{
+												jaLostChunks.Add(chunk.Id);
+											}
+											chunkDownloadFailed?.Invoke(this, chunkDownloadErrorCode, ChunkDownloadErrorCount);
+										}
 									}
-									catch (Exception ex)
-									{
-#if DEBUG
-										System.Diagnostics.Debug.WriteLine(ex.Message);
-#endif
-										chunkDownloadErrorCode = ex.HResult;
-										OtherErrorCountInRow++;
-										jaLostChunks.Add(chunk.Id);
-										dumpError?.Invoke(this, "Failed to append chunk", OtherErrorCountInRow);
-									}
-
-									_chunkList.AddLast(chunk);
-									if (_chunkList.Count > 50)
-									{
-										_chunkList.RemoveFirst();
-									}
-
-									int chunkProcessingTime = Environment.TickCount - tickBeforeChunk;
-
-									nextChunkProcessed?.Invoke(this, chunk, chunkFileSize,
-										ProcessedChunkCountTotal, chunkProcessingTime);
-									ProcessedChunkCountTotal++;
-
-									dumpProgress?.Invoke(this, outputStream.Length, chunkDownloadErrorCode);
-
-									errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
-										OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
-										ChunkAppendErrorCount, LostChunkCount);
-
-									if (_cancellationToken.IsCancellationRequested) { break; }
 								}
+								catch (Exception ex)
+								{
+#if DEBUG
+									System.Diagnostics.Debug.WriteLine(ex.Message);
+#endif
+									chunkDownloadErrorCode = ex.HResult;
+									OtherErrorCountInRow++;
+									jaLostChunks.Add(chunk.Id);
+									dumpError?.Invoke(this, "Failed to append chunk", OtherErrorCountInRow);
+								}
+
+								_chunkList.AddLast(chunk);
+								if (_chunkList.Count > 50)
+								{
+									_chunkList.RemoveFirst();
+								}
+
+								int chunkProcessingTime = Environment.TickCount - tickBeforeChunk;
+
+								nextChunkProcessed?.Invoke(this, chunk, chunkFileSize,
+									ProcessedChunkCountTotal, chunkProcessingTime);
+								ProcessedChunkCountTotal++;
+
+								dumpProgress?.Invoke(this, outputStream.Length, chunkDownloadErrorCode);
+
+								errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+									OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+									ChunkAppendErrorCount, LostChunkCount);
+
+								if (_cancellationToken.IsCancellationRequested) { break; }
 							}
 						}
+					}
 
-						if (OtherErrorCountInRow >= OtherErrorCountInRowMax)
-						{
-							dumpError?.Invoke(this, "Max error count limit is reached! Breaking...", OtherErrorCountInRow);
-							break;
-						}
+					if (OtherErrorCountInRow >= OtherErrorCountInRowMax)
+					{
+						dumpError?.Invoke(this, "Max error count limit is reached! Breaking...", OtherErrorCountInRow);
+						break;
+					}
 
-						if (_cancellationToken.IsCancellationRequested) { break; }
+					if (_cancellationToken.IsCancellationRequested) { break; }
 
-						errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
-							OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
-							ChunkAppendErrorCount, LostChunkCount);
+					errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+						OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+						ChunkAppendErrorCount, LostChunkCount);
 
-						int elapsedTime = Environment.TickCount - timeStart;
-						LastDelayValueMilliseconds = PlaylistCheckIntervalMilliseconds - elapsedTime;
-						playlistCheckDelayCalculated?.Invoke(this,
-							LastDelayValueMilliseconds, PlaylistCheckIntervalMilliseconds, elapsedTime);
-						if (LastDelayValueMilliseconds > 0)
-						{
-							dumpMessage?.Invoke(this,
-								$"Waiting for {LastDelayValueMilliseconds} milliseconds " +
-								$"(max: {PlaylistCheckIntervalMilliseconds})");
-							Thread.Sleep(LastDelayValueMilliseconds);
-						}
-					} while (OtherErrorCountInRow < OtherErrorCountInRowMax &&
-							PlaylistErrorCountInRow < PlaylistErrorCountInRowMax &&
-							!_cancellationToken.IsCancellationRequested);
-				} catch (Exception ex)
+					int elapsedTime = Environment.TickCount - timeStart;
+					LastDelayValueMilliseconds = PlaylistCheckIntervalMilliseconds - elapsedTime;
+					playlistCheckDelayCalculated?.Invoke(this,
+						LastDelayValueMilliseconds, PlaylistCheckIntervalMilliseconds, elapsedTime);
+					if (LastDelayValueMilliseconds > 0)
+					{
+						dumpMessage?.Invoke(this,
+							$"Waiting for {LastDelayValueMilliseconds} milliseconds " +
+							$"(max: {PlaylistCheckIntervalMilliseconds})");
+						Thread.Sleep(LastDelayValueMilliseconds);
+					}
+				} while (OtherErrorCountInRow < OtherErrorCountInRowMax &&
+					PlaylistErrorCountInRow < PlaylistErrorCountInRowMax &&
+					!_cancellationToken.IsCancellationRequested);
+			}
+			catch (Exception ex)
+			{
+#if DEBUG
+				System.Diagnostics.Debug.WriteLine(ex.Message);
+#endif
+				OtherErrorCountInRow++;
+				dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
+			}
+
+			if (outputStream != null)
+			{
+				outputStream.Close();
+				outputStream = null;
+				outputStreamClosed?.Invoke(this, outputFilePath);
+			}
+
+			errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
+				OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
+				ChunkAppendErrorCount, LostChunkCount);
+
+			if (writeChunksInfo)
+			{
+				try
+				{
+					JObject json = new JObject();
+					json["playlistUrl"] = PlaylistUrl;
+					if (!string.IsNullOrEmpty(ActualPlaylistUrl) &&
+						!string.IsNullOrWhiteSpace(ActualPlaylistUrl) &&
+						ActualPlaylistUrl != PlaylistUrl)
+					{
+						json["actualPlaylistUrl"] = ActualPlaylistUrl;
+					}
+					json["outputFile"] = outputFilePath;
+					if (jHeaderChunk != null)
+					{
+						json.Add(new JProperty("headerChunk", jHeaderChunk));
+					}
+					if (jaLostChunks.Count > 0)
+					{
+						json["lostChunkCount"] = jaLostChunks.Count;
+						json.Add(new JProperty("lostChunks", jaLostChunks));
+					}
+					json["chunkCount"] = jaValidChunks.Count;
+					json.Add(new JProperty("chunks", jaValidChunks));
+					File.WriteAllText($"{outputFilePath}_chunks.json", json.ToString());
+				}
+				catch (Exception ex)
 				{
 #if DEBUG
 					System.Diagnostics.Debug.WriteLine(ex.Message);
@@ -513,54 +557,7 @@ namespace HlsDumpLib
 					OtherErrorCountInRow++;
 					dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
 				}
-
-				if (outputStream != null)
-				{
-					outputStream.Close();
-					outputStream = null;
-					outputStreamClosed?.Invoke(this, outputFilePath);
-				}
-
-				errorsUpdated?.Invoke(this, PlaylistErrorCountInRow, PlaylistErrorCountInRowMax,
-					OtherErrorCountInRow, OtherErrorCountInRowMax, ChunkDownloadErrorCount,
-					ChunkAppendErrorCount, LostChunkCount);
-
-				if (writeChunksInfo)
-				{
-					try
-					{
-						JObject json = new JObject();
-						json["playlistUrl"] = PlaylistUrl;
-						if (!string.IsNullOrEmpty(ActualPlaylistUrl) &&
-							!string.IsNullOrWhiteSpace(ActualPlaylistUrl) &&
-							ActualPlaylistUrl != PlaylistUrl)
-						{
-							json["actualPlaylistUrl"] = ActualPlaylistUrl;
-						}
-						json["outputFile"] = outputFilePath;
-						if (jHeaderChunk != null)
-						{
-							json.Add(new JProperty("headerChunk", jHeaderChunk));
-						}
-						if (jaLostChunks.Count > 0)
-						{
-							json["lostChunkCount"] = jaLostChunks.Count;
-							json.Add(new JProperty("lostChunks", jaLostChunks));
-						}
-						json["chunkCount"] = jaValidChunks.Count;
-						json.Add(new JProperty("chunks", jaValidChunks));
-						File.WriteAllText($"{outputFilePath}_chunks.json", json.ToString());
-					}
-					catch (Exception ex)
-					{
-#if DEBUG
-						System.Diagnostics.Debug.WriteLine(ex.Message);
-#endif
-						OtherErrorCountInRow++;
-						dumpError?.Invoke(this, ex.Message, OtherErrorCountInRow);
-					}
-				}
-			});
+			}
 
 			int e = _cancellationToken.IsCancellationRequested ? DUMP_ERROR_CANCELED : DUMP_ERROR_PLAYLIST_GONE;
 			dumpFinished?.Invoke(this, e, null);

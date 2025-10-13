@@ -67,7 +67,7 @@ namespace HlsDumpLib.GuiTest
 							Dumper = new HlsDumper(PlaylistUrl);
 							dumpStarted?.Invoke(this);
 
-							Task.Run(() => Dumper.Dump(OutputFilePath,
+							Dumper.Dump(OutputFilePath,
 								(s, url) => playlistCheckStarted?.Invoke(this, url),
 								(s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow) =>
 									playlistCheckFinished?.Invoke(this, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow),
@@ -95,7 +95,7 @@ namespace HlsDumpLib.GuiTest
 								},
 								playlistCheckIntervalMilliseconds,
 								maxPlaylistErrorCountInRow, maxOtherErrorsInRow,
-								saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime));
+								saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
 						}
 					}
 
