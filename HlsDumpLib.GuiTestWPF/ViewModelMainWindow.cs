@@ -284,12 +284,12 @@ namespace HlsDumpLib.GuiTestWPF
 					return;
 				}
 
-				streamItem.Check(
+				Task.Run(() => streamItem.Check(
 					PlaylistCheckIntervalMilliseconds,
 					PlaylistErrorCountInRowMax,
 					OtherErrorCountInRowMax,
 					SaveChunkInfos, SaveChunkFileName, SaveChunkFileUrl,
-					UseGmtTime);
+					UseGmtTime));
 			}
 		}
 

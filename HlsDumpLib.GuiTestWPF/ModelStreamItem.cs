@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using MultiThreadedDownloaderLib;
 using static HlsDumpLib.HlsDumper;
 using static HlsDumpLib.GuiTestWPF.Utils;
@@ -329,7 +328,7 @@ namespace HlsDumpLib.GuiTestWPF
 		public delegate void StreamCheckFinishedDelegate(object sender, int errorCode);
 		public delegate void StreamDumpStartedDelegate(object sender, HlsDumper dumper);
 
-		public async void Check(
+		public void Check(
 			StreamCheckStartedDelegate streamCheckStarted,
 			StreamCheckFinishedDelegate streamCheckFinished,
 			PlaylistCheckStartedDelegate playlistCheckStarted,
@@ -360,153 +359,150 @@ namespace HlsDumpLib.GuiTestWPF
 				_maxOtherErrorCountInRow = maxOtherErrorCountInRow;
 				State = "Проверка...";
 
-				await Task.Run(() =>
+				streamCheckStarted?.Invoke(this);
+
+				int errorCode = FileDownloader.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
+				if (errorCode == 200)
 				{
-					streamCheckStarted?.Invoke(this);
+					WantsStop = false;
+					WasStarted = true;
+					DumpStarted = useGmtTime ? DateTime.UtcNow : DateTime.Now;
+					Dumper = new HlsDumper(PlaylistUrl);
+					streamDumpStarted?.Invoke(this, Dumper);
 
-					int errorCode = FileDownloader.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
-					if (errorCode == 200)
-					{
-						WantsStop = false;
-						WasStarted = true;
-						DumpStarted = useGmtTime ? DateTime.UtcNow : DateTime.Now;
-						Dumper = new HlsDumper(PlaylistUrl);
-						streamDumpStarted?.Invoke(this, Dumper);
-
-						Task.Run(() => Dumper.Dump(OutputFilePath,
-							(s, url) =>
+					Dumper.Dump(OutputFilePath,
+						(s, url) =>
+						{
+							State = "Проверка плейлиста...";
+							playlistCheckStarted?.Invoke(this, url);
+						},
+						(s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow) =>
+						{
+							State = $"Плейлист проверен (код: {e})";
+							if (e == 200 && newChunkCount > 0)
 							{
-								State = "Проверка плейлиста...";
-								playlistCheckStarted?.Invoke(this, url);
-							},
-							(s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow) =>
+								NewChunkCount = newChunkCount;
+							}
+							else
 							{
-								State = $"Плейлист проверен (код: {e})";
-								if (e == 200 && newChunkCount > 0)
-								{
-									NewChunkCount = newChunkCount;
-								}
-								else
-								{
-									NewChunkCount = 0;
-									ChunkId = -1;
-									ChunkLength = -1.0;
-									ChunkFileSize = -1L;
-									ChunkProcessingTime = -1;
-									ChunkFileName = string.Empty;
-									ChunkUrl = string.Empty;
-								}
-								PlaylistErrorCountInRow = playlistErrorCountInRow;
-								playlistCheckFinished?.Invoke(this, chunkCount, newChunkCount,
-									firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow);
-							},
-							(s, count, first, manifestItem) =>
+								NewChunkCount = 0;
+								ChunkId = -1;
+								ChunkLength = -1.0;
+								ChunkFileSize = -1L;
+								ChunkProcessingTime = -1;
+								ChunkFileName = string.Empty;
+								ChunkUrl = string.Empty;
+							}
+							PlaylistErrorCountInRow = playlistErrorCountInRow;
+							playlistCheckFinished?.Invoke(this, chunkCount, newChunkCount,
+								firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow);
+						},
+						(s, count, first, manifestItem) =>
+						{
+							FirstChunkId = first;
+							if (manifestItem != null)
 							{
-								FirstChunkId = first;
-								if (manifestItem != null)
-								{
-									Type = manifestItem.ItemType;
-									ProgramId = manifestItem.ProgramId;
-									GroupId = manifestItem.GroupId;
-									FormatName = manifestItem.Name;
-									ClosedCaptions = manifestItem.ClosedCaptions;
-									Bandwidth = manifestItem.Bandwidth;
-									VideoResolution = $"{manifestItem.VideoResolutionWidth}x{manifestItem.VideoResolutionHeight}";
-									VideoFrameRate = manifestItem.VideoFrameRate;
-									Codecs = manifestItem.Codecs;
-									Language = manifestItem.Language;
-								}
-								else
-								{
-									ProgramId = -1;
-									Bandwidth = 0;
-									VideoFrameRate = 0;
-									Type = GroupId = FormatName = ClosedCaptions = VideoResolution = Codecs = Language = string.Empty;
-								}
-								playlistFirstArrived?.Invoke(this, count, first, manifestItem);
-							},
-							(s, stream, fn) =>
+								Type = manifestItem.ItemType;
+								ProgramId = manifestItem.ProgramId;
+								GroupId = manifestItem.GroupId;
+								FormatName = manifestItem.Name;
+								ClosedCaptions = manifestItem.ClosedCaptions;
+								Bandwidth = manifestItem.Bandwidth;
+								VideoResolution = $"{manifestItem.VideoResolutionWidth}x{manifestItem.VideoResolutionHeight}";
+								VideoFrameRate = manifestItem.VideoFrameRate;
+								Codecs = manifestItem.Codecs;
+								Language = manifestItem.Language;
+							}
+							else
 							{
-								OutputFilePath = fn;
-								outputStreamAssigned?.Invoke(this, stream, fn);
-							},
-							(s, fn) => outputStreamClosed?.Invoke(this, fn),
-							(s, delay, checkInterval, cycleProcessingTime) =>
+								ProgramId = -1;
+								Bandwidth = 0;
+								VideoFrameRate = 0;
+								Type = GroupId = FormatName = ClosedCaptions = VideoResolution = Codecs = Language = string.Empty;
+							}
+							playlistFirstArrived?.Invoke(this, count, first, manifestItem);
+						},
+						(s, stream, fn) =>
+						{
+							OutputFilePath = fn;
+							outputStreamAssigned?.Invoke(this, stream, fn);
+						},
+						(s, fn) => outputStreamClosed?.Invoke(this, fn),
+						(s, delay, checkInterval, cycleProcessingTime) =>
+						{
+							PlaylistDelay = delay;
+							playlistCheckDelayCalculated?.Invoke(this, delay, checkInterval, cycleProcessingTime);
+						},
+						(s, chunk) =>
+						{
+							State = $"Подключение... {chunk.Url}";
+							nextChunkConnecting?.Invoke(this, chunk);
+						},
+						(s, chunk, chunkSize, code) =>
+						{
+							if (code == 200 && chunk != null)
 							{
-								PlaylistDelay = delay;
-								playlistCheckDelayCalculated?.Invoke(this, delay, checkInterval, cycleProcessingTime);
-							},
-							(s, chunk) =>
-							{
-								State = $"Подключение... {chunk.Url}";
-								nextChunkConnecting?.Invoke(this, chunk);
-							},
-							(s, chunk, chunkSize, code) =>
-							{
-								if (code == 200 && chunk != null)
-								{
-									ChunkFileName = chunk.FileName;
-									ChunkUrl = chunk.Url;
-									ChunkId = chunk.Id;
-									ChunkLength = chunk.LengthSeconds;
-									ChunkFileSize = chunkSize;
-								}
-								else
-								{
-									ChunkFileName = string.Empty;
-									ChunkUrl = string.Empty;
-									ChunkId = -1;
-									ChunkLength = 0.0;
-									ChunkFileSize = 0L;
-									ChunkProcessingTime = -1;
-								}
-								nextChunkConnected?.Invoke(this, chunk, chunkSize, code);
-							},
-							(s, chunk, chunkSize, sessionChunkId, chunkProcessingTime) =>
-							{
+								ChunkFileName = chunk.FileName;
+								ChunkUrl = chunk.Url;
+								ChunkId = chunk.Id;
+								ChunkLength = chunk.LengthSeconds;
 								ChunkFileSize = chunkSize;
-								ChunkProcessingTime = chunkProcessingTime;
-								ProcessedChunkCount = (s as HlsDumper).ProcessedChunkCountTotal;
-								OtherErrorCountInRow = 0;
-								nextChunkProcessed?.Invoke(this, chunk, chunkSize, sessionChunkId, chunkProcessingTime);
-							},
-							(s, playlistErrorCountInRow, playlistErrorCountInRowMax,
+							}
+							else
+							{
+								ChunkFileName = string.Empty;
+								ChunkUrl = string.Empty;
+								ChunkId = -1;
+								ChunkLength = 0.0;
+								ChunkFileSize = 0L;
+								ChunkProcessingTime = -1;
+							}
+							nextChunkConnected?.Invoke(this, chunk, chunkSize, code);
+						},
+						(s, chunk, chunkSize, sessionChunkId, chunkProcessingTime) =>
+						{
+							ChunkFileSize = chunkSize;
+							ChunkProcessingTime = chunkProcessingTime;
+							ProcessedChunkCount = (s as HlsDumper).ProcessedChunkCountTotal;
+							OtherErrorCountInRow = 0;
+							nextChunkProcessed?.Invoke(this, chunk, chunkSize, sessionChunkId, chunkProcessingTime);
+						},
+						(s, playlistErrorCountInRow, playlistErrorCountInRowMax,
+						otherErrorCountInRow, otherErrorCountInRowMax,
+						chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>
+						{
+							PlaylistErrorCountInRow = playlistErrorCountInRow;
+							OtherErrorCountInRow = otherErrorCountInRow;
+							ChunkDownloadErrorCount = chunkDownloadErrorCount;
+							ChunkAppendErrorCount = chunkAppendErrorCount;
+							LostChunkCount = lostChunkCount;
+							errorsUpdated?.Invoke(this, playlistErrorCountInRow, playlistErrorCountInRowMax,
 							otherErrorCountInRow, otherErrorCountInRowMax,
-							chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>
-							{
-								PlaylistErrorCountInRow = playlistErrorCountInRow;
-								OtherErrorCountInRow = otherErrorCountInRow;
-								ChunkDownloadErrorCount = chunkDownloadErrorCount;
-								ChunkAppendErrorCount = chunkAppendErrorCount;
-								LostChunkCount = lostChunkCount;
-								errorsUpdated?.Invoke(this, playlistErrorCountInRow, playlistErrorCountInRowMax,
-								otherErrorCountInRow, otherErrorCountInRowMax,
-								chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount);
-							},
-							(s, fs, e) =>
-							{
-								State = "Дампинг...";
-								OutputFileSize = fs;
-								dumpProgress?.Invoke(this, fs, e);
-							},
-							null, null, null, null, null,
-							(s, e, t) =>
-							{
-								State = WantsStop ? "Остановлен" : "Завершён";
-								dumpFinished?.Invoke(this, e, t);
-								Dumper = null;
-							},
-							playlistCheckIntervalMilliseconds,
-							maxPlaylistErrorCountInRow, maxOtherErrorCountInRow,
-							saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime));
-					}
-					else
-					{
-						State = $"Ошибка! Код {errorCode}";
-					}
+							chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount);
+						},
+						(s, fs, e) =>
+						{
+							State = "Дампинг...";
+							OutputFileSize = fs;
+							dumpProgress?.Invoke(this, fs, e);
+						},
+						null, null, null, null, null,
+						(s, e, t) =>
+						{
+							State = WantsStop ? "Остановлен" : "Завершён";
+							dumpFinished?.Invoke(this, e, t);
+							Dumper = null;
+						},
+						playlistCheckIntervalMilliseconds,
+						maxPlaylistErrorCountInRow, maxOtherErrorCountInRow,
+						saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
+				}
+				else
+				{
+					State = $"Ошибка! Код {errorCode}";
+				}
 
-					streamCheckFinished?.Invoke(this, errorCode);
-				});
+				streamCheckFinished?.Invoke(this, errorCode);
 
 				IsChecking = false;
 				if (WantsStop) { Stop(); }
