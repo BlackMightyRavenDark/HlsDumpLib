@@ -1,6 +1,5 @@
 ﻿using System;
 using MultiThreadedDownloaderLib;
-using static HlsDumpLib.HlsDumper;
 using static HlsDumpLib.GuiTestWPF.Utils;
 
 namespace HlsDumpLib.GuiTestWPF
@@ -324,26 +323,7 @@ namespace HlsDumpLib.GuiTestWPF
 		public bool WasStarted { get; private set; }
 		public bool WantsStop { get; private set; } = false;
 
-		public delegate void StreamCheckStartedDelegate(object sender);
-		public delegate void StreamCheckFinishedDelegate(object sender, int errorCode);
-		public delegate void StreamDumpStartedDelegate(object sender, HlsDumper dumper);
-
 		public void Check(
-			StreamCheckStartedDelegate streamCheckStarted,
-			StreamCheckFinishedDelegate streamCheckFinished,
-			PlaylistCheckStartedDelegate playlistCheckStarted,
-			PlaylistCheckFinishedDelegate playlistCheckFinished,
-			PlaylistFirstArrivedDelegate playlistFirstArrived,
-			OutputStreamAssignedDelegate outputStreamAssigned,
-			OutputStreamClosedDelegate outputStreamClosed,
-			PlaylistCheckDelayCalculatedDelegate playlistCheckDelayCalculated,
-			StreamDumpStartedDelegate streamDumpStarted,
-			NextChunkConnectingDelegate nextChunkConnecting,
-			NextChunkConnectedDelegate nextChunkConnected,
-			NextChunkProcessedDelegate nextChunkProcessed,
-			ErrorsUpdatedDelegate errorsUpdated,
-			DumpProgressDelegate dumpProgress,
-			DumpFinishedDelegate dumpFinished,
 			int playlistCheckIntervalMilliseconds,
 			int maxPlaylistErrorCountInRow,
 			int maxOtherErrorCountInRow,
@@ -359,8 +339,6 @@ namespace HlsDumpLib.GuiTestWPF
 				_maxOtherErrorCountInRow = maxOtherErrorCountInRow;
 				State = "Проверка...";
 
-				streamCheckStarted?.Invoke(this);
-
 				int errorCode = FileDownloader.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
 				if (errorCode == 200)
 				{
@@ -368,14 +346,16 @@ namespace HlsDumpLib.GuiTestWPF
 					WasStarted = true;
 					DumpStarted = useGmtTime ? DateTime.UtcNow : DateTime.Now;
 					Dumper = new HlsDumper(PlaylistUrl);
-					streamDumpStarted?.Invoke(this, Dumper);
+
+					ProcessedChunkCount = 0;
+					LostChunkCount = 0;
+					PlaylistErrorCountInRow = 0;
+					ChunkDownloadErrorCount = 0;
+					ChunkAppendErrorCount = 0;
+					OtherErrorCountInRow = 0;
 
 					Dumper.Dump(OutputFilePath,
-						(s, url) =>
-						{
-							State = "Проверка плейлиста...";
-							playlistCheckStarted?.Invoke(this, url);
-						},
+						(s, url) => State = "Проверка плейлиста...",
 						(s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow) =>
 						{
 							State = $"Плейлист проверен (код: {e})";
@@ -394,8 +374,6 @@ namespace HlsDumpLib.GuiTestWPF
 								ChunkUrl = string.Empty;
 							}
 							PlaylistErrorCountInRow = playlistErrorCountInRow;
-							playlistCheckFinished?.Invoke(this, chunkCount, newChunkCount,
-								firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow);
 						},
 						(s, count, first, manifestItem) =>
 						{
@@ -420,24 +398,11 @@ namespace HlsDumpLib.GuiTestWPF
 								VideoFrameRate = 0;
 								Type = GroupId = FormatName = ClosedCaptions = VideoResolution = Codecs = Language = string.Empty;
 							}
-							playlistFirstArrived?.Invoke(this, count, first, manifestItem);
 						},
-						(s, stream, fn) =>
-						{
-							OutputFilePath = fn;
-							outputStreamAssigned?.Invoke(this, stream, fn);
-						},
-						(s, fn) => outputStreamClosed?.Invoke(this, fn),
-						(s, delay, checkInterval, cycleProcessingTime) =>
-						{
-							PlaylistDelay = delay;
-							playlistCheckDelayCalculated?.Invoke(this, delay, checkInterval, cycleProcessingTime);
-						},
-						(s, chunk) =>
-						{
-							State = $"Подключение... {chunk.Url}";
-							nextChunkConnecting?.Invoke(this, chunk);
-						},
+						(s, stream, fn) => OutputFilePath = fn,
+						null,
+						(s, delay, checkInterval, cycleProcessingTime) => PlaylistDelay = delay,
+						(s, chunk) => State = $"Подключение... {chunk.Url}",
 						(s, chunk, chunkSize, code) =>
 						{
 							if (code == 200 && chunk != null)
@@ -457,7 +422,6 @@ namespace HlsDumpLib.GuiTestWPF
 								ChunkFileSize = 0L;
 								ChunkProcessingTime = -1;
 							}
-							nextChunkConnected?.Invoke(this, chunk, chunkSize, code);
 						},
 						(s, chunk, chunkSize, sessionChunkId, chunkProcessingTime) =>
 						{
@@ -465,32 +429,26 @@ namespace HlsDumpLib.GuiTestWPF
 							ChunkProcessingTime = chunkProcessingTime;
 							ProcessedChunkCount = (s as HlsDumper).ProcessedChunkCountTotal;
 							OtherErrorCountInRow = 0;
-							nextChunkProcessed?.Invoke(this, chunk, chunkSize, sessionChunkId, chunkProcessingTime);
 						},
 						(s, playlistErrorCountInRow, playlistErrorCountInRowMax,
-						otherErrorCountInRow, otherErrorCountInRowMax,
-						chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>
+							otherErrorCountInRow, otherErrorCountInRowMax,
+							chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>
 						{
 							PlaylistErrorCountInRow = playlistErrorCountInRow;
 							OtherErrorCountInRow = otherErrorCountInRow;
 							ChunkDownloadErrorCount = chunkDownloadErrorCount;
 							ChunkAppendErrorCount = chunkAppendErrorCount;
 							LostChunkCount = lostChunkCount;
-							errorsUpdated?.Invoke(this, playlistErrorCountInRow, playlistErrorCountInRowMax,
-							otherErrorCountInRow, otherErrorCountInRowMax,
-							chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount);
 						},
 						(s, fs, e) =>
 						{
 							State = "Дампинг...";
 							OutputFileSize = fs;
-							dumpProgress?.Invoke(this, fs, e);
 						},
 						null, null, null, null, null,
 						(s, e, t) =>
 						{
 							State = WantsStop ? "Остановлен" : "Завершён";
-							dumpFinished?.Invoke(this, e, t);
 							Dumper = null;
 						},
 						playlistCheckIntervalMilliseconds,
@@ -502,35 +460,9 @@ namespace HlsDumpLib.GuiTestWPF
 					State = $"Ошибка! Код {errorCode}";
 				}
 
-				streamCheckFinished?.Invoke(this, errorCode);
-
 				IsChecking = false;
 				if (WantsStop) { Stop(); }
 			}
-		}
-
-		public void Check(
-			int playlistCheckIntervalMilliseconds,
-			int maxPlaylistErrorCountInRow,
-			int maxOtherErrorCountInRow,
-			bool saveChunksInfo,
-			bool storeChunkFileName,
-			bool storeChunkUrl,
-			bool useGmtTime)
-		{
-			Check(null, null, null, null, null, null, null, null,
-				(s, dumper) =>
-				{
-					ProcessedChunkCount = 0;
-					LostChunkCount = 0;
-					PlaylistErrorCountInRow = 0;
-					ChunkDownloadErrorCount = 0;
-					ChunkAppendErrorCount = 0;
-					OtherErrorCountInRow = 0;
-				}, null, null, null, null, null, null,
-				playlistCheckIntervalMilliseconds, maxPlaylistErrorCountInRow,
-				maxOtherErrorCountInRow, saveChunksInfo, storeChunkFileName,
-				storeChunkUrl, useGmtTime);
 		}
 
 		public void Stop()
