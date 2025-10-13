@@ -25,7 +25,7 @@ namespace HlsDumpLib.ConsoleTest
 						$"hlsdump_{DateTime.Now:yyyy-MM-dd HH-mm-ss}";
 
 					HlsDumper dumper = new HlsDumper(url);
-					dumper.Dump(outputFileName, OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, null, null, null, null,
+					dumper.Dump(outputFileName, OnPlaylistCheckStarted, OnPlaylistCheckFinished, null, null, null, null,
 						OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkProcessed, null,
 						OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
 						OnMessage, OnWarning, OnError, OnFinished,
@@ -43,7 +43,7 @@ namespace HlsDumpLib.ConsoleTest
 			Console.ReadLine();
 		}
 
-		private static void OnPlaylistCheckingStarted(object sender, string playlistFileUrl)
+		private static void OnPlaylistCheckStarted(object sender, string playlistFileUrl)
 		{
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.Write("Checking playlist: ");
@@ -51,7 +51,7 @@ namespace HlsDumpLib.ConsoleTest
 			Console.WriteLine(playlistFileUrl);
 		}
 
-		private static void OnPlaylistCheckingFinished(object sender,
+		private static void OnPlaylistCheckFinished(object sender,
 			int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
 			string playlistContent, int errorCode, int playlistErrorCountInRow)
 		{
@@ -64,7 +64,7 @@ namespace HlsDumpLib.ConsoleTest
 			else
 			{
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine($"Playlist checking failed! Error code: {errorCode}, " +
+				Console.WriteLine($"Playlist check failed! Error code: {errorCode}, " +
 					$"Error count: {playlistErrorCountInRow} / {(sender as HlsDumper).PlaylistErrorCountInRowMax}");
 			}
 		}

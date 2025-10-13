@@ -149,16 +149,16 @@ namespace HlsDumpLib.GuiTestWPF
 			}
 		}
 		public string State { get => _state; set => SetProperty(ref _state, value); }
-		public DateTime DumpingStarted
+		public DateTime DumpStarted
 		{
-			get => _dumpingStarted;
+			get => _dumpStarted;
 			set
 			{
-				if (_dumpingStarted != value)
+				if (_dumpStarted != value)
 				{
-					_dumpingStarted = value;
-					RaisePropertyChanged(nameof(DumpingStarted));
-					RaisePropertyChanged(nameof(DumpingStartedFormatted));
+					_dumpStarted = value;
+					RaisePropertyChanged(nameof(DumpStarted));
+					RaisePropertyChanged(nameof(DumpStartedFormatted));
 				}
 			}
 		}
@@ -276,7 +276,7 @@ namespace HlsDumpLib.GuiTestWPF
 		private int _firstChunkId = -1;
 		private int _processedChunkCount = -1;
 		private int _lostChunkCount = -1;
-		private DateTime _dumpingStarted = DateTime.MaxValue;
+		private DateTime _dumpStarted = DateTime.MaxValue;
 		private string _state = "Остановлен";
 		private int _playlistErrorCountInRow = -1;
 		private int _chunkDownloadErrorCount = -1;
@@ -308,7 +308,7 @@ namespace HlsDumpLib.GuiTestWPF
 		public string FirstChunkIdFormatted => FormatFirstChunkId();
 		public string ProcessedChunkCountFormatted => FormatProcessedChunkCount();
 		public string LostChunkCountFormatted => FormatLostChunkCount();
-		public string DumpingStartedFormatted => FormatDateDumpingStarted();
+		public string DumpStartedFormatted => FormatDateDumpStarted();
 		public string PlaylistErrorCountInRowFormatted => FormatPlaylistErrorCountInRow();
 		public string ChunkDownloadErrorCountFormatted => FormatChunkDownloadErrorCount();
 		public string ChunkAppendErrorCountFormatted => FormatChunkAppendErrorCount();
@@ -325,27 +325,27 @@ namespace HlsDumpLib.GuiTestWPF
 		public bool WasStarted { get; private set; }
 		public bool WantsStop { get; private set; } = false;
 
-		public delegate void CheckingStartedDelegate(object sender);
-		public delegate void CheckingFinishedDelegate(object sender, int errorCode);
-		public delegate void DumpingStartedDelegate(object sender, HlsDumper dumper);
+		public delegate void StreamCheckStartedDelegate(object sender);
+		public delegate void StreamCheckFinishedDelegate(object sender, int errorCode);
+		public delegate void StreamDumpStartedDelegate(object sender, HlsDumper dumper);
 
 		public async void Check(
-			CheckingStartedDelegate checkingStarted,
-			CheckingFinishedDelegate checkingFinished,
-			PlaylistCheckingStartedDelegate playlistCheckingStarted,
-			PlaylistCheckingFinishedDelegate playlistCheckingFinished,
+			StreamCheckStartedDelegate streamCheckStarted,
+			StreamCheckFinishedDelegate streamCheckFinished,
+			PlaylistCheckStartedDelegate playlistCheckStarted,
+			PlaylistCheckFinishedDelegate playlistCheckFinished,
 			PlaylistFirstArrivedDelegate playlistFirstArrived,
 			OutputStreamAssignedDelegate outputStreamAssigned,
 			OutputStreamClosedDelegate outputStreamClosed,
-			PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
-			DumpingStartedDelegate dumpingStarted,
+			PlaylistCheckDelayCalculatedDelegate playlistCheckDelayCalculated,
+			StreamDumpStartedDelegate streamDumpStarted,
 			NextChunkConnectingDelegate nextChunkConnecting,
 			NextChunkConnectedDelegate nextChunkConnected,
 			NextChunkProcessedDelegate nextChunkProcessed,
 			ErrorsUpdatedDelegate errorsUpdated,
-			DumpProgressDelegate dumpingProgress,
-			DumpFinishedDelegate dumpingFinished,
-			int playlistCheckingIntervalMilliseconds,
+			DumpProgressDelegate dumpProgress,
+			DumpFinishedDelegate dumpFinished,
+			int playlistCheckIntervalMilliseconds,
 			int maxPlaylistErrorCountInRow,
 			int maxOtherErrorCountInRow,
 			bool saveChunksInfo,
@@ -362,22 +362,22 @@ namespace HlsDumpLib.GuiTestWPF
 
 				await Task.Run(() =>
 				{
-					checkingStarted?.Invoke(this);
+					streamCheckStarted?.Invoke(this);
 
 					int errorCode = FileDownloader.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
 					if (errorCode == 200)
 					{
 						WantsStop = false;
 						WasStarted = true;
-						DumpingStarted = useGmtTime ? DateTime.UtcNow : DateTime.Now;
+						DumpStarted = useGmtTime ? DateTime.UtcNow : DateTime.Now;
 						Dumper = new HlsDumper(PlaylistUrl);
-						dumpingStarted?.Invoke(this, Dumper);
+						streamDumpStarted?.Invoke(this, Dumper);
 
 						Task.Run(() => Dumper.Dump(OutputFilePath,
 							(s, url) =>
 							{
 								State = "Проверка плейлиста...";
-								playlistCheckingStarted?.Invoke(this, url);
+								playlistCheckStarted?.Invoke(this, url);
 							},
 							(s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow) =>
 							{
@@ -397,7 +397,7 @@ namespace HlsDumpLib.GuiTestWPF
 									ChunkUrl = string.Empty;
 								}
 								PlaylistErrorCountInRow = playlistErrorCountInRow;
-								playlistCheckingFinished?.Invoke(this, chunkCount, newChunkCount,
+								playlistCheckFinished?.Invoke(this, chunkCount, newChunkCount,
 									firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow);
 							},
 							(s, count, first, manifestItem) =>
@@ -431,10 +431,10 @@ namespace HlsDumpLib.GuiTestWPF
 								outputStreamAssigned?.Invoke(this, stream, fn);
 							},
 							(s, fn) => outputStreamClosed?.Invoke(this, fn),
-							(s, delay, checkingInterval, cycleProcessingTime) =>
+							(s, delay, checkInterval, cycleProcessingTime) =>
 							{
 								PlaylistDelay = delay;
-								playlistCheckingDelayCalculated?.Invoke(this, delay, checkingInterval, cycleProcessingTime);
+								playlistCheckDelayCalculated?.Invoke(this, delay, checkInterval, cycleProcessingTime);
 							},
 							(s, chunk) =>
 							{
@@ -487,16 +487,16 @@ namespace HlsDumpLib.GuiTestWPF
 							{
 								State = "Дампинг...";
 								OutputFileSize = fs;
-								dumpingProgress?.Invoke(this, fs, e);
+								dumpProgress?.Invoke(this, fs, e);
 							},
 							null, null, null, null, null,
 							(s, e, t) =>
 							{
 								State = WantsStop ? "Остановлен" : "Завершён";
-								dumpingFinished?.Invoke(this, e, t);
+								dumpFinished?.Invoke(this, e, t);
 								Dumper = null;
 							},
-							playlistCheckingIntervalMilliseconds,
+							playlistCheckIntervalMilliseconds,
 							maxPlaylistErrorCountInRow, maxOtherErrorCountInRow,
 							saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime));
 					}
@@ -505,7 +505,7 @@ namespace HlsDumpLib.GuiTestWPF
 						State = $"Ошибка! Код {errorCode}";
 					}
 
-					checkingFinished?.Invoke(this, errorCode);
+					streamCheckFinished?.Invoke(this, errorCode);
 				});
 
 				IsChecking = false;
@@ -514,7 +514,7 @@ namespace HlsDumpLib.GuiTestWPF
 		}
 
 		public void Check(
-			int playlistCheckingIntervalMilliseconds,
+			int playlistCheckIntervalMilliseconds,
 			int maxPlaylistErrorCountInRow,
 			int maxOtherErrorCountInRow,
 			bool saveChunksInfo,
@@ -532,7 +532,7 @@ namespace HlsDumpLib.GuiTestWPF
 					ChunkAppendErrorCount = 0;
 					OtherErrorCountInRow = 0;
 				}, null, null, null, null, null, null,
-				playlistCheckingIntervalMilliseconds, maxPlaylistErrorCountInRow,
+				playlistCheckIntervalMilliseconds, maxPlaylistErrorCountInRow,
 				maxOtherErrorCountInRow, saveChunksInfo, storeChunkFileName,
 				storeChunkUrl, useGmtTime);
 		}
@@ -560,7 +560,7 @@ namespace HlsDumpLib.GuiTestWPF
 
 		public string FormatPlaylistDelay()
 		{
-			return IsDumping ? $"{PlaylistDelay}ms / {Dumper.PlaylistCheckingIntervalMilliseconds}ms" : string.Empty;
+			return IsDumping ? $"{PlaylistDelay}ms / {Dumper.PlaylistCheckIntervalMilliseconds}ms" : string.Empty;
 		}
 
 		private string FormatChunkProcessingTime()
@@ -598,10 +598,10 @@ namespace HlsDumpLib.GuiTestWPF
 			return WasStarted && LostChunkCount >= 0 ? LostChunkCount.ToString() : string.Empty;
 		}
 
-		private string FormatDateDumpingStarted()
+		private string FormatDateDumpStarted()
 		{
-			if (DumpingStarted == DateTime.MaxValue) { return string.Empty; }
-			return DumpingStarted.IsGmt() ? $"{DumpingStarted} GMT" : DumpingStarted.ToString("yyyy.MM.dd HH:mm:ss");
+			if (DumpStarted == DateTime.MaxValue) { return string.Empty; }
+			return DumpStarted.IsGmt() ? $"{DumpStarted} GMT" : DumpStarted.ToString("yyyy.MM.dd HH:mm:ss");
 		}
 
 		private string FormatPlaylistErrorCountInRow()

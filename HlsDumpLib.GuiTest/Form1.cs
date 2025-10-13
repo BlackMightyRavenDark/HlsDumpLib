@@ -310,11 +310,11 @@ namespace HlsDumpLib.GuiTest
 			listViewStreams.Items.Add(item);
 		}
 
-		private void OnCheckingStarted(object sender)
+		private void OnCheckStarted(object sender)
 		{
 			if (InvokeRequired)
 			{
-				Invoke(new MethodInvoker(() => OnCheckingStarted(sender)));
+				Invoke(new MethodInvoker(() => OnCheckStarted(sender)));
 			}
 			else
 			{
@@ -357,11 +357,11 @@ namespace HlsDumpLib.GuiTest
 			}
 		}
 
-		private void OnCheckingFinished(object sender, int errorCode)
+		private void OnCheckFinished(object sender, int errorCode)
 		{
 			if (InvokeRequired)
 			{
-				Invoke(new MethodInvoker(() => OnCheckingFinished(sender, errorCode)));
+				Invoke(new MethodInvoker(() => OnCheckFinished(sender, errorCode)));
 			}
 			else
 			{
@@ -375,11 +375,11 @@ namespace HlsDumpLib.GuiTest
 			}
 		}
 
-		private void OnPlaylistCheckingStarted(object sender, string playlistUrl)
+		private void OnPlaylistCheckStarted(object sender, string playlistUrl)
 		{
 			if (InvokeRequired)
 			{
-				Invoke(new MethodInvoker(() => OnPlaylistCheckingStarted(sender, playlistUrl)));
+				Invoke(new MethodInvoker(() => OnPlaylistCheckStarted(sender, playlistUrl)));
 			}
 			else
 			{
@@ -392,14 +392,14 @@ namespace HlsDumpLib.GuiTest
 			}
 		}
 
-		private void OnPlaylistCheckingFinished(object sender,
+		private void OnPlaylistCheckFinished(object sender,
 			int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
 			string playlistContent, int errorCode, int playlistErrorCountInRow)
 		{
 			if (InvokeRequired)
 			{
 				Invoke(new MethodInvoker(() =>
-					OnPlaylistCheckingFinished(sender,
+					OnPlaylistCheckFinished(sender,
 						chunkCount, newChunkCount, firstChunkId, firstNewChunkId,
 						playlistContent, errorCode, playlistErrorCountInRow)
 				));
@@ -483,13 +483,13 @@ namespace HlsDumpLib.GuiTest
 			}
 		}
 
-		public void OnPlaylistCheckingDelayCalculated(object sender,
-			int delay, int checkingInterval, int cycleProcessingTime)
+		public void OnPlaylistCheckDelayCalculated(object sender,
+			int delay, int checkInterval, int cycleProcessingTime)
 		{
 			if (InvokeRequired)
 			{
 				Invoke(new MethodInvoker(() =>
-					OnPlaylistCheckingDelayCalculated(sender, delay, checkingInterval, cycleProcessingTime)));
+					OnPlaylistCheckDelayCalculated(sender, delay, checkInterval, cycleProcessingTime)));
 			}
 			else
 			{
@@ -498,16 +498,16 @@ namespace HlsDumpLib.GuiTest
 				if (id >= 0)
 				{
 					listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_DELAY].Text =
-						$"{delay}ms / {checkingInterval}ms";
+						$"{delay}ms / {checkInterval}ms";
 				}
 			}
 		}
 
-		private void OnDumpingStarted(object sender)
+		private void OnDumpStarted(object sender)
 		{
 			if (InvokeRequired)
 			{
-				Invoke(new MethodInvoker(() => OnDumpingStarted(sender)));
+				Invoke(new MethodInvoker(() => OnDumpStarted(sender)));
 			}
 			else
 			{
@@ -528,11 +528,11 @@ namespace HlsDumpLib.GuiTest
 			}
 		}
 
-		private void OnDumpingFinished(object sender, int errorCode, string errorText)
+		private void OnDumpFinished(object sender, int errorCode, string errorText)
 		{
 			if (InvokeRequired)
 			{
-				Invoke(new MethodInvoker(() => OnDumpingFinished(sender, errorCode, errorText)));
+				Invoke(new MethodInvoker(() => OnDumpFinished(sender, errorCode, errorText)));
 			}
 			else
 			{
@@ -548,19 +548,19 @@ namespace HlsDumpLib.GuiTest
 					string t;
 					switch (errorCode)
 					{
-						case HlsDumper.DUMPING_ERROR_PLAYLIST_GONE:
+						case HlsDumper.DUMP_ERROR_PLAYLIST_GONE:
 							t = "Завершён";
 							break;
 
-						case HlsDumper.DUMPING_ERROR_CANCELED:
+						case HlsDumper.DUMP_ERROR_CANCELED:
 							t = "Отменён";
 							break;
 
-						case HlsDumper.DUMPING_ERROR_NO_FILE_NAME_SPECIFIED:
+						case HlsDumper.DUMP_ERROR_NO_FILE_NAME_SPECIFIED:
 							t = "Не указано имя файла";
 							break;
 
-						case HlsDumper.DUMPING_ERROR_MANIFEST_HAS_NO_PLAYLISTS:
+						case HlsDumper.DUMP_ERROR_MANIFEST_HAS_NO_PLAYLISTS:
 							t = "Плейлисты не найдены";
 							break;
 
@@ -670,11 +670,11 @@ namespace HlsDumpLib.GuiTest
 			}
 		}
 
-		private void OnDumpingProgress(object sender, long fileSize, int errorCode)
+		private void OnDumpProgress(object sender, long fileSize, int errorCode)
 		{
 			if (InvokeRequired)
 			{
-				Invoke(new MethodInvoker(() => OnDumpingProgress(sender, fileSize, errorCode)));
+				Invoke(new MethodInvoker(() => OnDumpProgress(sender, fileSize, errorCode)));
 			}
 			else
 			{
@@ -754,15 +754,15 @@ namespace HlsDumpLib.GuiTest
 					bool useGmtTime = checkBoxUseGmtTime.Checked;
 					int maxPlaylistErrorsInRow = (int)numericUpDownPlaylistErrorCountInRow.Value;
 					int maxOtherErrorsInRow = (int)numericUpDownOtherErrorCountInRow.Value;
-					int playlistCheckingIntervalMilliseconds = (int)numericUpDownPlaylistCheckInterval.Value;
+					int playlistCheckIntervalMilliseconds = (int)numericUpDownPlaylistCheckInterval.Value;
 
-					streamItem.Check(OnCheckingStarted, OnCheckingFinished,
-						OnPlaylistCheckingStarted, OnPlaylistCheckingFinished, OnPlaylistFirstArrived,
+					streamItem.Check(OnCheckStarted, OnCheckFinished,
+						OnPlaylistCheckStarted, OnPlaylistCheckFinished, OnPlaylistFirstArrived,
 						OnOutputStreamAssigned, null,
-						OnPlaylistCheckingDelayCalculated, OnDumpingStarted,
+						OnPlaylistCheckDelayCalculated, OnDumpStarted,
 						OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkProcessed,
-						OnErrorsUpdated, OnDumpingProgress, OnDumpingFinished,
-						playlistCheckingIntervalMilliseconds,
+						OnErrorsUpdated, OnDumpProgress, OnDumpFinished,
+						playlistCheckIntervalMilliseconds,
 						maxPlaylistErrorsInRow, maxOtherErrorsInRow,
 						saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
 				}

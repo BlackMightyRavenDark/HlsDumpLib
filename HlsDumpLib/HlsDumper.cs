@@ -28,7 +28,7 @@ namespace HlsDumpLib
 		public int OtherErrorCountInRowMax { get; private set; } = 5;
 		public int OtherErrorCountInRow { get; private set; } = 0;
 
-		public int PlaylistCheckingIntervalMilliseconds { get; private set; } = 2000;
+		public int PlaylistCheckIntervalMilliseconds { get; private set; } = 2000;
 
 		private int _currentPlaylistFirstChunkId = -1;
 		private int _lastProcessedChunkId = -1;
@@ -38,20 +38,20 @@ namespace HlsDumpLib
 		private CancellationTokenSource _cancellationTokenSource;
 		private CancellationToken _cancellationToken;
 
-		public const int DUMPING_ERROR_PLAYLIST_GONE = -1;
-		public const int DUMPING_ERROR_CANCELED = -2;
-		public const int DUMPING_ERROR_NO_FILE_NAME_SPECIFIED = -3;
-		public const int DUMPING_ERROR_MANIFEST_HAS_NO_PLAYLISTS = -4;
+		public const int DUMP_ERROR_PLAYLIST_GONE = -1;
+		public const int DUMP_ERROR_CANCELED = -2;
+		public const int DUMP_ERROR_NO_FILE_NAME_SPECIFIED = -3;
+		public const int DUMP_ERROR_MANIFEST_HAS_NO_PLAYLISTS = -4;
 
-		public delegate void PlaylistCheckingStartedDelegate(object sender, string playlistUrl);
-		public delegate void PlaylistCheckingFinishedDelegate(object sender,
+		public delegate void PlaylistCheckStartedDelegate(object sender, string playlistUrl);
+		public delegate void PlaylistCheckFinishedDelegate(object sender,
 			int chunkCount, int newChunkCount, int firstChunkId, int firstNewChunkId,
 			string playlistContent, int errorCode, int playlistErrorCountInRow);
 		public delegate void PlaylistFirstArrivedDelegate(object sender, int chunkCount, int firstChunkId, M3UManifestItem manifestItem);
 		public delegate void OutputStreamAssignedDelegate(object sender, Stream stream, string fileName);
 		public delegate void OutputStreamClosedDelegate(object sender, string fileName);
-		public delegate void PlaylistCheckingDelayCalculatedDelegate(object sender,
-			int delay, int checkingInterval, int cycleProcessingTime);
+		public delegate void PlaylistCheckDelayCalculatedDelegate(object sender,
+			int delay, int checkInterval, int cycleProcessingTime);
 		public delegate void NextChunkConnectingDelegate(object sender, StreamSegment chunk);
 		public delegate void NextChunkConnectedDelegate(object sender, StreamSegment chunk, long chunkFileSize, int errorCode);
 		public delegate void NextChunkProcessedDelegate(object sender, StreamSegment chunk,
@@ -85,12 +85,12 @@ namespace HlsDumpLib
 		}
 
 		public async void Dump(string outputFilePath,
-			PlaylistCheckingStartedDelegate playlistCheckingStarted,
-			PlaylistCheckingFinishedDelegate playlistCheckingFinished,
+			PlaylistCheckStartedDelegate playlistCheckStarted,
+			PlaylistCheckFinishedDelegate playlistCheckFinished,
 			PlaylistFirstArrivedDelegate playlistFirstArrived,
 			OutputStreamAssignedDelegate outputStreamAssigned,
 			OutputStreamClosedDelegate outputStreamClosed,
-			PlaylistCheckingDelayCalculatedDelegate playlistCheckingDelayCalculated,
+			PlaylistCheckDelayCalculatedDelegate playlistCheckDelayCalculated,
 			NextChunkConnectingDelegate nextChunkConnecting,
 			NextChunkConnectedDelegate nextChunkConnected,
 			NextChunkProcessedDelegate nextChunkProcessed,
@@ -102,7 +102,7 @@ namespace HlsDumpLib
 			DumpWarningDelegate dumpWarning,
 			DumpErrorDelegate dumpError,
 			DumpFinishedDelegate dumpFinished,
-			int playlistCheckingIntervalMilliseconds,
+			int playlistCheckIntervalMilliseconds,
 			int maxPlaylistErrorCountInRow,
 			int maxOtherErrorsInRow,
 			bool writeChunksInfo,
@@ -113,15 +113,15 @@ namespace HlsDumpLib
 			if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
 			{
 				dumpError?.Invoke(this, "No filename specified", 1);
-				dumpFinished?.Invoke(this, DUMPING_ERROR_NO_FILE_NAME_SPECIFIED, null);
+				dumpFinished?.Invoke(this, DUMP_ERROR_NO_FILE_NAME_SPECIFIED, null);
 				return;
 			}
 
 			_cancellationTokenSource = new CancellationTokenSource();
 			_cancellationToken = _cancellationTokenSource.Token;
 
-			PlaylistCheckingIntervalMilliseconds =
-				playlistCheckingIntervalMilliseconds >= 200 ? playlistCheckingIntervalMilliseconds : 2000;
+			PlaylistCheckIntervalMilliseconds =
+				playlistCheckIntervalMilliseconds >= 200 ? playlistCheckIntervalMilliseconds : 2000;
 			PlaylistErrorCountInRowMax = maxPlaylistErrorCountInRow;
 			OtherErrorCountInRowMax = maxOtherErrorsInRow <= 0 ? 5 : maxOtherErrorsInRow;
 			PlaylistErrorCountInRow = OtherErrorCountInRow = 0;
@@ -142,7 +142,7 @@ namespace HlsDumpLib
 					do
 					{
 						int timeStart = Environment.TickCount;
-						playlistCheckingStarted?.Invoke(this, ActualPlaylistUrl);
+						playlistCheckStarted?.Invoke(this, ActualPlaylistUrl);
 
 						M3UPlaylist playlist = null;
 						List<StreamSegment> unfilteredPlaylist = null;
@@ -165,7 +165,7 @@ namespace HlsDumpLib
 									{
 										OtherErrorCountInRow++;
 										dumpError?.Invoke(this, "No playlists found in manifest", OtherErrorCountInRow);
-										dumpFinished?.Invoke(this, DUMPING_ERROR_MANIFEST_HAS_NO_PLAYLISTS, playlist.Manifest.ErrorText);
+										dumpFinished?.Invoke(this, DUMP_ERROR_MANIFEST_HAS_NO_PLAYLISTS, playlist.Manifest.ErrorText);
 										return;
 									}
 
@@ -226,7 +226,7 @@ namespace HlsDumpLib
 								dumpError?.Invoke(this, $"Lost: {lost}, Total lost: {LostChunkCount})", -1);
 							}
 
-							playlistCheckingFinished?.Invoke(this,
+							playlistCheckFinished?.Invoke(this,
 								CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
 								_currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
 								response, playlistErrorCode, PlaylistErrorCountInRow);
@@ -245,7 +245,7 @@ namespace HlsDumpLib
 						{
 							PlaylistErrorCountInRow++;
 
-							playlistCheckingFinished?.Invoke(this,
+							playlistCheckFinished?.Invoke(this,
 								CurrentPlaylistChunkCount, CurrentPlaylistNewChunkCount,
 								_currentPlaylistFirstChunkId, CurrentPlaylistFirstNewChunkId,
 								response, playlistErrorCode, PlaylistErrorCountInRow);
@@ -492,14 +492,14 @@ namespace HlsDumpLib
 							ChunkAppendErrorCount, LostChunkCount);
 
 						int elapsedTime = Environment.TickCount - timeStart;
-						LastDelayValueMilliseconds = PlaylistCheckingIntervalMilliseconds - elapsedTime;
-						playlistCheckingDelayCalculated?.Invoke(this,
-							LastDelayValueMilliseconds, PlaylistCheckingIntervalMilliseconds, elapsedTime);
+						LastDelayValueMilliseconds = PlaylistCheckIntervalMilliseconds - elapsedTime;
+						playlistCheckDelayCalculated?.Invoke(this,
+							LastDelayValueMilliseconds, PlaylistCheckIntervalMilliseconds, elapsedTime);
 						if (LastDelayValueMilliseconds > 0)
 						{
 							dumpMessage?.Invoke(this,
 								$"Waiting for {LastDelayValueMilliseconds} milliseconds " +
-								$"(max: {PlaylistCheckingIntervalMilliseconds})");
+								$"(max: {PlaylistCheckIntervalMilliseconds})");
 							Thread.Sleep(LastDelayValueMilliseconds);
 						}
 					} while (OtherErrorCountInRow < OtherErrorCountInRowMax &&
@@ -562,7 +562,7 @@ namespace HlsDumpLib
 				}
 			});
 
-			int e = _cancellationToken.IsCancellationRequested ? DUMPING_ERROR_CANCELED : DUMPING_ERROR_PLAYLIST_GONE;
+			int e = _cancellationToken.IsCancellationRequested ? DUMP_ERROR_CANCELED : DUMP_ERROR_PLAYLIST_GONE;
 			dumpFinished?.Invoke(this, e, null);
 		}
 

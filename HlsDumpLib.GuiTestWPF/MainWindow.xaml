@@ -143,7 +143,7 @@
 						<GridViewColumn Header="Обработано чанков" DisplayMemberBinding="{Binding ProcessedChunkCountFormatted}" />
 						<GridViewColumn Header="Потеряно чанков" DisplayMemberBinding="{Binding LostChunkCountFormatted}" />
 						<GridViewColumn Header="Дампинг начат"
-										Width="150" DisplayMemberBinding="{Binding DumpingStartedFormatted}" />
+										Width="150" DisplayMemberBinding="{Binding DumpStartedFormatted}" />
 						<GridViewColumn Header="Состояние"
 										Width="150" DisplayMemberBinding="{Binding State}" />
 						<GridViewColumn Header="Ошибки плейлиста" DisplayMemberBinding="{Binding PlaylistErrorCountInRowFormatted}" />
@@ -173,9 +173,9 @@
 				<ListView.ContextMenu>
 					<ContextMenu>
 						<MenuItem Header="Проверить"
-								  Command="{Binding StartDumpingCommand}" />
+								  Command="{Binding StartDumpCommand}" />
 						<MenuItem Header="Остановить"
-								  Command="{Binding StopDumpingCommand}" />
+								  Command="{Binding StopDumpCommand}" />
 					</ContextMenu>
 				</ListView.ContextMenu>
 			</ListView>
