@@ -14,6 +14,7 @@ namespace HlsDumpLib.GuiTest
 		public HlsDumper Dumper { get; private set; }
 		public bool IsChecking { get; private set; }
 		public bool IsDumping => Dumper != null;
+		public bool IsRemoving { get; set; }
 
 		public delegate void CheckStartedDelegate(object sender);
 		public delegate void CheckFinishedDelegate(object sender, int errorCode);

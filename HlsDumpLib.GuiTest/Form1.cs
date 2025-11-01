@@ -257,6 +257,47 @@ namespace HlsDumpLib.GuiTest
 			}
 		}
 
+		private async void miRemoveToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			if (listViewStreams.SelectedIndices.Count > 0)
+			{
+				ListViewItem selectedItem = listViewStreams.SelectedItems[0];
+				StreamItem streamItem = selectedItem.Tag as StreamItem;
+				if (!streamItem.IsRemoving)
+				{
+					string msg = "Удалить выбранный элемент?";
+					string caption;
+					MessageBoxIcon icon = MessageBoxIcon.Question;
+					if (streamItem.IsDumping)
+					{
+						msg += $"{Environment.NewLine}Внимание! Дампинг ещё идёт!";
+						caption = "Удалятор недосдампленных стримов";
+						icon = MessageBoxIcon.Warning;
+					}
+					else
+					{
+						caption = "Удалятор сдампленных стримов";
+					}
+
+					if (MessageBox.Show(msg, caption, MessageBoxButtons.YesNo, icon) == DialogResult.Yes)
+					{
+						selectedItem.SubItems[COLUMN_ID_STATE].Text = "Удаляется...";
+						streamItem.IsRemoving = true;
+						if (streamItem.IsDumping)
+						{
+							streamItem.Dumper.StopDumping();
+							await Task.Run(() =>
+							{
+								while (streamItem.IsDumping) { Thread.Sleep(200); }
+							});
+						}
+
+						listViewStreams.Items.Remove(selectedItem);
+					}
+				}
+			}
+		}
+
 		private void listViewStreams_MouseUp(object sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Right && listViewStreams.SelectedIndices.Count > 0)
@@ -370,11 +411,14 @@ namespace HlsDumpLib.GuiTest
 			else
 			{
 				StreamItem streamItem = sender as StreamItem;
-				int id = FindStreamItemInListView(streamItem, listViewStreams);
-				if (id >= 0)
+				if (!streamItem.IsRemoving)
 				{
-					listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
-						errorCode == 200 ? "Дампинг..." : $"Ошибка {errorCode}";
+					int id = FindStreamItemInListView(streamItem, listViewStreams);
+					if (id >= 0)
+					{
+						listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text =
+							errorCode == 200 ? "Дампинг..." : $"Ошибка {errorCode}";
+					}
 				}
 			}
 		}

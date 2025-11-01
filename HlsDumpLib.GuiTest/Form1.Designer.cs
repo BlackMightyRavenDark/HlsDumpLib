@@ -84,6 +84,7 @@
 			this.label6 = new System.Windows.Forms.Label();
 			this.label7 = new System.Windows.Forms.Label();
 			this.textBoxDownloadDir = new System.Windows.Forms.TextBox();
+			this.miRemoveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.contextMenuStreams.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
@@ -351,21 +352,22 @@
 			// 
 			this.contextMenuStreams.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
 			this.miCheckToolStripMenuItem,
-			this.miCancelToolStripMenuItem});
+			this.miCancelToolStripMenuItem,
+			this.miRemoveToolStripMenuItem});
 			this.contextMenuStreams.Name = "contextMenuStrip1";
-			this.contextMenuStreams.Size = new System.Drawing.Size(181, 70);
+			this.contextMenuStreams.Size = new System.Drawing.Size(189, 92);
 			// 
 			// miCheckToolStripMenuItem
 			// 
 			this.miCheckToolStripMenuItem.Name = "miCheckToolStripMenuItem";
-			this.miCheckToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+			this.miCheckToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
 			this.miCheckToolStripMenuItem.Text = "Проверить";
 			this.miCheckToolStripMenuItem.Click += new System.EventHandler(this.miCheckToolStripMenuItem_Click);
 			// 
 			// miCancelToolStripMenuItem
 			// 
 			this.miCancelToolStripMenuItem.Name = "miCancelToolStripMenuItem";
-			this.miCancelToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+			this.miCancelToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
 			this.miCancelToolStripMenuItem.Text = "Отменить";
 			this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
 			// 
@@ -551,6 +553,13 @@
 			this.textBoxDownloadDir.Size = new System.Drawing.Size(568, 20);
 			this.textBoxDownloadDir.TabIndex = 19;
 			// 
+			// miRemoveToolStripMenuItem
+			// 
+			this.miRemoveToolStripMenuItem.Name = "miRemoveToolStripMenuItem";
+			this.miRemoveToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
+			this.miRemoveToolStripMenuItem.Text = "Удалилить из списка";
+			this.miRemoveToolStripMenuItem.Click += new System.EventHandler(this.miRemoveToolStripMenuItem_Click);
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -648,6 +657,7 @@
 		private System.Windows.Forms.ColumnHeader columnHeaderFrameRate;
 		private System.Windows.Forms.ColumnHeader columnHeaderCodecs;
 		private System.Windows.Forms.ColumnHeader columnHeaderLanguage;
+		private System.Windows.Forms.ToolStripMenuItem miRemoveToolStripMenuItem;
 	}
 }
 
