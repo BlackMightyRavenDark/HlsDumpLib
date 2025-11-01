@@ -66,7 +66,7 @@
 			this.columnHeaderLanguage = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.columnHeaderPlaylistUrl = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.btnAddStream = new System.Windows.Forms.Button();
-			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.contextMenuStreams = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.miCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.checkBoxSaveChunkInfos = new System.Windows.Forms.CheckBox();
@@ -84,7 +84,7 @@
 			this.label6 = new System.Windows.Forms.Label();
 			this.label7 = new System.Windows.Forms.Label();
 			this.textBoxDownloadDir = new System.Windows.Forms.TextBox();
-			this.contextMenuStrip1.SuspendLayout();
+			this.contextMenuStreams.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckInterval)).BeginInit();
@@ -347,25 +347,25 @@
 			this.btnAddStream.UseVisualStyleBackColor = true;
 			this.btnAddStream.Click += new System.EventHandler(this.btnAddStream_Click);
 			// 
-			// contextMenuStrip1
+			// contextMenuStreams
 			// 
-			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+			this.contextMenuStreams.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
 			this.miCheckToolStripMenuItem,
 			this.miCancelToolStripMenuItem});
-			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(135, 48);
+			this.contextMenuStreams.Name = "contextMenuStrip1";
+			this.contextMenuStreams.Size = new System.Drawing.Size(181, 70);
 			// 
 			// miCheckToolStripMenuItem
 			// 
 			this.miCheckToolStripMenuItem.Name = "miCheckToolStripMenuItem";
-			this.miCheckToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+			this.miCheckToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
 			this.miCheckToolStripMenuItem.Text = "Проверить";
 			this.miCheckToolStripMenuItem.Click += new System.EventHandler(this.miCheckToolStripMenuItem_Click);
 			// 
 			// miCancelToolStripMenuItem
 			// 
 			this.miCancelToolStripMenuItem.Name = "miCancelToolStripMenuItem";
-			this.miCancelToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+			this.miCancelToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
 			this.miCancelToolStripMenuItem.Text = "Отменить";
 			this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
 			// 
@@ -582,7 +582,7 @@
 			this.Text = "GUI test";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
 			this.Load += new System.EventHandler(this.Form1_Load);
-			this.contextMenuStrip1.ResumeLayout(false);
+			this.contextMenuStreams.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckInterval)).EndInit();
@@ -604,7 +604,7 @@
 		private System.Windows.Forms.ColumnHeader columnHeaderPlaylistUrl;
 		private System.Windows.Forms.Button btnAddStream;
 		private System.Windows.Forms.ColumnHeader columnHeaderDateStarted;
-		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+		private System.Windows.Forms.ContextMenuStrip contextMenuStreams;
 		private System.Windows.Forms.ToolStripMenuItem miCheckToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem miCancelToolStripMenuItem;
 		private System.Windows.Forms.ColumnHeader columnHeaderState;

@@ -261,7 +261,7 @@ namespace HlsDumpLib.GuiTest
 		{
 			if (e.Button == MouseButtons.Right && listViewStreams.SelectedIndices.Count > 0)
 			{
-				contextMenuStrip1.Show(Cursor.Position);
+				contextMenuStreams.Show(Cursor.Position);
 			}
 		}
 
