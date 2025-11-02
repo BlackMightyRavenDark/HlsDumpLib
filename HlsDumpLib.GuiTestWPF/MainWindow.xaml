@@ -176,6 +176,8 @@
 								  Command="{Binding StartDumpCommand}" />
 						<MenuItem Header="Остановить"
 								  Command="{Binding StopDumpCommand}" />
+						<MenuItem Header="Удалить из списка"
+								  Command="{Binding RemoveItemFromListCommand}" />
 					</ContextMenu>
 				</ListView.ContextMenu>
 			</ListView>

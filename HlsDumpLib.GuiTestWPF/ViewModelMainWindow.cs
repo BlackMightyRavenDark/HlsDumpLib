@@ -54,6 +54,7 @@ namespace HlsDumpLib.GuiTestWPF
 		public ICommand BtnSelectDownloadDirCommand { get; }
 		public ICommand StartDumpCommand { get; }
 		public ICommand StopDumpCommand { get; }
+		public ICommand RemoveItemFromListCommand { get; }
 
 		private ListView _listViewStreams;
 
@@ -67,6 +68,27 @@ namespace HlsDumpLib.GuiTestWPF
 			StopDumpCommand = new LambdaCommand(
 				obj => SelectedItem.Stop(),
 				obj => SelectedItem != null && SelectedItem.IsDumping && !SelectedItem.WantsStop);
+			RemoveItemFromListCommand = new LambdaCommand(async obj =>
+				{
+					if (SelectedItem != null)
+					{
+						string msg = $"Удалить элемент {SelectedItem.Title}?";
+						if (SelectedItem.IsDumping) { msg += $"{Environment.NewLine}Внимание! Дампинг ещё идёт!"; }
+						MessageBoxImage icon = SelectedItem.IsDumping ? MessageBoxImage.Warning : MessageBoxImage.Question;
+						if (MessageBox.Show(msg, "Удалятор элементов из списка",
+							MessageBoxButton.YesNo, icon, MessageBoxResult.No) == MessageBoxResult.Yes)
+						{
+							if (SelectedItem.IsDumping)
+							{
+								SelectedItem.Stop();
+								SelectedItem.State = "Удаляется...";
+								await Task.Run(() => { while (SelectedItem.IsDumping) { Thread.Sleep(200); } });
+							}
+
+							StreamItems.Remove(SelectedItem);
+						}
+					}
+				}, obj => SelectedItem != null);
 
 			try
 			{
