@@ -253,7 +253,7 @@
 			// 
 			// columnHeaderDateStarted
 			// 
-			this.columnHeaderDateStarted.Text = "Дамп начат";
+			this.columnHeaderDateStarted.Text = "Дампинг начат";
 			this.columnHeaderDateStarted.Width = 140;
 			// 
 			// columnHeaderState
