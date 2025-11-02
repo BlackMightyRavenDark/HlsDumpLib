@@ -245,23 +245,23 @@ namespace HlsDumpLib.GuiTest
 
 		private void miCancelToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			if (listViewStreams.SelectedIndices.Count > 0)
+			ListViewItem selectedItem = listViewStreams.SelectedItems.Count > 0 ? listViewStreams.SelectedItems[0] : null;
+			if (selectedItem != null)
 			{
-				int id = listViewStreams.SelectedIndices[0];
-				StreamItem streamItem = listViewStreams.Items[id].Tag as StreamItem;
+				StreamItem streamItem = selectedItem.Tag as StreamItem;
 				if (streamItem.Dumper != null)
 				{
 					streamItem.Dumper.StopDumping();
-					listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Останавливается...";
+					selectedItem.SubItems[COLUMN_ID_STATE].Text = "Останавливается...";
 				}
 			}
 		}
 
 		private async void miRemoveToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			if (listViewStreams.SelectedIndices.Count > 0)
+			ListViewItem selectedItem = listViewStreams.SelectedItems.Count > 0 ? listViewStreams.SelectedItems[0] : null;
+			if (selectedItem != null)
 			{
-				ListViewItem selectedItem = listViewStreams.SelectedItems[0];
 				StreamItem streamItem = selectedItem.Tag as StreamItem;
 				if (!streamItem.IsRemoving)
 				{
@@ -366,32 +366,32 @@ namespace HlsDumpLib.GuiTest
 					listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Проверяется...";
 					if (!streamItem.IsDumping)
 					{
-						listViewStreams.Items[id].SubItems[COLUMN_ID_FILE_SIZE].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_NEW_CHUNKS].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_DELAY].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_FIRST_CHUNK_ID].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSED_CHUNKS].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_LOST_CHUNKS].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_DATE_DUMP_STARTED].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_ERRORS].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_DOWNLOAD_ERRORS].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_APPEND_ERRORS].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_OTHER_ERRORS].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_TYPE].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_PROGRAM_ID].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_GROUP_ID].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_FORMAT_NAME].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CLOSED_CAPTIONS].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_BANDWIDTH].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_RESOLUTION].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_FRAME_RATE].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CODECS].Text = null;
+						listViewStreams.Items[id].SubItems[COLUMN_ID_FILE_SIZE].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_NEW_CHUNKS].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_DELAY].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_FIRST_CHUNK_ID].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSED_CHUNKS].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_LOST_CHUNKS].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_DATE_DUMP_STARTED].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_ERRORS].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_DOWNLOAD_ERRORS].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_APPEND_ERRORS].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_OTHER_ERRORS].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_TYPE].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_PROGRAM_ID].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_GROUP_ID].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_FORMAT_NAME].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CLOSED_CAPTIONS].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_BANDWIDTH].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_RESOLUTION].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_FRAME_RATE].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CODECS].Text =
 						listViewStreams.Items[id].SubItems[COLUMN_ID_LANGUAGE].Text = null;
 					}
 				}
@@ -447,11 +447,11 @@ namespace HlsDumpLib.GuiTest
 
 					if (newChunkCount <= 0)
 					{
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = null;
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text =
 						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = null;
 					}
 				}
@@ -493,15 +493,15 @@ namespace HlsDumpLib.GuiTest
 				}
 				else
 				{
-					listViewStreams.Items[id].SubItems[COLUMN_ID_TYPE].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_PROGRAM_ID].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_GROUP_ID].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_FORMAT_NAME].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_CLOSED_CAPTIONS].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_BANDWIDTH].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_RESOLUTION].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_FRAME_RATE].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_CODECS].Text = null;
+					listViewStreams.Items[id].SubItems[COLUMN_ID_TYPE].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_PROGRAM_ID].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_GROUP_ID].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_FORMAT_NAME].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_CLOSED_CAPTIONS].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_BANDWIDTH].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_RESOLUTION].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_VIDEO_FRAME_RATE].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_CODECS].Text =
 					listViewStreams.Items[id].SubItems[COLUMN_ID_LANGUAGE].Text = null;
 				}
 			}));
@@ -533,9 +533,9 @@ namespace HlsDumpLib.GuiTest
 					listViewStreams.Items[id].SubItems[COLUMN_ID_STATE].Text = "Дампинг...";
 					listViewStreams.Items[id].SubItems[COLUMN_ID_DATE_DUMP_STARTED].Text =
 						DateTimeToString(streamItem.DumpStarted);
-					listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSED_CHUNKS].Text = "0";
-					listViewStreams.Items[id].SubItems[COLUMN_ID_LOST_CHUNKS].Text = "0";
-					listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_DOWNLOAD_ERRORS].Text = "0";
+					listViewStreams.Items[id].SubItems[COLUMN_ID_PROCESSED_CHUNKS].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_LOST_CHUNKS].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_DOWNLOAD_ERRORS].Text =
 					listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_APPEND_ERRORS].Text = "0";
 					listViewStreams.Items[id].SubItems[COLUMN_ID_OTHER_ERRORS].Text =
 						$"0 / {streamItem.Dumper.OtherErrorCountInRowMax}";
@@ -551,9 +551,9 @@ namespace HlsDumpLib.GuiTest
 				int id = FindStreamItemInListView(streamItem, listViewStreams);
 				if (id >= 0)
 				{
-					listViewStreams.Items[id].SubItems[COLUMN_ID_NEW_CHUNKS].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_DELAY].Text = null;
-					listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text = null;
+					listViewStreams.Items[id].SubItems[COLUMN_ID_NEW_CHUNKS].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_PLAYLIST_DELAY].Text =
+					listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_PROCESSING_TIME].Text =
 					listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_SIZE].Text = null;
 
 					string t;
@@ -628,8 +628,8 @@ namespace HlsDumpLib.GuiTest
 					else
 					{
 						listViewStreams.Items[id].SubItems[COLUMN_ID_FILE_SIZE].Text = $"Ошибка {errorCode}";
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = null;
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = null;
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text =
 						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = null;
 					}
 				}
@@ -657,9 +657,9 @@ namespace HlsDumpLib.GuiTest
 					}
 					else
 					{
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text = "null";
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text = "null";
-						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text = "null";
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_ID].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_LENGTH].Text =
+						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_FILENAME].Text =
 						listViewStreams.Items[id].SubItems[COLUMN_ID_CHUNK_URL].Text = "null";
 					}
 				}
