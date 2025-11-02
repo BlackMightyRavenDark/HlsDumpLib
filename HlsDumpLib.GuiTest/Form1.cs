@@ -177,7 +177,7 @@ namespace HlsDumpLib.GuiTest
 			JArray jaColumns = json.Value<JArray>("columns");
 			if (jaColumns != null)
 			{
-				int columnCount = listViewStreams.Columns.Count; //too late bugfix
+				int columnCount = listViewStreams.Columns.Count;
 				for (int i = 0; i < jaColumns.Count && i < columnCount; ++i)
 				{
 					JObject jColumn = jaColumns[i] as JObject;
