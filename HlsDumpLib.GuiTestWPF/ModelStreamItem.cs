@@ -320,6 +320,7 @@ namespace HlsDumpLib.GuiTestWPF
 
 		public bool IsDumping => Dumper != null;
 		public bool IsChecking { get; private set; }
+		public bool IsRemoving { get; private set; }
 		public bool WasStarted { get; private set; }
 		public bool WantsStop { get; private set; } = false;
 
@@ -473,6 +474,12 @@ namespace HlsDumpLib.GuiTestWPF
 				State = "Останавливается...";
 				Dumper.StopDumping();
 			}
+		}
+
+		public void MarkAsRemoving()
+		{
+			IsRemoving = true;
+			State = "Удаляется...";
 		}
 
 		#region Formatters

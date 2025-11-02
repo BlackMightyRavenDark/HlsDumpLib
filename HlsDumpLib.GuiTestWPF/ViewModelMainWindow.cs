@@ -78,17 +78,17 @@ namespace HlsDumpLib.GuiTestWPF
 						if (MessageBox.Show(msg, "Удалятор элементов из списка",
 							MessageBoxButton.YesNo, icon, MessageBoxResult.No) == MessageBoxResult.Yes)
 						{
-							if (SelectedItem.IsDumping)
+							if (SelectedItem.IsDumping && !SelectedItem.IsRemoving)
 							{
 								SelectedItem.Stop();
-								SelectedItem.State = "Удаляется...";
+								SelectedItem.MarkAsRemoving();
 								await Task.Run(() => { while (SelectedItem.IsDumping) { Thread.Sleep(200); } });
 							}
 
 							StreamItems.Remove(SelectedItem);
 						}
 					}
-				}, obj => SelectedItem != null);
+				}, obj => SelectedItem != null && !SelectedItem.IsRemoving);
 
 			try
 			{
