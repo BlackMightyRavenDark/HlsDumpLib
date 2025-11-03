@@ -110,7 +110,7 @@
 			<StackPanel Orientation="Horizontal" Margin="4">
 				<Button Content="Добавить" Padding="6 2"
 						Command="{Binding BtnAddStreamCommand}" />
-				<Border BorderThickness="1" BorderBrush="Yellow">
+				<Border Background="Yellow" BorderBrush="Red" BorderThickness="1" Margin="4 0 0 0">
 					<Label Content="Внимание! После добавления стрима, изменить его параметры будет нельзя!" />
 				</Border>
 			</StackPanel>
