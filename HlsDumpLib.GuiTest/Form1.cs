@@ -51,7 +51,7 @@ namespace HlsDumpLib.GuiTest
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
-			MultiThreadedDownloaderLib.MultiThreadedDownloader.SetMaximumConnectionsLimit(100);
+			MultiThreadedDownloaderLib.Utils.ConnectionLimit = 100;
 
 			//fix scrollbar visibility
 			columnHeaderPlaylistUrl.Width += 1;

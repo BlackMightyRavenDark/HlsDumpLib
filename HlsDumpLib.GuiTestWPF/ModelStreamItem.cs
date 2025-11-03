@@ -340,7 +340,7 @@ namespace HlsDumpLib.GuiTestWPF
 				_maxOtherErrorCountInRow = maxOtherErrorCountInRow;
 				State = "Проверка...";
 
-				int errorCode = FileDownloader.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
+				int errorCode = MultiThreadedDownloaderLib.Utils.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
 				if (errorCode == 200)
 				{
 					WantsStop = false;

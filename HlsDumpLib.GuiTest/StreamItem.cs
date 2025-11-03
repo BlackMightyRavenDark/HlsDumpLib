@@ -56,7 +56,7 @@ namespace HlsDumpLib.GuiTest
 
 				checkStarted?.Invoke(this);
 
-				int errorCode = FileDownloader.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
+				int errorCode = MultiThreadedDownloaderLib.Utils.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
 				if (errorCode == 200)
 				{
 					if (!IsDumping)

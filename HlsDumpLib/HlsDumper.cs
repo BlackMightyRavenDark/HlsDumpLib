@@ -131,7 +131,12 @@ namespace HlsDumpLib
 			JObject jHeaderChunk = null;
 			JArray jaValidChunks = new JArray();
 			JArray jaLostChunks = new JArray();
-			FileDownloader playlistDownloader = new FileDownloader() { Url = ActualPlaylistUrl };
+			FileDownloader playlistDownloader = new FileDownloader()
+			{
+				Url = ActualPlaylistUrl,
+				ConnectionTimeout = 2000,
+				SkipHeaderRequest = true
+			};
 			Stream outputStream = null;
 
 			try
@@ -284,7 +289,7 @@ namespace HlsDumpLib
 
 					if (outputStream == null)
 					{
-						outputFilePath = MultiThreadedDownloader.GetNumberedFileName(outputFilePath);
+						outputFilePath = MultiThreadedDownloaderLib.Utils.GetNumberedFileName(outputFilePath);
 						outputStream = File.OpenWrite(outputFilePath);
 						outputStreamAssigned?.Invoke(this, outputStream, outputFilePath);
 					}
@@ -298,7 +303,12 @@ namespace HlsDumpLib
 							{
 								using (MemoryStream streamHeader = new MemoryStream())
 								{
-									FileDownloader d = new FileDownloader() { Url = playlist?.StreamHeaderSegmentUrl };
+									FileDownloader d = new FileDownloader()
+									{
+										Url = playlist?.StreamHeaderSegmentUrl,
+										ConnectionTimeout = 2000,
+										SkipHeaderRequest = true
+									};
 									int headerErrorCode = d.Download(streamHeader);
 									if (headerErrorCode == 200)
 									{
@@ -380,14 +390,20 @@ namespace HlsDumpLib
 								{
 									using (MemoryStream mem = new MemoryStream())
 									{
-										FileDownloader d = new FileDownloader() { Url = chunk.Url };
-										d.Connecting += (s, url) =>
+										FileDownloader d = new FileDownloader()
+										{
+											Url = chunk.Url,
+											ConnectionTimeout = 2000,
+											SkipHeaderRequest = true
+										};
+										d.Connecting += (s, url, tryNumber, tryCountLimit) =>
 										{
 											nextChunkConnecting?.Invoke(this, chunk);
 										};
-										d.Connected += (s, url, chunkSize, code) =>
+										d.Connected += (s, url, contentLength,
+											headers, tryNumber, tryCountLimit, code) =>
 										{
-											nextChunkConnected?.Invoke(this, chunk, chunkSize, code);
+											nextChunkConnected?.Invoke(this, chunk, contentLength, code);
 											return code;
 										};
 
