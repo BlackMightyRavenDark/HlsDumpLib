@@ -341,8 +341,8 @@ namespace HlsDumpLib.GuiTestWPF
 				_maxOtherErrorCountInRow = maxOtherErrorCountInRow;
 				State = "Проверка...";
 
-				int errorCode = MultiThreadedDownloaderLib.Utils.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
-				if (errorCode == 200)
+				int playlstErrorCode = MultiThreadedDownloaderLib.Utils.GetUrlResponseHeaders(PlaylistUrl, null, out _, out _);
+				if (playlstErrorCode == 200)
 				{
 					WantsStop = false;
 					WasStarted = true;
@@ -356,110 +356,119 @@ namespace HlsDumpLib.GuiTestWPF
 					ChunkAppendErrorCount = 0;
 					OtherErrorCountInRow = 0;
 
-					Dumper.Dump(OutputFilePath,
-						(s, url) => State = "Проверка плейлиста...",
-						(s, chunkCount, newChunkCount, firstChunkId, firstNewChunkId, playlistContent, e, playlistErrorCountInRow) =>
+					HlsDumperParameters dumperParameters = new HlsDumperParameters()
+					{
+						OutputFilePath = OutputFilePath,
+						PlaylistCheckIntervalMilliseconds = playlistCheckIntervalMilliseconds,
+						MaxPlaylistErrorsInRow = maxPlaylistErrorCountInRow,
+						MaxOtherErrorsInRow = maxOtherErrorCountInRow,
+						ConnectionTimeoutMilliseconds = connectionTimeout,
+						WriteChunkInfo = saveChunksInfo,
+						StoreChunkFileName = storeChunkFileName,
+						StoreChunkUrl = storeChunkUrl,
+						UseGmtTime = useGmtTime
+					};
+					dumperParameters.PlaylistCheckStarted += (s, url) => State = "Проверка плейлиста...";
+					dumperParameters.PlaylistCheckFinished += (s, chunkCount, newChunkCount, firstChunkId,
+						firstNewChunkId, playlistContent, errorCode, playlistErrorCountInRow) =>
+					{
+						State = $"Плейлист проверен (код: {errorCode})";
+						if (errorCode == 200 && newChunkCount > 0)
 						{
-							State = $"Плейлист проверен (код: {e})";
-							if (e == 200 && newChunkCount > 0)
-							{
-								NewChunkCount = newChunkCount;
-							}
-							else
-							{
-								NewChunkCount = 0;
-								ChunkId = -1;
-								ChunkLength = -1.0;
-								ChunkFileSize = -1L;
-								ChunkProcessingTime = -1;
-								ChunkFileName = string.Empty;
-								ChunkUrl = string.Empty;
-							}
-							PlaylistErrorCountInRow = playlistErrorCountInRow;
-						},
-						(s, count, first, manifestItem) =>
+							NewChunkCount = newChunkCount;
+						}
+						else
 						{
-							FirstChunkId = first;
-							if (manifestItem != null)
-							{
-								Type = manifestItem.ItemType;
-								ProgramId = manifestItem.ProgramId;
-								GroupId = manifestItem.GroupId;
-								FormatName = manifestItem.Name;
-								ClosedCaptions = manifestItem.ClosedCaptions;
-								Bandwidth = manifestItem.Bandwidth;
-								VideoResolution = $"{manifestItem.VideoResolutionWidth}x{manifestItem.VideoResolutionHeight}";
-								VideoFrameRate = manifestItem.VideoFrameRate;
-								Codecs = manifestItem.Codecs;
-								Language = manifestItem.Language;
-							}
-							else
-							{
-								ProgramId = -1;
-								Bandwidth = 0;
-								VideoFrameRate = 0;
-								Type = GroupId = FormatName = ClosedCaptions = VideoResolution = Codecs = Language = string.Empty;
-							}
-						},
-						(s, stream, fn) => OutputFilePath = fn,
-						null,
-						(s, delay, checkInterval, cycleProcessingTime) => PlaylistDelay = delay,
-						(s, chunk) => State = $"Подключение... {chunk.Url}",
-						(s, chunk, chunkSize, code) =>
+							NewChunkCount = 0;
+							ChunkId = -1;
+							ChunkLength = -1.0;
+							ChunkFileSize = -1L;
+							ChunkProcessingTime = -1;
+							ChunkFileName = string.Empty;
+							ChunkUrl = string.Empty;
+						}
+						PlaylistErrorCountInRow = playlistErrorCountInRow;
+					};
+					dumperParameters.PlaylistFirstArrived = (s, count, first, manifestItem) =>
+					{
+						FirstChunkId = first;
+						if (manifestItem != null)
 						{
-							if (code == 200 && chunk != null)
-							{
-								ChunkFileName = chunk.FileName;
-								ChunkUrl = chunk.Url;
-								ChunkId = chunk.Id;
-								ChunkLength = chunk.LengthSeconds;
-								ChunkFileSize = chunkSize;
-							}
-							else
-							{
-								ChunkFileName = string.Empty;
-								ChunkUrl = string.Empty;
-								ChunkId = -1;
-								ChunkLength = 0.0;
-								ChunkFileSize = 0L;
-								ChunkProcessingTime = -1;
-							}
-						},
-						(s, chunk, chunkSize, sessionChunkId, chunkProcessingTime) =>
+							Type = manifestItem.ItemType;
+							ProgramId = manifestItem.ProgramId;
+							GroupId = manifestItem.GroupId;
+							FormatName = manifestItem.Name;
+							ClosedCaptions = manifestItem.ClosedCaptions;
+							Bandwidth = manifestItem.Bandwidth;
+							VideoResolution = $"{manifestItem.VideoResolutionWidth}x{manifestItem.VideoResolutionHeight}";
+							VideoFrameRate = manifestItem.VideoFrameRate;
+							Codecs = manifestItem.Codecs;
+							Language = manifestItem.Language;
+						}
+						else
 						{
+							ProgramId = -1;
+							Bandwidth = 0;
+							VideoFrameRate = 0;
+							Type = GroupId = FormatName = ClosedCaptions = VideoResolution = Codecs = Language = string.Empty;
+						}
+					};
+					dumperParameters.OutputStreamAssigned += (s, stream, fn) => OutputFilePath = fn;
+					dumperParameters.PlaylistCheckDelayCalculated += (s, delay, checkInterval, cycleProcessingTime) => PlaylistDelay = delay;
+					dumperParameters.NextChunkConnecting += (s, chunk) => State = $"Подключение... {chunk.Url}";
+					dumperParameters.NextChunkConnected += (s, chunk, chunkSize, errorCode) =>
+					{
+						if (errorCode == 200 && chunk != null)
+						{
+							ChunkFileName = chunk.FileName;
+							ChunkUrl = chunk.Url;
+							ChunkId = chunk.Id;
+							ChunkLength = chunk.LengthSeconds;
 							ChunkFileSize = chunkSize;
-							ChunkProcessingTime = chunkProcessingTime;
-							ProcessedChunkCount = (s as HlsDumper).ProcessedChunkCountTotal;
-							OtherErrorCountInRow = 0;
-						},
-						(s, playlistErrorCountInRow, playlistErrorCountInRowMax,
-							otherErrorCountInRow, otherErrorCountInRowMax,
-							chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>
+						}
+						else
 						{
-							PlaylistErrorCountInRow = playlistErrorCountInRow;
-							OtherErrorCountInRow = otherErrorCountInRow;
-							ChunkDownloadErrorCount = chunkDownloadErrorCount;
-							ChunkAppendErrorCount = chunkAppendErrorCount;
-							LostChunkCount = lostChunkCount;
-						},
-						(s, fs, e) =>
-						{
-							State = "Дампинг...";
-							OutputFileSize = fs;
-						},
-						null, null, null, null, null,
-						(s, e, t) =>
-						{
-							State = WantsStop ? "Остановлен" : "Завершён";
-							Dumper = null;
-						},
-						playlistCheckIntervalMilliseconds,
-						maxPlaylistErrorCountInRow, maxOtherErrorCountInRow, connectionTimeout,
-						saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
+							ChunkFileName = string.Empty;
+							ChunkUrl = string.Empty;
+							ChunkId = -1;
+							ChunkLength = 0.0;
+							ChunkFileSize = 0L;
+							ChunkProcessingTime = -1;
+						}
+					};
+					dumperParameters.NextChunkProcessed += (s, chunk, chunkSize, sessionChunkId, chunkProcessingTime) =>
+					{
+						ChunkFileSize = chunkSize;
+						ChunkProcessingTime = chunkProcessingTime;
+						ProcessedChunkCount = (s as HlsDumper).ProcessedChunkCountTotal;
+						OtherErrorCountInRow = 0;
+					};
+					dumperParameters.ErrorsUpdated += (s, playlistErrorCountInRow, playlistErrorCountInRowMax,
+						otherErrorCountInRow, otherErrorCountInRowMax,
+						chunkDownloadErrorCount, chunkAppendErrorCount, lostChunkCount) =>
+					{
+						PlaylistErrorCountInRow = playlistErrorCountInRow;
+						OtherErrorCountInRow = otherErrorCountInRow;
+						ChunkDownloadErrorCount = chunkDownloadErrorCount;
+						ChunkAppendErrorCount = chunkAppendErrorCount;
+						LostChunkCount = lostChunkCount;
+					};
+					dumperParameters.DumpProgress += (s, fileSize, errorCode) =>
+					{
+						State = "Дампинг...";
+						OutputFileSize = fileSize;
+					};
+					dumperParameters.DumpFinished += (s, errorCode, errorMessage) =>
+					{
+						State = WantsStop ? "Остановлен" : "Завершён";
+						Dumper = null;
+					};
+
+					Dumper.Dump(dumperParameters);
 				}
 				else
 				{
-					State = $"Ошибка! Код {errorCode}";
+					State = $"Ошибка! Код {playlstErrorCode}";
 				}
 
 				IsChecking = false;

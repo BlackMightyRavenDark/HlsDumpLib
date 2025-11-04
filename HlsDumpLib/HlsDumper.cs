@@ -581,6 +581,36 @@ namespace HlsDumpLib
 			dumpFinished?.Invoke(this, e, null);
 		}
 
+		public void Dump(HlsDumperParameters parameters)
+		{
+			Dump(parameters.OutputFilePath,
+				parameters.PlaylistCheckStarted,
+				parameters.PlaylistCheckFinished,
+				parameters.PlaylistFirstArrived,
+				parameters.OutputStreamAssigned,
+				parameters.OutputStreamClosed,
+				parameters.PlaylistCheckDelayCalculated,
+				parameters.NextChunkConnecting,
+				parameters.NextChunkConnected,
+				parameters.NextChunkProcessed,
+				parameters.ErrorsUpdated,
+				parameters.DumpProgress,
+				parameters.ChunkDownloadFailed,
+				parameters.ChunkAppendFailed,
+				parameters.DumpMessage,
+				parameters.DumpWarning,
+				parameters.DumpError,
+				parameters.DumpFinished,
+				parameters.PlaylistCheckIntervalMilliseconds,
+				parameters.MaxPlaylistErrorsInRow,
+				parameters.MaxOtherErrorsInRow,
+				parameters.ConnectionTimeoutMilliseconds,
+				parameters.WriteChunkInfo,
+				parameters.StoreChunkFileName,
+				parameters.StoreChunkUrl,
+				parameters.UseGmtTime);
+		}
+
 		public void StopDumping()
 		{
 			if (_cancellationTokenSource != null && !_cancellationTokenSource.IsCancellationRequested)
