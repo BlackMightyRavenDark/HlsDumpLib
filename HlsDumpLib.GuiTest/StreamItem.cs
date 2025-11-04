@@ -1,5 +1,4 @@
 ﻿using System;
-using MultiThreadedDownloaderLib;
 using static HlsDumpLib.HlsDumper;
 
 namespace HlsDumpLib.GuiTest
@@ -45,6 +44,7 @@ namespace HlsDumpLib.GuiTest
 			int playlistCheckIntervalMilliseconds,
 			int maxPlaylistErrorCountInRow,
 			int maxOtherErrorsInRow,
+			int connectionTimeout,
 			bool saveChunksInfo,
 			bool storeChunkFileName,
 			bool storeChunkUrl,
@@ -92,7 +92,7 @@ namespace HlsDumpLib.GuiTest
 								Dumper = null;
 							},
 							playlistCheckIntervalMilliseconds,
-							maxPlaylistErrorCountInRow, maxOtherErrorsInRow,
+							maxPlaylistErrorCountInRow, maxOtherErrorsInRow, connectionTimeout,
 							saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
 					}
 				}

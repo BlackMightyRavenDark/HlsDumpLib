@@ -69,6 +69,7 @@
 			this.contextMenuStreams = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.miCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.miCancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.miRemoveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.checkBoxSaveChunkInfos = new System.Windows.Forms.CheckBox();
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.label3 = new System.Windows.Forms.Label();
@@ -84,11 +85,14 @@
 			this.label6 = new System.Windows.Forms.Label();
 			this.label7 = new System.Windows.Forms.Label();
 			this.textBoxDownloadDir = new System.Windows.Forms.TextBox();
-			this.miRemoveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.label8 = new System.Windows.Forms.Label();
+			this.numericUpDownConnectionTimeout = new System.Windows.Forms.NumericUpDown();
+			this.label9 = new System.Windows.Forms.Label();
 			this.contextMenuStreams.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckInterval)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.numericUpDownConnectionTimeout)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -170,10 +174,10 @@
 			this.listViewStreams.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
 			this.listViewStreams.FullRowSelect = true;
 			this.listViewStreams.HideSelection = false;
-			this.listViewStreams.Location = new System.Drawing.Point(11, 191);
+			this.listViewStreams.Location = new System.Drawing.Point(11, 221);
 			this.listViewStreams.MultiSelect = false;
 			this.listViewStreams.Name = "listViewStreams";
-			this.listViewStreams.Size = new System.Drawing.Size(777, 152);
+			this.listViewStreams.Size = new System.Drawing.Size(777, 151);
 			this.listViewStreams.TabIndex = 4;
 			this.listViewStreams.UseCompatibleStateImageBehavior = false;
 			this.listViewStreams.View = System.Windows.Forms.View.Details;
@@ -340,7 +344,7 @@
 			// btnAddStream
 			// 
 			this.btnAddStream.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnAddStream.Location = new System.Drawing.Point(713, 160);
+			this.btnAddStream.Location = new System.Drawing.Point(713, 190);
 			this.btnAddStream.Name = "btnAddStream";
 			this.btnAddStream.Size = new System.Drawing.Size(75, 25);
 			this.btnAddStream.TabIndex = 5;
@@ -355,7 +359,7 @@
 			this.miCancelToolStripMenuItem,
 			this.miRemoveToolStripMenuItem});
 			this.contextMenuStreams.Name = "contextMenuStrip1";
-			this.contextMenuStreams.Size = new System.Drawing.Size(189, 92);
+			this.contextMenuStreams.Size = new System.Drawing.Size(189, 70);
 			// 
 			// miCheckToolStripMenuItem
 			// 
@@ -371,12 +375,19 @@
 			this.miCancelToolStripMenuItem.Text = "Отменить";
 			this.miCancelToolStripMenuItem.Click += new System.EventHandler(this.miCancelToolStripMenuItem_Click);
 			// 
+			// miRemoveToolStripMenuItem
+			// 
+			this.miRemoveToolStripMenuItem.Name = "miRemoveToolStripMenuItem";
+			this.miRemoveToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
+			this.miRemoveToolStripMenuItem.Text = "Удалилить из списка";
+			this.miRemoveToolStripMenuItem.Click += new System.EventHandler(this.miRemoveToolStripMenuItem_Click);
+			// 
 			// checkBoxSaveChunkInfos
 			// 
 			this.checkBoxSaveChunkInfos.AutoSize = true;
 			this.checkBoxSaveChunkInfos.Checked = true;
 			this.checkBoxSaveChunkInfos.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxSaveChunkInfos.Location = new System.Drawing.Point(12, 165);
+			this.checkBoxSaveChunkInfos.Location = new System.Drawing.Point(12, 195);
 			this.checkBoxSaveChunkInfos.Name = "checkBoxSaveChunkInfos";
 			this.checkBoxSaveChunkInfos.Size = new System.Drawing.Size(194, 17);
 			this.checkBoxSaveChunkInfos.TabIndex = 6;
@@ -419,7 +430,7 @@
 			this.checkBoxSaveChunkFileName.AutoSize = true;
 			this.checkBoxSaveChunkFileName.Checked = true;
 			this.checkBoxSaveChunkFileName.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxSaveChunkFileName.Location = new System.Drawing.Point(212, 165);
+			this.checkBoxSaveChunkFileName.Location = new System.Drawing.Point(212, 195);
 			this.checkBoxSaveChunkFileName.Name = "checkBoxSaveChunkFileName";
 			this.checkBoxSaveChunkFileName.Size = new System.Drawing.Size(169, 17);
 			this.checkBoxSaveChunkFileName.TabIndex = 14;
@@ -432,7 +443,7 @@
 			this.checkBoxSaveChunkUrl.AutoSize = true;
 			this.checkBoxSaveChunkUrl.Checked = true;
 			this.checkBoxSaveChunkUrl.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxSaveChunkUrl.Location = new System.Drawing.Point(387, 165);
+			this.checkBoxSaveChunkUrl.Location = new System.Drawing.Point(387, 195);
 			this.checkBoxSaveChunkUrl.Name = "checkBoxSaveChunkUrl";
 			this.checkBoxSaveChunkUrl.Size = new System.Drawing.Size(160, 17);
 			this.checkBoxSaveChunkUrl.TabIndex = 15;
@@ -445,7 +456,7 @@
 			this.checkBoxUseGmtTime.AutoSize = true;
 			this.checkBoxUseGmtTime.Checked = true;
 			this.checkBoxUseGmtTime.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkBoxUseGmtTime.Location = new System.Drawing.Point(553, 165);
+			this.checkBoxUseGmtTime.Location = new System.Drawing.Point(553, 195);
 			this.checkBoxUseGmtTime.Name = "checkBoxUseGmtTime";
 			this.checkBoxUseGmtTime.Size = new System.Drawing.Size(101, 17);
 			this.checkBoxUseGmtTime.TabIndex = 16;
@@ -553,18 +564,59 @@
 			this.textBoxDownloadDir.Size = new System.Drawing.Size(568, 20);
 			this.textBoxDownloadDir.TabIndex = 19;
 			// 
-			// miRemoveToolStripMenuItem
+			// label8
 			// 
-			this.miRemoveToolStripMenuItem.Name = "miRemoveToolStripMenuItem";
-			this.miRemoveToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
-			this.miRemoveToolStripMenuItem.Text = "Удалилить из списка";
-			this.miRemoveToolStripMenuItem.Click += new System.EventHandler(this.miRemoveToolStripMenuItem_Click);
+			this.label8.AutoSize = true;
+			this.label8.Location = new System.Drawing.Point(12, 170);
+			this.label8.Name = "label8";
+			this.label8.Size = new System.Drawing.Size(159, 13);
+			this.label8.TabIndex = 20;
+			this.label8.Text = "Время ожидания соединения:";
+			// 
+			// numericUpDownConnectionTimeout
+			// 
+			this.numericUpDownConnectionTimeout.Increment = new decimal(new int[] {
+			100,
+			0,
+			0,
+			0});
+			this.numericUpDownConnectionTimeout.Location = new System.Drawing.Point(218, 168);
+			this.numericUpDownConnectionTimeout.Maximum = new decimal(new int[] {
+			5000,
+			0,
+			0,
+			0});
+			this.numericUpDownConnectionTimeout.Minimum = new decimal(new int[] {
+			1000,
+			0,
+			0,
+			0});
+			this.numericUpDownConnectionTimeout.Name = "numericUpDownConnectionTimeout";
+			this.numericUpDownConnectionTimeout.Size = new System.Drawing.Size(53, 20);
+			this.numericUpDownConnectionTimeout.TabIndex = 21;
+			this.numericUpDownConnectionTimeout.Value = new decimal(new int[] {
+			1000,
+			0,
+			0,
+			0});
+			// 
+			// label9
+			// 
+			this.label9.AutoSize = true;
+			this.label9.Location = new System.Drawing.Point(277, 170);
+			this.label9.Name = "label9";
+			this.label9.Size = new System.Drawing.Size(74, 13);
+			this.label9.TabIndex = 22;
+			this.label9.Text = "миллисекунд";
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(800, 355);
+			this.ClientSize = new System.Drawing.Size(800, 384);
+			this.Controls.Add(this.label9);
+			this.Controls.Add(this.numericUpDownConnectionTimeout);
+			this.Controls.Add(this.label8);
 			this.Controls.Add(this.textBoxDownloadDir);
 			this.Controls.Add(this.label7);
 			this.Controls.Add(this.btnBrowseDownloadDir);
@@ -595,6 +647,7 @@
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistErrorCountInRow)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownOtherErrorCountInRow)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDownPlaylistCheckInterval)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.numericUpDownConnectionTimeout)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -658,6 +711,9 @@
 		private System.Windows.Forms.ColumnHeader columnHeaderCodecs;
 		private System.Windows.Forms.ColumnHeader columnHeaderLanguage;
 		private System.Windows.Forms.ToolStripMenuItem miRemoveToolStripMenuItem;
+		private System.Windows.Forms.Label label8;
+		private System.Windows.Forms.NumericUpDown numericUpDownConnectionTimeout;
+		private System.Windows.Forms.Label label9;
 	}
 }
 

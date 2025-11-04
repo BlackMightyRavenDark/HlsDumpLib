@@ -26,6 +26,7 @@ namespace HlsDumpLib.GuiTestWPF
 		}
 		public int PlaylistErrorCountInRowMax { get => _playlistErrorCountInRowMax; set => SetProperty(ref _playlistErrorCountInRowMax, value); }
 		public int OtherErrorCountInRowMax { get => _otherErrorCountInRowMax; set => SetProperty(ref _otherErrorCountInRowMax, value); }
+		public int ConnectionTimeout { get => _connectionTimeout; set => SetProperty(ref _connectionTimeout, value); }
 		public bool SaveChunkInfos { get => _saveChunkInfos; set => SetProperty(ref _saveChunkInfos, value); }
 		public bool SaveChunkFileName { get => _saveChunkFileName; set => SetProperty(ref _saveChunkFileName, value); }
 		public bool SaveChunkFileUrl { get => _saveChunkFileUrl; set => SetProperty(ref _saveChunkFileUrl, value); }
@@ -40,6 +41,7 @@ namespace HlsDumpLib.GuiTestWPF
 		private int _playlistCheckIntervalMilliseconds = 2000;
 		private int _playlistErrorCountInRowMax = 5;
 		private int _otherErrorCountInRowMax = 10;
+		private int _connectionTimeout = 2000;
 		private bool _saveChunkInfos = true;
 		private bool _saveChunkFileName = true;
 		private bool _saveChunkFileUrl = true;
@@ -239,6 +241,7 @@ namespace HlsDumpLib.GuiTestWPF
 				["maxPlaylistErrorsInRow"] = PlaylistErrorCountInRowMax,
 				["maxOtherErrorsInRow"] = OtherErrorCountInRowMax,
 				["playlistCheckInterval"] = PlaylistCheckIntervalMilliseconds,
+				["connectionTimeout"] = ConnectionTimeout,
 				["saveChunkInfos"] = SaveChunkInfos,
 				["storeChunkFileName"] = SaveChunkFileName,
 				["storeChunkUrl"] = SaveChunkFileUrl,
@@ -269,6 +272,11 @@ namespace HlsDumpLib.GuiTestWPF
 				JToken jt = json.Value<JToken>("playlistCheckInterval");
 				int n = jt != null ? jt.Value<int>() : 2000;
 				PlaylistCheckIntervalMilliseconds = Utils.Clamp(n, 500, 5000);
+			}
+			{
+				JToken jt = json.Value<JToken>("connectionTimeout");
+				int n = jt != null ? jt.Value<int>() : 2000;
+				ConnectionTimeout = Utils.Clamp(n, 1000, 5000);
 			}
 			{
 				JToken jt = json.Value<JToken>("saveChunkInfos");
@@ -310,6 +318,7 @@ namespace HlsDumpLib.GuiTestWPF
 					PlaylistCheckIntervalMilliseconds,
 					PlaylistErrorCountInRowMax,
 					OtherErrorCountInRowMax,
+					ConnectionTimeout,
 					SaveChunkInfos, SaveChunkFileName, SaveChunkFileUrl,
 					UseGmtTime));
 			}

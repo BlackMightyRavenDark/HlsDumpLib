@@ -94,6 +94,7 @@ namespace HlsDumpLib.GuiTest
 				["maxPlaylistErrorsInRow"] = (int)numericUpDownPlaylistErrorCountInRow.Value,
 				["maxOtherErrorsInRow"] = (int)numericUpDownOtherErrorCountInRow.Value,
 				["playlistCheckInterval"] = (int)numericUpDownPlaylistCheckInterval.Value,
+				["connectionTimeout"] = (int)numericUpDownConnectionTimeout.Value,
 				["saveChunkInfos"] = checkBoxSaveChunkInfos.Checked,
 				["storeChunkFileName"] = checkBoxSaveChunkFileName.Checked,
 				["storeChunkUrl"] = checkBoxSaveChunkUrl.Checked,
@@ -143,6 +144,16 @@ namespace HlsDumpLib.GuiTest
 					int n = jt.Value<int>();
 					int min = (int)numericUpDownPlaylistCheckInterval.Minimum;
 					numericUpDownPlaylistCheckInterval.Value = n < min ? min : n;
+				}
+			}
+			{
+				JToken jt = json.Value<JToken>("connectionTimeout");
+				if (jt != null)
+				{
+					int n = jt.Value<int>();
+					int min = (int)numericUpDownConnectionTimeout.Minimum;
+					int max = (int)numericUpDownConnectionTimeout.Maximum;
+					numericUpDownConnectionTimeout.Value = Clamp(n, min, max);
 				}
 			}
 			{
@@ -735,6 +746,7 @@ namespace HlsDumpLib.GuiTest
 					int maxPlaylistErrorsInRow = (int)numericUpDownPlaylistErrorCountInRow.Value;
 					int maxOtherErrorsInRow = (int)numericUpDownOtherErrorCountInRow.Value;
 					int playlistCheckIntervalMilliseconds = (int)numericUpDownPlaylistCheckInterval.Value;
+					int timeout = (int)numericUpDownConnectionTimeout.Value;
 
 					Task.Run(() =>
 						streamItem.Check(OnCheckStarted, OnCheckFinished,
@@ -744,7 +756,7 @@ namespace HlsDumpLib.GuiTest
 							OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkProcessed,
 							OnErrorsUpdated, OnDumpProgress, OnDumpFinished,
 							playlistCheckIntervalMilliseconds,
-							maxPlaylistErrorsInRow, maxOtherErrorsInRow,
+							maxPlaylistErrorsInRow, maxOtherErrorsInRow, timeout,
 							saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime)
 					);
 				}
@@ -823,6 +835,13 @@ namespace HlsDumpLib.GuiTest
 			return fn.Replace("\\", "\u29F9").Replace("|", "\u2758").Replace("/", "\u2044")
 				.Replace("?", "\u2753").Replace(":", "\uFE55").Replace("<", "\u227A").Replace(">", "\u227B")
 				.Replace("\"", "\u201C").Replace("*", "\uFE61").Replace("^", "\u2303").Replace("\n", " ");
+		}
+
+		private static int Clamp(int val, int min, int max)
+		{
+			if (val < min) { return min; }
+			if (val > max) { return max; }
+			return val;
 		}
 	}
 }

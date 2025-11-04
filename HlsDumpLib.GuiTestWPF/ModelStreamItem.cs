@@ -328,6 +328,7 @@ namespace HlsDumpLib.GuiTestWPF
 			int playlistCheckIntervalMilliseconds,
 			int maxPlaylistErrorCountInRow,
 			int maxOtherErrorCountInRow,
+			int connectionTimeout,
 			bool saveChunksInfo,
 			bool storeChunkFileName,
 			bool storeChunkUrl,
@@ -453,7 +454,7 @@ namespace HlsDumpLib.GuiTestWPF
 							Dumper = null;
 						},
 						playlistCheckIntervalMilliseconds,
-						maxPlaylistErrorCountInRow, maxOtherErrorCountInRow,
+						maxPlaylistErrorCountInRow, maxOtherErrorCountInRow, connectionTimeout,
 						saveChunksInfo, storeChunkFileName, storeChunkUrl, useGmtTime);
 				}
 				else

@@ -104,6 +104,7 @@ namespace HlsDumpLib
 			int playlistCheckIntervalMilliseconds,
 			int maxPlaylistErrorCountInRow,
 			int maxOtherErrorsInRow,
+			int connectionTimeout,
 			bool writeChunksInfo,
 			bool storeChunkFileName,
 			bool storeChunkUrl,
@@ -124,6 +125,7 @@ namespace HlsDumpLib
 			PlaylistErrorCountInRowMax = maxPlaylistErrorCountInRow;
 			OtherErrorCountInRowMax = maxOtherErrorsInRow <= 0 ? 5 : maxOtherErrorsInRow;
 			PlaylistErrorCountInRow = OtherErrorCountInRow = 0;
+			if (connectionTimeout < 500) { connectionTimeout = 500; }
 
 			bool first = true;
 			bool headerChunkExists = false;
@@ -134,7 +136,7 @@ namespace HlsDumpLib
 			FileDownloader playlistDownloader = new FileDownloader()
 			{
 				Url = ActualPlaylistUrl,
-				ConnectionTimeout = 2000,
+				ConnectionTimeout = connectionTimeout,
 				SkipHeaderRequest = true
 			};
 			Stream outputStream = null;
@@ -306,7 +308,7 @@ namespace HlsDumpLib
 									FileDownloader d = new FileDownloader()
 									{
 										Url = playlist?.StreamHeaderSegmentUrl,
-										ConnectionTimeout = 2000,
+										ConnectionTimeout = connectionTimeout,
 										SkipHeaderRequest = true
 									};
 									int headerErrorCode = d.Download(streamHeader);
@@ -393,7 +395,7 @@ namespace HlsDumpLib
 										FileDownloader d = new FileDownloader()
 										{
 											Url = chunk.Url,
-											ConnectionTimeout = 2000,
+											ConnectionTimeout = connectionTimeout,
 											SkipHeaderRequest = true
 										};
 										d.Connecting += (s, url, tryNumber, tryCountLimit) =>

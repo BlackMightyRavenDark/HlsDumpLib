@@ -29,7 +29,7 @@ namespace HlsDumpLib.ConsoleTest
 						OnNextChunkConnecting, OnNextChunkConnected, OnNextChunkProcessed, null,
 						OnDumpProgress, OnChunkDownloadFailed, OnChunkAppendFailed,
 						OnMessage, OnWarning, OnError, OnFinished,
-						2000, 5, 5, true, true, true, useGmtTime);
+						2000, 5, 5, 2000, true, true, true, useGmtTime);
 				}
 				else
 				{
