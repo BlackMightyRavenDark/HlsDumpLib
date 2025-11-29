@@ -1,5 +1,4 @@
 ﻿using System;
-using MultiThreadedDownloaderLib;
 using static HlsDumpLib.GuiTestWPF.Utils;
 
 namespace HlsDumpLib.GuiTestWPF
