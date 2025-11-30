@@ -334,8 +334,8 @@ namespace HlsDumpLib
 												{
 													System.Diagnostics.Debug.WriteLine(ex.Message);
 #else
-													catch
-													{
+												catch
+												{
 #endif
 													jHeaderChunk = null;
 													OtherErrorCountInRow++;
@@ -365,8 +365,8 @@ namespace HlsDumpLib
 							{
 								System.Diagnostics.Debug.WriteLine(ex.Message);
 #else
-								catch
-								{
+							catch
+							{
 #endif
 								jHeaderChunk = null;
 								ChunkDownloadErrorCount++;
@@ -431,8 +431,8 @@ namespace HlsDumpLib
 													{
 														System.Diagnostics.Debug.WriteLine(ex.Message);
 #else
-														catch
-														{
+													catch
+													{
 #endif
 														OtherErrorCountInRow++;
 														dumpError?.Invoke(this, "Failed to append chunk info", OtherErrorCountInRow);
