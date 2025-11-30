@@ -29,15 +29,14 @@ namespace HlsDumpLib
 			IsRelativeTime = isRelativeTime;
 		}
 
-		public JObject ToJson(long position, long size, bool storeFileName, bool storeUrl, bool useGmtTime)
+		public JObject ToJson(long position, long size, bool storeFileName, bool storeUrl)
 		{
 			JObject json = new JObject();
 			json["position"] = position;
 			json["size"] = size;
 			json["id"] = Id;
 			json["length"] = LengthSeconds;
-			DateTime dateTime = useGmtTime ? CreationDate : !IsRelativeTime ? CreationDate.ToLocal() : CreationDate;
-			json["creationDate"] = dateTime;
+			json["creationDate"] = CreationDate;
 			if (storeFileName)
 			{
 				json["fileName"] = FileName;

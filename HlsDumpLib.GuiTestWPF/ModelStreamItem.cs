@@ -258,6 +258,15 @@ namespace HlsDumpLib.GuiTestWPF
 		public string Codecs { get => _codecs; set => SetProperty(ref _codecs, value); }
 		public string Language { get => _language; set => SetProperty(ref _language, value); }
 		public string PlaylistUrl { get => _playlistUrl; set => SetProperty(ref _playlistUrl, value); }
+		public bool UseGmtTime
+		{
+			get => _useGmtTime;
+			set
+			{
+				SetProperty(ref _useGmtTime, value);
+				RaisePropertyChanged(nameof(DumpStartedFormatted));
+			}
+		}
 
 		private string _title;
 		private string _outputFilePath;
@@ -290,6 +299,7 @@ namespace HlsDumpLib.GuiTestWPF
 		private string _codecs;
 		private string _language;
 		private string _playlistUrl;
+		private bool _useGmtTime;
 
 		private int _maxPlaylistErrorCountInRow;
 		private int _maxOtherErrorCountInRow;
@@ -330,8 +340,7 @@ namespace HlsDumpLib.GuiTestWPF
 			int connectionTimeout,
 			bool saveChunksInfo,
 			bool storeChunkFileName,
-			bool storeChunkUrl,
-			bool useGmtTime)
+			bool storeChunkUrl)
 		{
 			if (!WasStarted && !IsDumping && !IsChecking)
 			{
@@ -345,7 +354,7 @@ namespace HlsDumpLib.GuiTestWPF
 				{
 					WantsStop = false;
 					WasStarted = true;
-					DumpStarted = useGmtTime ? DateTime.UtcNow : DateTime.Now;
+					DumpStarted = DateTime.UtcNow;
 					Dumper = new HlsDumper(PlaylistUrl);
 
 					ProcessedChunkCount = 0;
@@ -364,8 +373,7 @@ namespace HlsDumpLib.GuiTestWPF
 						ConnectionTimeoutMilliseconds = connectionTimeout,
 						WriteChunkInfo = saveChunksInfo,
 						StoreChunkFileName = storeChunkFileName,
-						StoreChunkUrl = storeChunkUrl,
-						UseGmtTime = useGmtTime
+						StoreChunkUrl = storeChunkUrl
 					};
 					dumperParameters.PlaylistCheckStarted += (s, url) => State = "Проверка плейлиста...";
 					dumperParameters.PlaylistCheckFinished += (s, chunkCount, newChunkCount, firstChunkId,
@@ -545,7 +553,9 @@ namespace HlsDumpLib.GuiTestWPF
 		private string FormatDateDumpStarted()
 		{
 			if (DumpStarted == DateTime.MaxValue) { return string.Empty; }
-			return DumpStarted.IsGmt() ? $"{DumpStarted} GMT" : DumpStarted.ToString("yyyy.MM.dd HH:mm:ss");
+			DateTime dateTime = UseGmtTime ? DumpStarted : DumpStarted.ToLocal();
+			string dateTimeFormatted = dateTime.ToString("yyyy.MM.dd HH:mm:ss");
+			return dateTime.IsGmt() ? $"{dateTimeFormatted} GMT" : dateTimeFormatted;
 		}
 
 		private string FormatPlaylistErrorCountInRow()

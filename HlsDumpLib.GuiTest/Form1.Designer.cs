@@ -461,8 +461,8 @@
 			this.checkBoxUseGmtTime.Size = new System.Drawing.Size(101, 17);
 			this.checkBoxUseGmtTime.TabIndex = 16;
 			this.checkBoxUseGmtTime.Text = "Время по GMT";
-			this.toolTip1.SetToolTip(this.checkBoxUseGmtTime, "Невозможно изменить для уже добавленных элементов");
 			this.checkBoxUseGmtTime.UseVisualStyleBackColor = true;
+			this.checkBoxUseGmtTime.CheckedChanged += new System.EventHandler(this.checkBoxUseGmtTime_CheckedChanged);
 			// 
 			// btnBrowseDownloadDir
 			// 

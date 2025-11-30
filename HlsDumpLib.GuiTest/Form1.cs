@@ -245,6 +245,18 @@ namespace HlsDumpLib.GuiTest
 			AddItemToListView(item);
 		}
 
+		private void checkBoxUseGmtTime_CheckedChanged(object sender, EventArgs e)
+		{
+			for (int i = 0; i < listViewStreams.Items.Count; ++i)
+			{
+				StreamItem streamItem = listViewStreams.Items[i].Tag as StreamItem;
+				if (streamItem.DumpStarted < DateTime.MaxValue)
+				{
+					listViewStreams.Items[i].SubItems[COLUMN_ID_DATE_DUMP_STARTED].Text = DateTimeToString(streamItem.DumpStarted);
+				}
+			}
+		}
+
 		private void miCheckToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			if (listViewStreams.SelectedIndices.Count > 0)
@@ -801,10 +813,11 @@ namespace HlsDumpLib.GuiTest
 			return -1;
 		}
 
-		public static string DateTimeToString(DateTime dateTime, string format = "yyyy-MM-dd HH-mm-ss")
+		private string DateTimeToString(DateTime dateTime, string format = "yyyy-MM-dd HH-mm-ss")
 		{
-			string t = dateTime.ToString(format);
-			return dateTime.IsGmt() ? $"{t} GMT" : t;
+			DateTime modified = checkBoxUseGmtTime.Checked && dateTime.IsGmt() ? dateTime : dateTime.ToLocal();
+			string formatted = modified.ToString(format);
+			return modified.IsGmt() ? $"{formatted} GMT" : formatted;
 		}
 
 		public static string FormatSize(long n)

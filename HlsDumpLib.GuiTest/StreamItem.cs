@@ -74,8 +74,7 @@ namespace HlsDumpLib.GuiTest
 							ConnectionTimeoutMilliseconds = connectionTimeout,
 							WriteChunkInfo = saveChunksInfo,
 							StoreChunkFileName = storeChunkFileName,
-							StoreChunkUrl = storeChunkUrl,
-							UseGmtTime = useGmtTime
+							StoreChunkUrl = storeChunkUrl
 						};
 						if (playlistCheckStarted != null)
 						{

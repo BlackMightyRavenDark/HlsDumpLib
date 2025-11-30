@@ -102,11 +102,13 @@
 					<CheckBox Content="Сохранять информацию о чанках" IsChecked="{Binding SaveChunkInfos}" Margin="4 0" />
 					<CheckBox Content="Сохранять имя файла чанка" IsChecked="{Binding SaveChunkFileName}" Margin="4 0" />
 					<CheckBox Content="Сохранять ссылку на чанк" IsChecked="{Binding SaveChunkFileUrl}" Margin="4 0" />
-					<CheckBox Content="Время по GMT" IsChecked="{Binding UseGmtTime}" Margin="4 0" />
 				</WrapPanel>
 			</GroupBox>
 
-			<CheckBox Content="Начинать дампинг сразу" IsChecked="{Binding StartDumpImmediately}" Margin="4 0" />
+			<WrapPanel Orientation="Horizontal">
+				<CheckBox Content="Начинать дампинг сразу" IsChecked="{Binding StartDumpImmediately}" Margin="4 0" />
+				<CheckBox Content="Время по GMT" IsChecked="{Binding UseGmtTime}" />
+			</WrapPanel>
 
 			<StackPanel Orientation="Horizontal" Margin="4">
 				<Button Content="Добавить" Padding="6 2"

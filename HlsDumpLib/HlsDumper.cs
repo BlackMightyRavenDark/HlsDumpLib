@@ -107,8 +107,7 @@ namespace HlsDumpLib
 			int connectionTimeout,
 			bool writeChunksInfo,
 			bool storeChunkFileName,
-			bool storeChunkUrl,
-			bool useGmtTime)
+			bool storeChunkUrl)
 		{
 			if (string.IsNullOrEmpty(outputFilePath) || string.IsNullOrWhiteSpace(outputFilePath))
 			{
@@ -328,7 +327,7 @@ namespace HlsDumpLib
 												{
 													long size = streamHeader.Length;
 													long position = outputStream.Position - size;
-													jHeaderChunk = headerChunk.ToJson(position, size, true, true, useGmtTime);
+													jHeaderChunk = headerChunk.ToJson(position, size, true, true);
 												}
 #if DEBUG
 												catch (Exception ex)
@@ -424,7 +423,7 @@ namespace HlsDumpLib
 													{
 														long size = mem.Length;
 														long position = outputStream.Position - size;
-														JObject jChunk = chunk.ToJson(position, size, storeChunkFileName, storeChunkUrl, useGmtTime);
+														JObject jChunk = chunk.ToJson(position, size, storeChunkFileName, storeChunkUrl);
 														jaValidChunks.Add(jChunk);
 													}
 #if DEBUG
@@ -607,8 +606,7 @@ namespace HlsDumpLib
 				parameters.ConnectionTimeoutMilliseconds,
 				parameters.WriteChunkInfo,
 				parameters.StoreChunkFileName,
-				parameters.StoreChunkUrl,
-				parameters.UseGmtTime);
+				parameters.StoreChunkUrl);
 		}
 
 		public void StopDumping()

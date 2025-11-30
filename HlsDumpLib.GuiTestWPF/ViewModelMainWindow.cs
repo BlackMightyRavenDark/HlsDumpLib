@@ -30,7 +30,18 @@ namespace HlsDumpLib.GuiTestWPF
 		public bool SaveChunkInfos { get => _saveChunkInfos; set => SetProperty(ref _saveChunkInfos, value); }
 		public bool SaveChunkFileName { get => _saveChunkFileName; set => SetProperty(ref _saveChunkFileName, value); }
 		public bool SaveChunkFileUrl { get => _saveChunkFileUrl; set => SetProperty(ref _saveChunkFileUrl, value); }
-		public bool UseGmtTime { get => _useGmtTime; set => SetProperty(ref _useGmtTime, value); }
+		public bool UseGmtTime
+		{
+			get => _useGmtTime;
+			set
+			{
+				SetProperty(ref _useGmtTime, value);
+				foreach (ModelStreamItem item in StreamItems)
+				{
+					item.UseGmtTime = value;
+				}
+			}
+		}
 		public bool StartDumpImmediately { get => _startDumpImmediately; set => SetProperty(ref _startDumpImmediately, value); }
 
 		public ModelStreamItem SelectedItem { get => _selectedItem; set => SetProperty(ref _selectedItem, value); }
@@ -222,7 +233,8 @@ namespace HlsDumpLib.GuiTestWPF
 			{
 				Title = title,
 				OutputFilePath = Path.Combine(dir, outputFileName),
-				PlaylistUrl = url
+				PlaylistUrl = url,
+				UseGmtTime = UseGmtTime
 			};
 			StreamItems.Add(item);
 			_listViewStreams.ScrollIntoView(item);
@@ -319,8 +331,7 @@ namespace HlsDumpLib.GuiTestWPF
 					PlaylistErrorCountInRowMax,
 					OtherErrorCountInRowMax,
 					ConnectionTimeout,
-					SaveChunkInfos, SaveChunkFileName, SaveChunkFileUrl,
-					UseGmtTime));
+					SaveChunkInfos, SaveChunkFileName, SaveChunkFileUrl));
 			}
 		}
 

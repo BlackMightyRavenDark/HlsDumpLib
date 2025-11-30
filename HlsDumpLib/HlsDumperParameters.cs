@@ -12,7 +12,6 @@ namespace HlsDumpLib
 		public bool WriteChunkInfo { get; set; }
 		public bool StoreChunkFileName { get; set; }
 		public bool StoreChunkUrl { get; set; }
-		public bool UseGmtTime { get; set; }
 		#region Event delegates
 		public PlaylistCheckStartedDelegate PlaylistCheckStarted { get; set; }
 		public PlaylistCheckFinishedDelegate PlaylistCheckFinished { get; set; }
