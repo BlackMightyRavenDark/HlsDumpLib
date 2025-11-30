@@ -76,19 +76,21 @@ namespace HlsDumpLib
 			return DateTime.MinValue;
 		}
 
-		internal static DateTime ExtractDateFromExtProgramDateTime(string extProgramDateTime)
+		internal static bool ExtractDateFromExtProgramDateTime(string extProgramDateTime, out DateTime dateTime)
 		{
 			if (DateTime.TryParseExact(extProgramDateTime, "yyyy-MM-ddTHH:mm:ss.fffZ",
-				null, DateTimeStyles.AssumeLocal, out DateTime dateTime))
+				null, DateTimeStyles.AdjustToUniversal, out dateTime))
 			{
-				return dateTime.ToUniversalTime();
+				return true;
 			}
 			if (DateTime.TryParse(extProgramDateTime, null,
-				DateTimeStyles.AssumeLocal, out dateTime))
+				DateTimeStyles.AdjustToUniversal, out dateTime))
 			{
-				return dateTime.ToUniversalTime();
+				return true;
 			}
-			return DateTime.MinValue;
+
+			dateTime = DateTime.MinValue;
+			return false;
 		}
 
 		public static bool IsGmt(this DateTime dateTime)

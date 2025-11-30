@@ -105,37 +105,33 @@ namespace HlsDumpLib
 						string[] s = playlistStrings[i - 1].Split(new char[] { ':' }, 2, StringSplitOptions.None);
 						if (s[0] == "#EXT-X-PROGRAM-DATE-TIME")
 						{
-							if (s.Length == 2)
+							if (s.Length == 2 && ExtractDateFromExtProgramDateTime(s[1], out DateTime tmpSegmentDate))
 							{
-								DateTime tmpSegmentDate = ExtractDateFromExtProgramDateTime(s[1]);
-								if (tmpSegmentDate != DateTime.MinValue)
+								segmentDate = tmpSegmentDate;
+								segmentDateFound = true;
+
+								//Для плейлистов, в которых дата указана, начиная не с первого сегмента.
+								if (noDateSegmentCount > 0 && Segments.Count > 0)
 								{
-									segmentDate = tmpSegmentDate;
-									segmentDateFound = true;
-
-									//Для плейлистов, в которых дата указана, начиная не с первого сегмента.
-									if (noDateSegmentCount > 0 && Segments.Count > 0)
+									double summaryLength = 0.0;
+									for (; noDateSegmentCount > 0; noDateSegmentCount--)
 									{
-										double summaryLength = 0.0;
-										for (; noDateSegmentCount > 0; noDateSegmentCount--)
-										{
-											summaryLength += Segments[noDateSegmentCount - 1].LengthSeconds;
-											DateTime previousSegmentDate = segmentDate - TimeSpan.FromSeconds(summaryLength);
-											Segments[noDateSegmentCount - 1].SetCreationDate(previousSegmentDate);
+										summaryLength += Segments[noDateSegmentCount - 1].LengthSeconds;
+										DateTime previousSegmentDate = segmentDate - TimeSpan.FromSeconds(summaryLength);
+										Segments[noDateSegmentCount - 1].SetCreationDate(previousSegmentDate);
 
-											if (!playlistDateFound && noDateSegmentCount == 1)
-											{
-												PlaylistDate = previousSegmentDate;
-												playlistDateFound = true;
-											}
+										if (!playlistDateFound && noDateSegmentCount == 1)
+										{
+											PlaylistDate = previousSegmentDate;
+											playlistDateFound = true;
 										}
 									}
+								}
 
-									if (!playlistDateFound)
-									{
-										PlaylistDate = segmentDate;
-										playlistDateFound = true;
-									}
+								if (!playlistDateFound)
+								{
+									PlaylistDate = segmentDate;
+									playlistDateFound = true;
 								}
 							}
 						}
