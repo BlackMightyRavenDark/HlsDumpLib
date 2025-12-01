@@ -4,87 +4,103 @@ using System.Globalization;
 
 namespace HlsDumpLib
 {
-    internal static class Utils
-    {
-        public static DateTime EpochToDate(long epoch)
-        {
-            TimeSpan timeSpan = TimeSpan.FromMilliseconds(epoch);
-            return new DateTime(1970, 1, 1).AddTicks(timeSpan.Ticks);
-        }
+	public static class Utils
+	{
+		public static DateTime EpochToDate(long epoch)
+		{
+			TimeSpan timeSpan = TimeSpan.FromMilliseconds(epoch);
+			DateTime minEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+			return minEpoch.AddTicks(timeSpan.Ticks);
+		}
 
-        public static string ExtractUrlFileName(string fileUrl)
-        {
-            int n = fileUrl.LastIndexOf('/');
-            return n >= 0 ? fileUrl.Substring(n + 1) : null;
-        }
+		public static string ExtractUrlFileName(string fileUrl)
+		{
+			int n = fileUrl.LastIndexOf('/');
+			return n >= 0 ? fileUrl.Substring(n + 1) : null;
+		}
 
-        public static string ExtractUrlFilePath(string fileUrl)
-        {
-            int n = fileUrl.LastIndexOf('/');
-            return n > 0 ? fileUrl.Substring(0, n) : null;
-        }
+		public static string ExtractUrlFilePath(string fileUrl)
+		{
+			int n = fileUrl.LastIndexOf('/');
+			return n > 0 ? fileUrl.Substring(0, n) : null;
+		}
 
-        public static Dictionary<string, string> SplitStringToKeyValues(
-            string inputString, char keySeparator, char valueSeparator)
-        {
-            if (string.IsNullOrEmpty(inputString) || string.IsNullOrWhiteSpace(inputString))
-            {
-                return null;
-            }
+		public static Dictionary<string, string> SplitStringToKeyValues(
+			string inputString, char keySeparator, char valueSeparator)
+		{
+			if (string.IsNullOrEmpty(inputString) || string.IsNullOrWhiteSpace(inputString))
+			{
+				return null;
+			}
 
-            string[] keyValues = inputString.Split(new char[] { keySeparator }, 2);
-            Dictionary<string, string> dict = new Dictionary<string, string>();
-            for (int i = 0; i < keyValues.Length; ++i)
-            {
-                string[] t = keyValues[i].Split(new char[] { valueSeparator }, 2);
-                string value = t.Length > 1 ? t[1] : string.Empty;
-                dict.Add(t[0], value);
-            }
+			string[] keyValues = inputString.Split(keySeparator);
+			Dictionary<string, string> dict = new Dictionary<string, string>();
+			for (int i = 0; i < keyValues.Length; ++i)
+			{
+				string[] t = keyValues[i].Split(new char[] { valueSeparator }, 2);
+				string value = t.Length > 1 ? t[1] : string.Empty;
+				dict.Add(t[0], value);
+			}
 
-            return dict;
-        }
+			return dict;
+		}
 
-        public static string ExtractUrlFromXMapString(string xMapValue)
-        {
-            string[] splitted = xMapValue?.Split('=');
-            return splitted != null && splitted.Length > 1 && !string.IsNullOrEmpty(splitted[1]) ?
-                splitted[1].Substring(1, splitted[1].Length - 2) : null;
-        }
+		internal static string ExtractUrlFromXMapString(string xMapValue)
+		{
+			string[] splitted = xMapValue?.Split('=');
+			return splitted != null && splitted.Length > 1 && !string.IsNullOrEmpty(splitted[1]) ?
+				splitted[1].Substring(1, splitted[1].Length - 2) : null;
+		}
 
-        public static DateTime ExtractDateFromExtServerString(string extServerValue)
-        {
-            try
-            {
-                Dictionary<string, string> dictionary = SplitStringToKeyValues(extServerValue, ',', '=');
-                if (dictionary != null && dictionary.TryGetValue("TIME", out string timeValue))
-                {
-                    if (long.TryParse(timeValue, out long seconds))
-                    {
-                        return EpochToDate(seconds);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
-            }
+		internal static DateTime ExtractDateFromExtServerString(string extServerValue)
+		{
+			try
+			{
+				Dictionary<string, string> dictionary = SplitStringToKeyValues(extServerValue, ',', '=');
+				if (dictionary != null && dictionary.TryGetValue("TIME", out string timeValue))
+				{
+					if (long.TryParse(timeValue, out long seconds))
+					{
+						return EpochToDate(seconds);
+					}
+				}
+			}
+#if DEBUG
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine(ex.Message);
+			}
+#else
+			catch { }
+#endif
+			return DateTime.MinValue;
+		}
 
-            return DateTime.MinValue;
-        }
+		internal static bool ExtractDateFromExtProgramDateTime(string extProgramDateTime, out DateTime dateTime)
+		{
+			if (DateTime.TryParseExact(extProgramDateTime, "yyyy-MM-ddTHH:mm:ss.fffZ",
+				null, DateTimeStyles.AdjustToUniversal, out dateTime))
+			{
+				return true;
+			}
+			if (DateTime.TryParse(extProgramDateTime, null,
+				DateTimeStyles.AdjustToUniversal, out dateTime))
+			{
+				return true;
+			}
 
-        public static DateTime ExtractDateFromExtProgramDateTime(string extProgramDateTime)
-        {
-            if (DateTime.TryParseExact(extProgramDateTime, "yyyy-MM-ddTHH:mm:ss.fffZ",
-                null, DateTimeStyles.AssumeLocal, out DateTime dateTime))
-            {
-                return dateTime;
-            }
-            if (DateTime.TryParse(extProgramDateTime, null,
-                DateTimeStyles.AssumeLocal, out dateTime))
-            {
-                return dateTime;
-            }
-            return DateTime.MinValue;
-        }
-    }
+			dateTime = DateTime.MinValue;
+			return false;
+		}
+
+		public static bool IsGmt(this DateTime dateTime)
+		{
+			return dateTime.Kind == DateTimeKind.Utc;
+		}
+
+		public static DateTime ToLocal(this DateTime dateTime)
+		{
+			return dateTime.IsGmt() ? dateTime.ToLocalTime() : dateTime;
+		}
+	}
 }

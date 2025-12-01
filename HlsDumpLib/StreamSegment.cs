@@ -3,36 +3,50 @@ using Newtonsoft.Json.Linq;
 
 namespace HlsDumpLib
 {
-    public class StreamSegment
-    {
-        public DateTime CreationDate { get; }
-        public double LengthSeconds { get; }
-        public int Id { get; }
-        public string FileName { get; }
-        public string Url { get; }
+	public class StreamSegment
+	{
+		public DateTime CreationDate { get; private set; }
+		public double LengthSeconds { get; }
+		public int Id { get; }
+		public string FileName { get; }
+		public string Url { get; }
+		public bool IsRelativeTime { get; private set; }
 
-        public StreamSegment(DateTime creationDate, double lengthSeconds,
-            int id, string fileName, string url)
-        {
-            CreationDate = creationDate;
-            LengthSeconds = lengthSeconds;
-            Id = id;
-            FileName = fileName;
-            Url = url;
-        }
+		public StreamSegment(DateTime creationDate, double lengthSeconds,
+			int id, string fileName, string url, bool isRelativeTime)
+		{
+			CreationDate = creationDate;
+			LengthSeconds = lengthSeconds;
+			Id = id;
+			FileName = fileName;
+			Url = url;
+			IsRelativeTime = isRelativeTime;
+		}
 
-        public JObject ToJson(long position, long size)
-        {
-            JObject json = new JObject();
-            json["position"] = position;
-            json["size"] = size;
-            json["id"] = Id;
-            json["length"] = LengthSeconds;
-            json["creationDate"] = CreationDate;
-            json["fileName"] = FileName;
-            json["url"] = Url;
+		internal void SetCreationDate(DateTime creationDate, bool isRelativeTime = false)
+		{
+			CreationDate = creationDate;
+			IsRelativeTime = isRelativeTime;
+		}
 
-            return json;
-        }
-    }
+		public JObject ToJson(long position, long size, bool storeFileName, bool storeUrl)
+		{
+			JObject json = new JObject();
+			json["position"] = position;
+			json["size"] = size;
+			json["id"] = Id;
+			json["length"] = LengthSeconds;
+			json["creationDate"] = CreationDate;
+			if (storeFileName)
+			{
+				json["fileName"] = FileName;
+			}
+			if (storeUrl)
+			{
+				json["url"] = Url;
+			}
+
+			return json;
+		}
+	}
 }

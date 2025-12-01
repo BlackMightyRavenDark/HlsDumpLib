@@ -1,191 +1,222 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using static HlsDumpLib.Utils;
 
 namespace HlsDumpLib
 {
-    public class M3UPlaylist
-    {
-        public string PlaylistContent { get; }
-        public string PlaylistUrl { get; }
-        public DateTime PlaylistDate { get; private set; }
+	public class M3UPlaylist
+	{
+		public string PlaylistContent { get; }
+		public string PlaylistUrl { get; }
+		public DateTime PlaylistDate { get; private set; }
 
-        private string _playlistPath;
+		private string _playlistPath;
 
-        public int MediaSequence { get; private set; } = -1;
-        public string StreamHeaderSegmentUrl { get; private set; }
-        public List<StreamSegment> Segments { get; private set; }
-        public List<string> SubPlaylistUrls { get; private set; }
+		public int MediaSequence { get; private set; } = -1;
+		public string StreamHeaderSegmentUrl { get; private set; }
+		public List<StreamSegment> Segments { get; private set; }
+		public M3UManifest Manifest { get; private set; }
 
-        public M3UPlaylist(string playlistContent, string playlistUrl)
-        {
-            PlaylistContent = playlistContent;
-            PlaylistUrl = playlistUrl;
-            _playlistPath = ExtractUrlFilePath(playlistUrl);
-        }
+		public bool HasHeaderSegment => !string.IsNullOrEmpty(StreamHeaderSegmentUrl) && !string.IsNullOrWhiteSpace(StreamHeaderSegmentUrl);
+		public bool HasSegments => Segments != null && Segments.Count > 0;
+		public bool IsManifest => Manifest != null;
 
-        public void Parse()
-        {
-            string[] strings = PlaylistContent.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            int stringCount = strings.Length;
-            for (int i = 0; i < stringCount; ++i)
-            {
-                if (!string.IsNullOrEmpty(strings[i]) && !string.IsNullOrWhiteSpace(strings[i]))
-                {
-                    string[] splitted = strings[i].Split(new char[] { ':' }, 2);
-                    if (splitted != null && splitted.Length == 2)
-                    {
-                        if (splitted[0] == "#EXT-SERVER")
-                        {
-                            PlaylistDate = ExtractDateFromExtServerString(splitted[1]);
-                        }
-                        else if (splitted[0] == "#EXT-X-STREAM-INF")
-                        {
-                            ParseManifest(strings, i);
-                            break;
-                        }
-                        else if (splitted[0] == "#EXT-X-MEDIA-SEQUENCE")
-                        {
-                            MediaSequence = int.TryParse(splitted[1], out int id) ? id : -1;
-                        }
-                        else if (splitted[0] == "#EXT-X-MAP")
-                        {
-                            StreamHeaderSegmentUrl = ExtractUrlFromXMapString(splitted[1]);
-                        }
-                        else if (splitted[0] == "#EXT-X-PROGRAM-DATE-TIME" ||
-                            splitted[0] == "#EXTINF")
-                        {
-                            ParseSegments(strings, i);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+		public M3UPlaylist(string playlistContent, string playlistUrl)
+		{
+			PlaylistContent = playlistContent;
+			PlaylistUrl = playlistUrl;
+			_playlistPath = ExtractUrlFilePath(playlistUrl);
+		}
 
-        private void ParseSegments(string[] playlistStrings, int startStringId)
-        {
-            Segments = new List<StreamSegment>();
+		public void Parse()
+		{
+			string[] strings = PlaylistContent.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+			int stringCount = strings.Length;
+			for (int i = 0; i < stringCount; ++i)
+			{
+				if (!string.IsNullOrEmpty(strings[i]) && !string.IsNullOrWhiteSpace(strings[i]))
+				{
+					string[] splitted = strings[i].Split(new char[] { ':' }, 2);
+					if (splitted != null && splitted.Length == 2)
+					{
+						if (splitted[0] == "#EXT-SERVER")
+						{
+							PlaylistDate = ExtractDateFromExtServerString(splitted[1]);
+						}
+						else if (splitted[0] == "#EXT-X-MEDIA-SEQUENCE")
+						{
+							MediaSequence = int.TryParse(splitted[1], out int id) ? id : -1;
+						}
+						else if (splitted[0] == "#EXT-X-MAP")
+						{
+							StreamHeaderSegmentUrl = ExtractUrlFromXMapString(splitted[1]);
+						}
+						else if (splitted[0] == "#EXT-X-STREAM-INF")
+						{
+							Manifest = M3UManifest.Parse(PlaylistContent, PlaylistUrl);
+							return;
+						}
+						else if (splitted[0] == "#EXT-X-PROGRAM-DATE-TIME" ||
+							splitted[0] == "#EXTINF")
+						{
+							ParseSegments(strings, i);
+							break;
+						}
+					}
+				}
+			}
+		}
 
-            bool firstSegment = true;
-            bool dateFound = PlaylistDate != DateTime.MinValue;
+		private void ParseSegments(string[] playlistStrings, int startStringId)
+		{
+			Segments = new List<StreamSegment>();
 
-            DateTime segmentDate = PlaylistDate;
-            int segmentId = MediaSequence < 0 ? 0 : MediaSequence;
+			bool firstSegment = true;
+			bool playlistDateFound = PlaylistDate != DateTime.MinValue;
 
-            int stringCount = playlistStrings.Length;
-            for (int i = startStringId; i < stringCount; ++i)
-            {
-                double segmentLength = 0.0;
-                string segmentFileName = null;
-                string segmentUrl = null;
+			DateTime segmentDate = PlaylistDate;
+			int segmentId = MediaSequence < 0 ? 0 : MediaSequence;
+			int noDateSegmentCount = 0;
 
-                string[] splitted = playlistStrings[i].Split(new char[] { ':' }, 2, StringSplitOptions.None);
-                if (splitted[0] == "#EXTINF")
-                {
-                    if (splitted.Length == 2)
-                    {
-                        string[] lengthSplitted = splitted[1].Split(',');
-                        NumberFormatInfo numberFormatInfo = new NumberFormatInfo() { NumberDecimalSeparator = "." };
-                        segmentLength = double.TryParse(lengthSplitted[0], NumberStyles.Any,
-                            numberFormatInfo, out double d) ? d : 0.0;
-                    }
+			int stringCount = playlistStrings.Length;
+			for (int i = startStringId; i < stringCount; ++i)
+			{
+				string[] splitted = playlistStrings[i].Split(new char[] { ':' }, 2, StringSplitOptions.None);
+				if (splitted[0] == "#EXTINF")
+				{
+					double segmentLength = 0.0;
+					string segmentFileName = null;
+					string segmentUrl = null;
+					bool segmentDateFound = false;
 
-                    if (i > 0)
-                    {
-                        DateTime tmpSegmentDate = DateTime.MinValue;
+					if (splitted.Length == 2)
+					{
+						string[] lengthSplitted = splitted[1].Split(',');
+						NumberFormatInfo numberFormatInfo = new NumberFormatInfo() { NumberDecimalSeparator = "." };
+						segmentLength = double.TryParse(lengthSplitted[0], NumberStyles.Any,
+							numberFormatInfo, out double d) ? d : 0.0;
+					}
 
-                        string[] s = playlistStrings[i - 1].Split(new char[] { ':' }, 2, StringSplitOptions.None);
-                        if (s[0] == "#EXT-X-PROGRAM-DATE-TIME")
-                        {
-                            if (s.Length == 2)
-                            {
-                                tmpSegmentDate = ExtractDateFromExtProgramDateTime(s[1]);
-                                if (tmpSegmentDate != DateTime.MinValue) { segmentDate = tmpSegmentDate; }
-                                if (!dateFound)
-                                {
-                                    PlaylistDate = segmentDate;
-                                    dateFound = tmpSegmentDate != DateTime.MinValue;
-                                }
-                            }
-                        }
+					if (i > 0)
+					{
+						string[] s = playlistStrings[i - 1].Split(new char[] { ':' }, 2, StringSplitOptions.None);
+						if (s[0] == "#EXT-X-PROGRAM-DATE-TIME")
+						{
+							if (s.Length == 2 && ExtractDateFromExtProgramDateTime(s[1], out DateTime tmpSegmentDate))
+							{
+								segmentDate = tmpSegmentDate;
+								segmentDateFound = true;
 
-                        if (tmpSegmentDate != DateTime.MinValue)
-                        {
-                            segmentDate = tmpSegmentDate;
-                        }
-                        else if (!firstSegment)
-                        {
-                            segmentDate += TimeSpan.FromSeconds(segmentLength);
-                        }
-                    }
+								//Для плейлистов, в которых дата указана, начиная не с первого сегмента.
+								if (noDateSegmentCount > 0 && Segments.Count > 0)
+								{
+									double summaryLength = 0.0;
+									for (; noDateSegmentCount > 0; noDateSegmentCount--)
+									{
+										summaryLength += Segments[noDateSegmentCount - 1].LengthSeconds;
+										DateTime previousSegmentDate = segmentDate - TimeSpan.FromSeconds(summaryLength);
+										Segments[noDateSegmentCount - 1].SetCreationDate(previousSegmentDate);
 
-                    if (i < stringCount - 1)
-                    {
-                        string url = playlistStrings[i + 1];
-                        if (!string.IsNullOrEmpty(url) && !url.StartsWith("#"))
-                        {
-                            url = url.Split('?')[0];
-                            if (url.StartsWith("http"))
-                            {
-                                int n = url.LastIndexOf('/');
-                                segmentFileName = n >= 0 ? url.Substring(n + 1) : null;
-                            }
-                            else
-                            {
-                                segmentFileName = url;
-                                url = $"{_playlistPath}/{segmentFileName}";
-                            }
+										if (!playlistDateFound && noDateSegmentCount == 1)
+										{
+											PlaylistDate = previousSegmentDate;
+											playlistDateFound = true;
+										}
+									}
+								}
 
-                            segmentUrl = url;
+								if (!playlistDateFound)
+								{
+									PlaylistDate = segmentDate;
+									playlistDateFound = true;
+								}
+							}
+						}
+						else if (!playlistDateFound)
+						{
+							noDateSegmentCount++;
+						}
 
-                            i++;
-                        }
-                    }
+						if (!segmentDateFound && !firstSegment)
+						{
+							double lastSegmentLength = Segments.Count > 0 ?
+								Segments[Segments.Count - 1].LengthSeconds :
+								//Безвыходное положение.
+								//Негде взять продолжительность предыдущего сегмента.
+								//По-этому, делаем её равной одной десятой секунды.
+								0.1;
+							segmentDate += TimeSpan.FromSeconds(lastSegmentLength);
+						}
+					}
+					else if (!playlistDateFound)
+					{
+						noDateSegmentCount++;
+					}
 
-                    if (!string.IsNullOrEmpty(segmentUrl) && !string.IsNullOrWhiteSpace(segmentUrl))
-                    {
-                        StreamSegment segment = new StreamSegment(segmentDate, segmentLength,
-                            segmentId, segmentFileName, segmentUrl);
-                        Segments.Add(segment);
-                    }
+					if (i < stringCount - 1)
+					{
+						string url = playlistStrings[i + 1];
+						if (!string.IsNullOrEmpty(url) && !url.StartsWith("#"))
+						{
+							url = url.Split('?')[0];
+							if (url.StartsWith("http"))
+							{
+								int n = url.LastIndexOf('/');
+								segmentFileName = n >= 0 ? url.Substring(n + 1) : null;
+							}
+							else
+							{
+								segmentFileName = url;
+								url = $"{_playlistPath}/{segmentFileName}";
+							}
 
-                    segmentId++;
-                    firstSegment = false;
-                }
-            }
-        }
+							segmentUrl = url;
 
-        private void ParseManifest(string[] manifestStrings, int startStringId)
-        {
-            SubPlaylistUrls = new List<string>();
-            int max = manifestStrings.Length - 2;
-            for (int i = startStringId; i <= max; i += 2)
-            {
-                string[] splitted = manifestStrings[i].Split(new char[] { ':' }, 2);
-                if (splitted != null && splitted.Length == 2)
-                {
-                    if (splitted[0] == "#EXT-X-STREAM-INF")
-                    {
-                        if (!manifestStrings[i + 1].StartsWith("#"))
-                        {
-                            if (manifestStrings[i + 1].EndsWith("m3u8", StringComparison.OrdinalIgnoreCase))
-                            {
-                                string url = manifestStrings[i + 1].StartsWith("http", StringComparison.OrdinalIgnoreCase) ?
-                                    manifestStrings[i + 1] : $"{_playlistPath}/{manifestStrings[i + 1]}";
-                                SubPlaylistUrls.Add(url);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+							i++;
+						}
+					}
 
-        public IEnumerable<StreamSegment> Filter(IEnumerable<StreamSegment> filter)
-        {
-            return Segments?.Where(s => !filter.Any(a => a.Url == s.Url));
-        }
-    }
+					if (!string.IsNullOrEmpty(segmentUrl) && !string.IsNullOrWhiteSpace(segmentUrl))
+					{
+						bool dateFound = playlistDateFound || segmentDateFound;
+						StreamSegment segment = new StreamSegment(segmentDate, segmentLength,
+							segmentId, segmentFileName, segmentUrl, !dateFound);
+						Segments.Add(segment);
+					}
+
+					segmentId++;
+					firstSegment = false;
+				}
+			}
+		}
+
+		public IEnumerable<StreamSegment> Filter(IEnumerable<StreamSegment> filter)
+		{
+			return Segments?.Where(s => !filter.Any(a => a.Url == s.Url));
+		}
+
+		/// <summary>
+		/// Warning! Playlist must be parsed before calling this method!
+		/// </summary>
+		/// <returns>Extension for the output file name</returns>
+		public string GetOutputFileExtension()
+		{
+			const string defaultExtension = ".ts";
+
+			if (!HasSegments) { return defaultExtension; }
+
+			if (!string.IsNullOrEmpty(Segments[0].Url) && !string.IsNullOrWhiteSpace(Segments[0].Url))
+			{
+				string ext = Path.GetExtension(Segments[0].Url);
+				if (string.IsNullOrEmpty(ext) || string.IsNullOrWhiteSpace(ext)) { return defaultExtension; }
+
+				return ext.Equals(".pts", StringComparison.OrdinalIgnoreCase) ? defaultExtension : ext;
+			}
+
+			return defaultExtension;
+		}
+	}
 }
